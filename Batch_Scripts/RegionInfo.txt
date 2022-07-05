@@ -1,0 +1,95 @@
+freesurfer color index and region                     
+1001    lh-bankssts                    
+1002    lh-caudalanteriorcingulate     
+1003    lh-caudalmiddlefrontal                      
+1005    lh-cuneus                      
+1006    lh-entorhinal
+1032    lh-frontalpole
+1007    lh-fusiform                    
+1008    lh-inferiorparietal            
+1009    lh-inferiortemporal
+1035    lh-insula            
+1010    lh-isthmuscingulate            
+1011    lh-lateraloccipital            
+1012    lh-lateralorbitofrontal        
+1013    lh-lingual                     
+1014    lh-medialorbitofrontal         
+1015    lh-middletemporal 
+1017    lh-paracentral              
+1016    lh-parahippocampal                            
+1018    lh-parsopercularis             
+1019    lh-parsorbitalis               
+1020    lh-parstriangularis            
+1021    lh-pericalcarine               
+1022    lh-postcentral                 
+1023    lh-posteriorcingulate          
+1024    lh-precentral                  
+1025    lh-precuneus                   
+1026    lh-rostralanteriorcingulate    
+1027    lh-rostralmiddlefrontal        
+1028    lh-superiorfrontal             
+1029    lh-superiorparietal            
+1030    lh-superiortemporal            
+1031    lh-supramarginal                                
+1033    lh-temporalpole                
+1034    lh-transversetemporal
+
+                      
+
+                    
+2001    rh-bankssts                    
+2002    rh-caudalanteriorcingulate     
+2003    rh-caudalmiddlefrontal                     
+2005    rh-cuneus                      
+2006    rh-entorhinal 
+2032    rh-frontalpole                  
+2007    rh-fusiform                    
+2008    rh-inferiorparietal            
+2009    rh-inferiortemporal 
+2035    rh-insula            
+2010    rh-isthmuscingulate            
+2011    rh-lateraloccipital            
+2012    rh-lateralorbitofrontal        
+2013    rh-lingual                     
+2014    rh-medialorbitofrontal         
+2015    rh-middletemporal
+2017    rh-paracentral               
+2016    rh-parahippocampal                            
+2018    rh-parsopercularis             
+2019    rh-parsorbitalis               
+2020    rh-parstriangularis            
+2021    rh-pericalcarine               
+2022    rh-postcentral                 
+2023    rh-posteriorcingulate          
+2024    rh-precentral                  
+2025    rh-precuneus                   
+2026    rh-rostralanteriorcingulate    
+2027    rh-rostralmiddlefrontal        
+2028    rh-superiorfrontal             
+2029    rh-superiorparietal            
+2030    rh-superiortemporal            
+2031    rh-supramarginal                               
+2033    rh-temporalpole                
+2034    rh-transversetemporal          
+
+
+          
+10      lh.thalamus
+11      lh.caudate
+12      lh.putamen
+13      lh.pallidum
+18      lh.amgdala
+17      lh.hippocampus
+26      lh.accumbens
+7/8     lh.cerebellum-white-matter/lh.cerebellum-cortex
+
+49      rh.thalamus
+50      rh.caudate
+51      rh.putamen
+52      rh.pallidum
+54      rh.amgdala
+53      rh.hippocampus
+58      rh.accumbens
+46/47     rh.cerebellum-white-matter/lh.cerebellum-cortex 
+
+16      Brain-stem                   

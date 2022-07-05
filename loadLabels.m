@@ -10,7 +10,7 @@ nbROI=length(filenames);
 nbInROI=zeros(nbROI,1);
 
 ft_defaults
-atlas=ft_read_mri([pathToFile,'/mri/aparc+aseg.nii']); % load aparc+aseg.nii to get subcortical coordinates
+atlas=ft_read_mri([pathToFile,'/../aparc+aseg.nii']); % load aparc+aseg.nii to get subcortical coordinates
 
 
 if type==1

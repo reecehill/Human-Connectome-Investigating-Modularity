@@ -32,7 +32,7 @@ trk_len_full=[];
 trk_type_full=[];
 trkEP_full=[];
 for i=1:1
-filename=[pathToFile,'/1m',num2str(0+i-1),'-1mil.trk']
+filename=[pathToFile,'/1m',num2str(0+i-1),'.trk']
 
 [rawTrkMeta,rawTrk]=eval(['trk_read(filename);']);
 

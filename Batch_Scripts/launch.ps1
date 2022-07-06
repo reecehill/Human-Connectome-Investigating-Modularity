@@ -6,6 +6,7 @@ $pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
 $drive = 'C:/'
 
 $startAfresh = Read-host 'Delete all participant information and start afresh? (Yes/No)'
+$dataToUse = Read-host 'Begin with Freesurfer and unprocessed data [u], or retrieve preprocessed data and skip Freesurfer [p]?'
 
 $subjectList = Get-Content -Path $($drive + $pathToParticipants+'\file_list_HCP_all_subset.txt')
 
@@ -42,4 +43,4 @@ foreach ($subjectId in $subjectList){
 }
 
 # Launch WSL (Ubuntu 18 environment first)
-wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurfer_batch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants);
+wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurfer_batch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) $dataToUse;

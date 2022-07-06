@@ -3,7 +3,7 @@ export FS_LICENSE=$1
 export FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 export pathto_participants=$2
-
+export dataToUse=$3
 
 cd $pathto_participants
 i=0
@@ -13,10 +13,11 @@ for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
 
 export SUBJECTS_DIR=$pathto_participants/$subj/unprocessed/3T/T1w_MPR1
 
+if [ "$dataToUse" -eq 'u' ]; then 
 ### recon-all to processing data
 mri_convert "${SUBJECTS_DIR}/${subj}_3T_T1w_MPR1.nii.gz" "${SUBJECTS_DIR}/${subj}_3T_T1w_MPR1.nii"
 recon-all -i "${SUBJECTS_DIR}/${subj}_3T_T1w_MPR1.nii" -s "bert" -all
-exit;
+fi;
 
 
 ### get aparc+aseg.nii

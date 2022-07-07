@@ -35,15 +35,16 @@ for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
 
   export SUBJECTS_DIR=$pathto_participants/$subj/T1w
 
-  if [ "$dataToUse" = 'u' ]; then 
+  if [ "$dataToUse" = 'U' ]; then 
     runFreesurferReconAll;
     getAparcAsecNii;
     getROILabels;
-  elif [ "$dataToUse" = 'p' ]; then 
+  elif [ "$dataToUse" = 'P' ]; then 
     getAparcAsecNii;
     getROILabels;
   else
-    echo "You must enter either u or p."
+    echo "You must enter either u or p.";
+    exit;
   fi;
 
 done

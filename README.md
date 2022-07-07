@@ -14,7 +14,7 @@ The original code scripts were provided and used by Taylor et al. (2017) [DOI: 1
 3. **Latest software** The code is now compatible with latest software versions. For example, many DSI Studio CLI arguments were deprecated (e.g., --csf_calibration=1).
 	1. DSI Studio no longer allows random sampling of tracts (--random-seed, --seed-plan are deprecated). Whilst the original code took ten 1 million random tracts (? possible loss of uniqueness), this is no longer supported. Instead, we just take 10 million tracts in a single pass; the updated codebase demands more memory.  
 
-# Overview of codebase
+# Overview
 To supplement the "Instructions" section below, here we include a brief overview of the code, its pipeline, and the environment.
 
 ## Machine specification
@@ -22,7 +22,38 @@ The minimum machine requirements to run this code are not known. For a ballpark,
 
 - OS: Windows 10 Education
 - CPU: 6 cores (3.6GHz)
-- RAM: 16Gb
+- **RAM: 16Gb**
 - Storage: The amount is dependent on the number of subjects retrieved.
-- GPU: Nvidia Geforce GTX 980 Ti
+- GPU: Nvidia GeForce GTX 980 Ti
   - ? Unsure how useful this is at all. 
+
+## Code walk-through
+The main file is launch.ps1. When executed, it:
+1. Defines parameters (mainly paths to data, packages etc.)
+2. Clears data from previous runs (can be disabled).
+3. Loops through subjects, and retrieves missing data.
+4. Launches WSL, of which loops through subjects and executes FreeSurfer on each to process raw data.
+  - The FreeSurfer preprocessing and processing pipelines are documented here (Chapter 4, https://www.humanconnectome.org/storage/app/media/documentation/s1200/HCP_S1200_Release_Reference_Manual.pdf)  
+5. Loops through subjects, and launches DSIStudio for each.
+6. **TO DO** Loops through subjects, and launches MatLab for each.
+
+The end result is the Participants folder will contain ?**TODO**?.
+
+# Instructions
+## Installation
+Before running the script, the follow software/packages must be installed:
+- MatLab (we're using version R2021b) [https://uk.mathworks.com/products/matlab.html]
+  - Gifti toolbox: [https://github.com/nno/matlab_GIfTI]
+  - Along-tract-stats: [https://github.com/johncolby/along-tract-stats]
+  - Iso2mesh: [https://github.com/fangq/iso2mesh]
+  - Fieldtrip: [https://github.com/fieldtrip/fieldtrip]
+  - Surfstat: [https://github.com/blachniet/SurfStat]
+- Windows Subsystem for Linux (we're using version 2) [https://docs.microsoft.com/en-us/windows/wsl/install]
+  - Ubuntu (v18.04.05) [https://ubuntu.com/download]
+  - FreeSurfer (v7.1.1) [https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall]
+    - We used a publically available Shell script to install FreeSurfer in WSL [https://gist.github.com/gbnegrini/8d70c9b887798dbcfcd1654dcea279f6]) 
+- (_Optional_) XLaunch [https://sourceforge.net/projects/vcxsrv/]
+  - Enables presentation of GUI of Linux applications in Windows, although not used by this codebase.
+- DSIStudio (we're using the DSI Studio with GPU Support, edition SM52, version "Chen", released 3rd Dec 2021) [https://dsi-studio.labsolver.org/download.html]
+  - (_Optional_) CUDA Toolkit [https://developer.nvidia.com/cuda-downloads]
+    - Required only for DSI Studio with GPU Support.

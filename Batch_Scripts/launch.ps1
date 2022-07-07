@@ -130,7 +130,7 @@ foreach ($subjectId in $subjectList){
 
 # Launch WSL (Ubuntu 18 environment)
 # No need to loop through subjects here, as it occurs within Linux.
-#wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
+wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
 
 ######
 # (END)
@@ -140,7 +140,7 @@ foreach ($subjectId in $subjectList){
 # LAUNCH DSI (START, STEP 4)
 ######
 foreach ($subjectId in $subjectList) {
-  #& $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
+  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
 }
 ######
 # (END)

@@ -33,7 +33,7 @@ The main file is launch.ps1. When executed, it:
 2. Clears data from previous runs (can be disabled).
 3. Loops through subjects, and retrieves missing data.
 4. Launches WSL, of which loops through subjects and executes FreeSurfer on each to process raw data.
-  1. The FreeSurfer preprocessing and processing pipelines are documented here (Chapter 4, https://www.humanconnectome.org/storage/app/media/documentation/s1200/HCP_S1200_Release_Reference_Manual.pdf)  
+  - The FreeSurfer preprocessing and processing pipelines are documented here (Chapter 4, https://www.humanconnectome.org/storage/app/media/documentation/s1200/HCP_S1200_Release_Reference_Manual.pdf)  
 5. Loops through subjects, and launches DSIStudio for each.
 6. **TO DO** Loops through subjects, and launches MatLab for each.
 

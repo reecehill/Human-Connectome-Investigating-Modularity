@@ -141,8 +141,8 @@ wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Ba
 ######
 Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
-  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
 }
 ######
 # (END)
@@ -157,8 +157,8 @@ $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
 Write-Host "STEP 5 of 5: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
-  & matlab -batch "try, batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate; end;"
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  & matlab -batch "try, batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate; end;"
 }
 ######
 # (END)

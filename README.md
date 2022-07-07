@@ -37,7 +37,42 @@ The main file is launch.ps1. When executed, it:
 5. Loops through subjects, and launches DSIStudio for each.
 6. **TO DO** Loops through subjects, and launches MatLab for each.
 
-The end result is the Participants folder will contain ?**TODO**?.
+The end result is that under the Participants folder, each subject will have:
+- **trsfmTrk.mat**
+  - trkEP
+  - trk_len
+  - trk_type
+- **labelSRF.mat**
+  - filenames
+  - subfilenames
+  - glpvertex
+  - grpvertex
+  - glpfaces
+  - grpfaces
+  - faceROIidL
+  - faceROIidR
+  - nfl
+  - nfr
+  - nvl
+  - nvr
+  - SubCoor
+  - subROIid
+- **edgeList.mat**
+  - edgeListLocal
+  - edgeListRemote
+  - lpcentroids
+  - rpcentroids
+  - SubCoor
+- **matrices.mat**
+  - adj_remote_bin
+  - adj_remote_wei
+  - adj_remote_len
+  - adj_local
+  - adj_matrix
+  - faceROI_all
+  - faceROI_cortical
+  - lo_adj_wei
+  - low_adj_cortical_wei
 
 # Set-up and use
 ## Installation

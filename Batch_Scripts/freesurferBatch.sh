@@ -5,39 +5,39 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 export pathToParticipants=$2
 export subjectId=$3
 export dataToUse=$4
-export subjectsDir="$pathToParticipants/$subjectId/T1w";
+export SUBJECTS_DIR="$pathToParticipants/$subjectId/T1w";
 cd $pathToParticipants
 
 function runFreesurferReconAll {
   ### recon-all to processing data
-  mri_convert "$subjectsDir/T1.nii.gz" "$subjectsDir/T1.nii"
-  recon-all -i "$subjectsDir/T1.nii" -s $subjectId -all
+  mri_convert "$SUBJECTS_DIR/T1.nii.gz" "$SUBJECTS_DIR/T1.nii"
+  recon-all -i "$SUBJECTS_DIR/T1.nii" -s "bert" -all
 }
 ### get aparc+aseg.nii
-getAparcAsecNii() {
-  # $1 = $subjectsDir
+function getAparcAsecNii {
+  # $1 = $SUBJECTS_DIR
   echo  "Called getAparcAsecNii";
-  mri_convert "$subjectsDir/bert/mri/aparc+aseg.mgz" "$subjectsDir/bert/mri/aparc+aseg.nii"
-  if [ ! -f $subjectsDir/bert/mri/aparc+aseg.nii ]; then
+  mri_convert "$SUBJECTS_DIR/bert/mri/aparc+aseg.mgz" "$SUBJECTS_DIR/bert/mri/aparc+aseg.nii"
+  if [ ! -f $SUBJECTS_DIR/bert/mri/aparc+aseg.nii ]; then
     echo "There was an error. Freesurfer did not convert aparc+aseg.mgz -> .nii.";
     exit 0;
   fi
 }
 
-getROILabels() {
-  # $1 = $subjectsDir
+function getROILabels {
+  # $1 = $SUBJECTS_DIR
 
   ### get 68 ROI labels based on pial file
   echo  "Called getROILabels"
-  echo  "$subjectsDir";
+  echo  "$SUBJECTS_DIR";
   # The pial file is provided by FreeSurfer.
-  mri_annotation2label --subject "bert" --hemi lh --surf pial --outdir $subjectsDir/bert/label/label_type2
-  mri_annotation2label --subject "bert" --hemi rh --surf pial --outdir $subjectsDir/bert/label/label_type2
+  mri_annotation2label --subject "bert" --hemi lh --surf pial --outdir $SUBJECTS_DIR/bert/label/label_type2
+  mri_annotation2label --subject "bert" --hemi rh --surf pial --outdir $SUBJECTS_DIR/bert/label/label_type2
 
 ### get 68 ROI labels based on pial.surf.gii file
 # The HCP dataset provides both pial.surf.gii AND alongside pial.  
-#mri_annotation2label --subject "bert" --hemi lh --surf pial.surf.gii --outdir $subjectsDir/bert/label/label_type1
-#mri_annotation2label --subject "bert" --hemi rh --surf pial.surf.gii --outdir $subjectsDir/bert/label/label_type1
+#mri_annotation2label --subject "bert" --hemi lh --surf pial.surf.gii --outdir $SUBJECTS_DIR/bert/label/label_type1
+#mri_annotation2label --subject "bert" --hemi rh --surf pial.surf.gii --outdir $SUBJECTS_DIR/bert/label/label_type1
 }
 
 if [ "$dataToUse" = 'U' ]; then 

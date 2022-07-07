@@ -7,6 +7,15 @@ function batch_process(pathToFile,subjects,type,downsample,rate)
 % downsample: 'yes'-- downsample of surface 
 %             'no'--- no downsample (default)
 % rate:  downsample rate, default is 0.1, 90% left
+
+% Ensure numbers are numbers and not char
+if(isa(type, "char"))
+    type = str2double(type);
+end
+if(isa(rate, "char"))
+    rate = str2double(rate);
+end
+
 disp(subjects);
 subjects={subjects};
 restoredefaultpath;
@@ -40,15 +49,17 @@ end
 %% convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
 
 for i=1:length(subjects)
-    [trkEP,trk_len,trk_type]=conversion([pathToFile,subjects{i},'/T1w/Diffusion'],type);
-    filename=[pathToFile,subjects{i},'/trsfmTrk.mat'];
+    subject = subjects{i}
+    pathToSubjectData = [pathToFile num2str(subject) '/T1w/']
+    [trkEP,trk_len,trk_type]=conversion(pathToSubjectData,type);
+    filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
     save(filename,'trkEP','trk_len','trk_type','-v7.3');
     clear trkEP trk_len trk_type
 end
 %%  assign freesurfer ROI labels to each face
 
 for i=1:length(subjects)
-    [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i},'/T1w/Diffusion'],type,downsample,rate);
+    [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i},'/T1w/'],type,downsample,rate);
 %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
     % save data
     filename=[pathToFile,subjects{i},'/labelSRF.mat'];
@@ -58,7 +69,7 @@ end
 
 %% Make edgelist and other stuff
 for i=1:length(subjects)
-    [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList([pathToFile,subjects{i},'/T1w/Diffusion'],downsample);
+    [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList([pathToFile,subjects{i},'/'],downsample);
     filename=[pathToFile,subjects{i},'/edgeList.mat'];
     save(filename,'edgeListRemote','edgeListLocal','lpcentroids','rpcentroids','subCoor','-v7.3');
     clear edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor
@@ -67,14 +78,14 @@ end
 %% Make adjacency matrices (low and hi res)
 
 for i=1:length(subjects)
-    [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices([pathToFile,subjects{i},'/T1w/Diffusion']);
+    [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices([pathToFile,subjects{i},'/']);
     filename=[pathToFile,subjects{i},'/matrices.mat'];
     save(filename,'adj_local','adj_remote_bin','adj_remote_wei','adj_remote_len','lo_adj_wei','adj_matrix','lo_adj_cortical_wei','faceROI_all','faceROI_cortical','-v7.3');
 end
 
 %% map coordinates into MNI space
 for i=1:length(subjects)
-    [Coor_MNI305,Coor_MNI152]=getMNIcoor([pathToFile,subjects{i},'/T1w/Diffusion'],type);
+    [Coor_MNI305,Coor_MNI152]=getMNIcoor([pathToFile,subjects{i},'/'],type);
     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
 end

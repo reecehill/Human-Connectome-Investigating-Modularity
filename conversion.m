@@ -5,9 +5,10 @@ function [trkEP_full,trk_len_full,trk_type_full]=conversion(pathToFile, type)
 % if pial= lh(rh).pial tranformation using vox2tkrRAS
 
 display('step1: performing conversion from .trk to surface and atlas')
-ft_defaults
+display(['Type: ' num2str(type) ' (' class(type) ')'])
+ft_defaults 
 %atlas=ft_read_mri([pathToFile,'/mri/aparc+aseg.nii']);
-atlas=ft_read_mri([pathToFile,'/../aparc+aseg.nii']);
+atlas=ft_read_mri([pathToFile,'bert/mri/aparc+aseg.nii']);
 
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates
@@ -32,7 +33,7 @@ trk_len_full=[];
 trk_type_full=[];
 trkEP_full=[];
 for i=1:1
-filename=[pathToFile,'/1m',num2str(0+i-1),'.trk']
+filename=[pathToFile,'Diffusion/1m',num2str(0+i-1),'.trk']
 
 [rawTrkMeta,rawTrk]=eval(['trk_read(filename);']);
 

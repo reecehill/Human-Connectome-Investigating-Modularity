@@ -41,14 +41,28 @@ The end result is the Participants folder will contain ?**TODO**?.
 
 # Set-up and use
 ## Installation
-Before running the script, the follow software/packages must be installed:
-- MatLab (we're using version R2021b) [https://uk.mathworks.com/products/matlab.html]
+Before running the script, some software/packages must be installed. We list the names of these installations, with the version we're running and a link. 
+- MatLab (version R2021b) [https://uk.mathworks.com/products/matlab.html]
+  - Computer Vision Toolbox (v10.1): [**Link TBC**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Brain Connectivity Toolbox (v1.1.1.0) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Statistics and Machine Learning Toolbox (12.2) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Parallel Computing Toolbox (v7.5) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Mapping Toolbox (v5.2) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Image Processing Toolbox (v11.4) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - Curve Fitting Toolbox (v3.6) [**Link**]
+    - _Possibly not required as not referenced in original codebase's instructions._
+  - FieldTrip (v1.0.1.0): [https://github.com/fieldtrip/fieldtrip]
+  - Iso2Mesh Toolbox (v1.9.0): [https://github.com/fangq/iso2mesh]
   - Gifti toolbox: [https://github.com/nno/matlab_GIfTI]
   - Along-tract-stats: [https://github.com/johncolby/along-tract-stats]
-  - Iso2mesh: [https://github.com/fangq/iso2mesh]
-  - Fieldtrip: [https://github.com/fieldtrip/fieldtrip]
   - Surfstat: [https://github.com/blachniet/SurfStat]
-- Windows Subsystem for Linux (we're using version 2) [https://docs.microsoft.com/en-us/windows/wsl/install]
+- Windows Subsystem for Linux (v2) [https://docs.microsoft.com/en-us/windows/wsl/install]
   - Ubuntu (v18.04.05) [https://ubuntu.com/download]
   - FreeSurfer (v7.1.1) [https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall]
     - We used a publically available Shell script to install FreeSurfer in WSL [https://gist.github.com/gbnegrini/8d70c9b887798dbcfcd1654dcea279f6]) 

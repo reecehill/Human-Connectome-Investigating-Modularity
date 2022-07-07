@@ -7,8 +7,8 @@ export dataToUse=$3
 
 function runFreesurferReconAll {
   ### recon-all to processing data
-  mri_convert "${SUBJECTS_DIR}/${subj}_T1.nii.gz" "${SUBJECTS_DIR}/${subj}_T1.nii"
-  recon-all -i "${SUBJECTS_DIR}/${subj}_T1.nii" -s ${subj} -all
+  mri_convert "${SUBJECTS_DIR}/T1.nii.gz" "${SUBJECTS_DIR}/T1.nii"
+  recon-all -i "${SUBJECTS_DIR}/T1.nii" -s ${subj} -all
 }
 ### get aparc+aseg.nii
 function getAparcAsecNii {
@@ -33,7 +33,7 @@ i=0
 for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
 ((i += 1))
 
-  export SUBJECTS_DIR=$pathto_participants/$subj/T1
+  export SUBJECTS_DIR=$pathto_participants/$subj/T1w
 
   if [ "$dataToUse" = 'u' ]; then 
     runFreesurferReconAll;

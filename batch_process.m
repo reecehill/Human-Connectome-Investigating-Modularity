@@ -90,6 +90,7 @@ for i=1:length(subjects)
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
 end
 
+display(["Finished in MATLAB."])
 end
 
 

@@ -38,7 +38,7 @@ function getData($subjectId, $dataToFetch) {
       $recursive = '--recursive';
   }
   else {
-    Write-host "Data to fetch was incorrectly set."
+    Write-host "Data to fetch was incorrectly set." -ForegroundColor Red -BackgroundColor Black
     exit;
   }
   
@@ -69,20 +69,27 @@ function getData($subjectId, $dataToFetch) {
 ######
 
 if("Y" -eq $startAfresh) {
-  Get-Childitem -Recurse -Path $driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
-  Rename-Item -Path $driveAndPathToParticipants -NewName $($driveAndPathToParticipants + '-old') -Force
+  # Remove # if folder cannot be deleted due to permissions issue.
+  # Get-ChildItem -Recurse -Path $driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
+  try {
+    Rename-Item -Path $driveAndPathToParticipants -NewName $($driveAndPathToParticipants + '-old') -ErrorAction Stop
+  }
+  catch {
+    Write-Host "There is a permissions issue with the Participants folder. Please manually delete the sub-folders within the Participants folder." -ForegroundColor Red -BackgroundColor Black
+    exit;
+  }
   New-Item -Path $driveAndPathToParticipants -ItemType Directory
   Copy-Item $($driveAndPathToParticipants + '-old/file_list_HCP_all_subset.txt') $($driveAndPathToParticipants + '/file_list_HCP_all_subset.txt')
   Copy-Item $($driveAndPathToParticipants + '-old/.gitignore') $($driveAndPathToParticipants + '/.gitignore')
   Remove-Item $($driveAndPathToParticipants + '-old') -Recurse
-  Write-Host "The participant folder has been cleared. Please rerun the command and answer 'No'".
+  Write-Host "The participant folder has been cleared. Please rerun the command and answer 'No'" -ForegroundColor Red -BackgroundColor Black
   exit;
 }
 elseif("N" -eq $startAfresh) {
   #continue...
 }
 else {
-  Write-Host "Ensure you enter either Y or N.";
+  Write-Host "Ensure you enter either Y or N." -ForegroundColor Red -BackgroundColor Black;
   exit;
 }
 ######
@@ -95,19 +102,20 @@ else {
 
 $subjectList = Get-Content -Path $($driveAndPathToParticipants+'\file_list_HCP_all_subset.txt')
 foreach ($subjectId in $subjectList){
-    if("u" -eq $dataToUse) {
+    Write-Host "Starting subject: $subjectId" -ForegroundColor Green -BackgroundColor Black
+    if("U" -eq $dataToUse) {
       # Get only the T1 raw data, to be processed later.
       getData $subjectId "unprocessed";
       getData $subjectId "diffusion";
     }
-    elseif ("p" -eq $dataToUse) {
+    elseif ("P" -eq $dataToUse) {
       # Get the T1 raw data and the preprocessed data from the HCP Freesurfer pipeline.
       #getData $subjectId "unprocessed"; # THIS MIGHT NOT BE NEEDED
       getData $subjectId "preprocessed";
       getData $subjectId "diffusion";
     }
     else {
-      Write-Host "Please ensure you enter either u (for unprocessed data) or p (for preprocessed data).".
+      Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black.
       exit;
     }
 }
@@ -146,7 +154,8 @@ $downsample = 'yes'
 $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
 foreach ($subjectId in $subjectList) {
-  & matlab -batch "batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate"
+  & matlab -batch "try, batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate; end;"
+  Write-Host "Finished with subject: $subjectId" -ForegroundColor Green -BackgroundColor Black
 }
 ######
 # (END)

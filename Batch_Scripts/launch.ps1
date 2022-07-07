@@ -1,5 +1,5 @@
 ######
-# SET PARAMETERS (START)
+# SET PARAMETERS
 ######
 # The drive letter that contains all files. In format like - C:\
 $drive = 'C:/'
@@ -65,7 +65,7 @@ function getData($subjectId, $dataToFetch) {
 ######
 # ---------------------------------------
 ######
-# CLEAR CURRENT DATA (START)
+# CLEAR CURRENT DATA
 ######
 
 if("Y" -eq $startAfresh) {
@@ -101,8 +101,9 @@ else {
 ######
 
 $subjectList = Get-Content -Path $($driveAndPathToParticipants+'\file_list_HCP_all_subset.txt')
+Write-Host "STEP 1 of 5: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList){
-    Write-Host "Starting subject: $subjectId" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     if("U" -eq $dataToUse) {
       # Get only the T1 raw data, to be processed later.
       getData $subjectId "unprocessed";
@@ -110,7 +111,6 @@ foreach ($subjectId in $subjectList){
     }
     elseif ("P" -eq $dataToUse) {
       # Get the T1 raw data and the preprocessed data from the HCP Freesurfer pipeline.
-      #getData $subjectId "unprocessed"; # THIS MIGHT NOT BE NEEDED
       getData $subjectId "preprocessed";
       getData $subjectId "diffusion";
     }
@@ -118,7 +118,7 @@ foreach ($subjectId in $subjectList){
       Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black.
       exit;
     }
-}
+}  
 
 ######
 # (END)
@@ -130,8 +130,8 @@ foreach ($subjectId in $subjectList){
 
 # Launch WSL (Ubuntu 18 environment)
 # No need to loop through subjects here, as it occurs within Linux.
+Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
 wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
-
 ######
 # (END)
 ######
@@ -139,23 +139,26 @@ wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Ba
 ######
 # LAUNCH DSI (START, STEP 4)
 ######
+Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
 }
 ######
 # (END)
 ######
 # ---------------------------------------
 ######
-# LAUNCH WSL AND MATLAB (START, STEP 2-3)
+# LAUNCH WSL AND MATLAB (START, STEP 5)
 ######
 $type = 2
 $downsample = 'yes'
 $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
+Write-Host "STEP 5 of 5: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   & matlab -batch "try, batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate; end;"
-  Write-Host "Finished with subject: $subjectId" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
 }
 ######
 # (END)

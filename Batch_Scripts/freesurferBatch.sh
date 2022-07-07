@@ -12,7 +12,7 @@ function runFreesurferReconAll {
 }
 ### get aparc+aseg.nii
 function getAparcAsecNii {
-  mri_convert $SUBJECTS_DIR/bert/mri/aparc+aseg.mgz $SUBJECTS_DIR/bert/mri/aparc+aseg.nii;
+  mri_convert $SUBJECTS_DIR/bert/mri/aparc+aseg.mgz $SUBJECTS_DIR/bert/mri/aparc+aseg.nii
 }
 
 function getROILabels {
@@ -32,7 +32,7 @@ cd $pathto_participants
 i=0
 for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
 ((i += 1))
-
+  echo -e "$(tput setaf 2) $(tput setbf 7) Processing Subject $subj $(tput setaf 7) $(tput setbf 1)";
   export SUBJECTS_DIR=$pathto_participants/$subj/T1w
 
   if [ "$dataToUse" = 'U' ]; then 
@@ -43,7 +43,7 @@ for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
     getAparcAsecNii;
     getROILabels;
   else
-    echo "You must enter either u or p.";
+    echo "You must enter either U or P.";
     exit;
   fi;
 

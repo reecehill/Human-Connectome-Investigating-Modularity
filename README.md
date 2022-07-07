@@ -39,7 +39,7 @@ The main file is launch.ps1. When executed, it:
 
 The end result is the Participants folder will contain ?**TODO**?.
 
-# Instructions
+# Set-up and use
 ## Installation
 Before running the script, the follow software/packages must be installed:
 - MatLab (we're using version R2021b) [https://uk.mathworks.com/products/matlab.html]
@@ -59,3 +59,6 @@ Before running the script, the follow software/packages must be installed:
     - Required only for DSI Studio with GPU Support.
 - AWS CLI (version 2) [https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html]
   - This is used to download data.
+
+## Instructions
+**TODO**

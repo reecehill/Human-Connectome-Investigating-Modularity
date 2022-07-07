@@ -8,7 +8,7 @@ $pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/licens
 $pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
 $driveAndPathToParticipants = $($drive+$pathToParticipants)
 $pathToDsiStudio = $drive+'Users\Reece\Documents\Dissertation\dsi_studio_win'
-
+$numberOfTracts = 10000
 
 $startAfresh = Read-host 'Delete all participant information and start afresh? (Y/N)'
 $dataToUse = Read-host 'Begin with Freesurfer and [U]nprocessed data, or retrieve [P]reprocessed data and skip Freesurfer? (U/P)'
@@ -143,7 +143,7 @@ foreach ($subjectId in $subjectList){
 Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList){
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$subjectId" "$dataToUse";
+  & wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$subjectId" "$dataToUse";
 }
 ######
 # (END)
@@ -155,7 +155,7 @@ foreach ($subjectId in $subjectList){
 Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
+  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
 ######
 # (END)
@@ -178,6 +178,7 @@ foreach ($subjectId in $subjectList) {
 ######
 # ---------------------------------------
 
+$success = $true;
 foreach ($subjectId in $subjectList) {
   if (-not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/edgeList.mat" -PathType Leaf) -or
   -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/labelSRF.mat" -PathType Leaf) -or
@@ -185,6 +186,13 @@ foreach ($subjectId in $subjectList) {
   -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/MNIcoor.mat" -PathType Leaf) -or
   -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/trsfmTrk.mat" -PathType Leaf)
   ) {
-  Write-Host "Error: Subject $subjectId failed to generate all necessary output. You may want to delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+    $success = $false;
+  Write-Host "Error: Subject $subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
   }
 }
+
+if($success -eq $true) {
+  Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "Success! All output files were created successfully. You may wish to check the console above for any errors, though." -ForegroundColor Green -BackgroundColor Black
+  Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
+} 

@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# THIS FILE IS NO LONGER CALLED AND IS A REMNANT OF THE OLD CODEBASE. PLEASE SEE dsiBatch.ps1
+
 export pathToData=/home/campus.ncl.ac.uk/b7071887/Xchen/Demo_high_resolution
 export pathToDsiStudio=C:\Users\Reece\Documents\Dissertation\dsi_studio_win
 cd $pathToDsiStudio/dsi_studio_64

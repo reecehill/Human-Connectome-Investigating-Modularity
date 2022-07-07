@@ -11,7 +11,7 @@ $pathToDsiStudio = $drive+'Users\Reece\Documents\Dissertation\dsi_studio_win'
 
 
 $startAfresh = Read-host 'Delete all participant information and start afresh? (Y/N)'
-$dataToUse = Read-host 'Begin with Freesurfer and unprocessed data [u], or retrieve preprocessed data and skip Freesurfer [p]?'
+$dataToUse = Read-host 'Begin with Freesurfer and [U]nprocessed data, or retrieve [P]reprocessed data and skip Freesurfer? (U/P)'
 
 function getData($subjectId, $dataToFetch) {
   if($dataToFetch -eq "unprocessed") {
@@ -69,7 +69,8 @@ function getData($subjectId, $dataToFetch) {
 ######
 
 if("Y" -eq $startAfresh) {
-  Rename-Item $driveAndPathToParticipants $($driveAndPathToParticipants + '-old') -Force
+  Get-Childitem -Recurse -Path $driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
+  Rename-Item -Path $driveAndPathToParticipants -NewName $($driveAndPathToParticipants + '-old') -Force
   New-Item -Path $driveAndPathToParticipants -ItemType Directory
   Copy-Item $($driveAndPathToParticipants + '-old/file_list_HCP_all_subset.txt') $($driveAndPathToParticipants + '/file_list_HCP_all_subset.txt')
   Copy-Item $($driveAndPathToParticipants + '-old/.gitignore') $($driveAndPathToParticipants + '/.gitignore')
@@ -121,7 +122,7 @@ foreach ($subjectId in $subjectList){
 
 # Launch WSL (Ubuntu 18 environment)
 # No need to loop through subjects here, as it occurs within Linux.
-wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
+#wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
 
 ######
 # (END)
@@ -130,8 +131,24 @@ wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Ba
 ######
 # LAUNCH DSI (START, STEP 4)
 ######
-
 foreach ($subjectId in $subjectList) {
-  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId
+  #& $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio
 }
-## 
+######
+# (END)
+######
+# ---------------------------------------
+######
+# LAUNCH WSL AND MATLAB (START, STEP 2-3)
+######
+$type = 2
+$downsample = 'yes'
+$rate = 0.1
+Set-Location "$driveAndPathToParticipants/../"
+foreach ($subjectId in $subjectList) {
+  & matlab -batch "batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate"
+}
+######
+# (END)
+######
+# ---------------------------------------

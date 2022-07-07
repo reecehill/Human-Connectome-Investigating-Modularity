@@ -15,26 +15,29 @@ $dataToUse = Read-host 'Begin with Freesurfer and [U]nprocessed data, or retriev
 
 function getData($subjectId, $dataToFetch) {
   if($dataToFetch -eq "unprocessed") {
-      $rawFileDirectory = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
-      $rawFileName = 'T1.nii.gz'
+      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
+      $localFileToCheck = 'T1.nii.gz'
+      $localPathForInsert = $($localDirectoryToCheck + '/' + $localFileToCheck)
       # Set the host's filepath as that of _T1.nii.gz file. Note that we change the folder hierarchy.
-      $hostPath = "s3://hcp-openaccess/HCP_1200/$subjectId/unprocessed/3T/T1w_MPR1/"+$subjectId+"_3T_T1w_MPR1.nii.gz"
+      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/unprocessed/3T/T1w_MPR1/"+$subjectId+"_3T_T1w_MPR1.nii.gz"
       $recursive = ''
   }
   elseif ($dataToFetch -eq "preprocessed") {
       # Set the directory in question as the subject's bert folder (the output of Freesurfer). We only check for aparc+aseg.mgz
-      $rawFileDirectory = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
-      $rawFileName = 'mri/aparc+aseg.mgz'
+      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
+      $localPathForInsert = $localDirectoryToCheck
+      $localFileToCheck = 'mri/aparc+aseg.mgz'
       # Set the host's filepath as that of the subject's bert folder. Note that we change the folder hierarchy.
-      $hostPath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/$subjectId/"
+      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/$subjectId/"
       $recursive = '--recursive';
   }
   elseif ($dataToFetch -eq "diffusion") {
       # Set the directory in question as the subject's Diffusion data folder (for use in DSIStudio). We only check for data.nii.gz.
-      $rawFileDirectory = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
-      $rawFileName = 'data.nii.gz'
+      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
+      $localPathForInsert = $localDirectoryToCheck
+      $localFileToCheck = 'data.nii.gz'
       # Set the host's filepath as that of the subject's Diffusion data folder (preprocessed).
-      $hostPath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/Diffusion/"
+      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/Diffusion/"
       $recursive = '--recursive';
   }
   else {
@@ -42,20 +45,20 @@ function getData($subjectId, $dataToFetch) {
     exit;
   }
   
-  $rawFilePath = $($rawFileDirectory+$rawFileName)
+  $rawFilePath = $($localDirectoryToCheck+$localFileToCheck)
       # Check that the necessary data for this subject exists. If it doesn't, get it from AWS.
   if (-not(Test-Path -Path $rawFilePath -PathType Leaf)) {
     Write-Host "The file [$rawFilePath] does not exist. Creating it now..."
     try {
-        $null = New-Item $rawFileDirectory -itemType Directory -Force -ErrorAction Stop;
-        & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$hostPath" "$rawFileDirectory" "$recursive";
+        $null = New-Item $localDirectoryToCheck -itemType Directory -Force -ErrorAction Stop;
+        & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$remotePath" "$localPathForInsert" "$recursive";
         if ((Test-Path -Path $rawFilePath -PathType Leaf)) {
-          Write-Host "The file [$rawFileDirectory] has been created.";
+          Write-Host "The file [$rawFilePath] has been created.";
         }
         else {
-          Write-Host "Could not download file [$rawFileDirectory]. Are you sure that subject ID exists? Please try again." -ForegroundColor Red -BackgroundColor Black
-          Write-Host "hostpath=$hostPath" -ForegroundColor Red -BackgroundColor Black
-          Write-Host "rawFileDirectory=$rawFileDirectory" -ForegroundColor Red -BackgroundColor Black
+          Write-Host "Could not download file [$rawFilePath]. Are you sure that subject ID exists? Please try again." -ForegroundColor Red -BackgroundColor Black
+          Write-Host "hostpath=$remotePath" -ForegroundColor Red -BackgroundColor Black
+          Write-Host "localDirectoryToCheck=$localDirectoryToCheck" -ForegroundColor Red -BackgroundColor Black
           Write-Host "recursive=$recursive" -ForegroundColor Red -BackgroundColor Black
           exit;
         }

@@ -48,11 +48,21 @@ function getData($subjectId, $dataToFetch) {
     Write-Host "The file [$rawFilePath] does not exist. Creating it now..."
     try {
         $null = New-Item $rawFileDirectory -itemType Directory -Force -ErrorAction Stop;
-        & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$hostPath" "$rawFileDirectory" $recursive;
-        Write-Host "The file [$rawFileDirectory] has been created.";
+        & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$hostPath" "$rawFileDirectory" "$recursive";
+        if ((Test-Path -Path $rawFilePath -PathType Leaf)) {
+          Write-Host "The file [$rawFileDirectory] has been created.";
+        }
+        else {
+          Write-Host "Could not download file [$rawFileDirectory]. Are you sure that subject ID exists? Please try again." -ForegroundColor Red -BackgroundColor Black
+          Write-Host "hostpath=$hostPath" -ForegroundColor Red -BackgroundColor Black
+          Write-Host "rawFileDirectory=$rawFileDirectory" -ForegroundColor Red -BackgroundColor Black
+          Write-Host "recursive=$recursive" -ForegroundColor Red -BackgroundColor Black
+          exit;
+        }
         }
     catch {
-        throw $_.Exception.Message
+        throw $_.Exception.Message;
+        exit;
     }
   }
   else {
@@ -115,7 +125,7 @@ foreach ($subjectId in $subjectList){
       getData $subjectId "diffusion";
     }
     else {
-      Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black.
+      Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black
       exit;
     }
 }  
@@ -129,9 +139,12 @@ foreach ($subjectId in $subjectList){
 ######
 
 # Launch WSL (Ubuntu 18 environment)
-# No need to loop through subjects here, as it occurs within Linux.
+# We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
 Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
-wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$dataToUse";
+foreach ($subjectId in $subjectList){
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$subjectId" "$dataToUse";
+}
 ######
 # (END)
 ######
@@ -164,3 +177,14 @@ foreach ($subjectId in $subjectList) {
 # (END)
 ######
 # ---------------------------------------
+
+foreach ($subjectId in $subjectList) {
+  if (-not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/edgeList.mat" -PathType Leaf) -or
+  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/labelSRF.mat" -PathType Leaf) -or
+  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/matrices.mat" -PathType Leaf) -or
+  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/MNIcoor.mat" -PathType Leaf) -or
+  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/trsfmTrk.mat" -PathType Leaf)
+  ) {
+  Write-Host "Error: Subject $subjectId failed to generate all necessary output. You may want to delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+  }
+}

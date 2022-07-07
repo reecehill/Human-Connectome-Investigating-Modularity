@@ -2,49 +2,52 @@
 export FS_LICENSE=$1
 export FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
-export pathto_participants=$2
-export dataToUse=$3
+export pathToParticipants=$2
+export subjectId=$3
+export dataToUse=$4
+export subjectsDir="$pathToParticipants/$subjectId/T1w";
+cd $pathToParticipants
 
 function runFreesurferReconAll {
   ### recon-all to processing data
-  mri_convert "${SUBJECTS_DIR}/T1.nii.gz" "${SUBJECTS_DIR}/T1.nii"
-  recon-all -i "${SUBJECTS_DIR}/T1.nii" -s ${subj} -all
+  mri_convert "$subjectsDir/T1.nii.gz" "$subjectsDir/T1.nii"
+  recon-all -i "$subjectsDir/T1.nii" -s $subjectId -all
 }
 ### get aparc+aseg.nii
-function getAparcAsecNii {
-  mri_convert $SUBJECTS_DIR/bert/mri/aparc+aseg.mgz $SUBJECTS_DIR/bert/mri/aparc+aseg.nii
+getAparcAsecNii() {
+  # $1 = $subjectsDir
+  echo  "Called getAparcAsecNii";
+  mri_convert "$subjectsDir/bert/mri/aparc+aseg.mgz" "$subjectsDir/bert/mri/aparc+aseg.nii"
+  if [ ! -f $subjectsDir/bert/mri/aparc+aseg.nii ]; then
+    echo "There was an error. Freesurfer did not convert aparc+aseg.mgz -> .nii.";
+    exit 0;
+  fi
 }
 
-function getROILabels {
+getROILabels() {
+  # $1 = $subjectsDir
+
   ### get 68 ROI labels based on pial file
-# The pial file is provided by FreeSurfer.
-mri_annotation2label --subject "bert" --hemi lh --surf pial --outdir $SUBJECTS_DIR/bert/label/label_type2
-mri_annotation2label --subject "bert" --hemi rh --surf pial --outdir $SUBJECTS_DIR/bert/label/label_type2
+  echo  "Called getROILabels"
+  echo  "$subjectsDir";
+  # The pial file is provided by FreeSurfer.
+  mri_annotation2label --subject "bert" --hemi lh --surf pial --outdir $subjectsDir/bert/label/label_type2
+  mri_annotation2label --subject "bert" --hemi rh --surf pial --outdir $subjectsDir/bert/label/label_type2
 
 ### get 68 ROI labels based on pial.surf.gii file
 # The HCP dataset provides both pial.surf.gii AND alongside pial.  
-#mri_annotation2label --subject "bert" --hemi lh --surf pial.surf.gii --outdir $SUBJECTS_DIR/bert/label/label_type1
-#mri_annotation2label --subject "bert" --hemi rh --surf pial.surf.gii --outdir $SUBJECTS_DIR/bert/label/label_type1
+#mri_annotation2label --subject "bert" --hemi lh --surf pial.surf.gii --outdir $subjectsDir/bert/label/label_type1
+#mri_annotation2label --subject "bert" --hemi rh --surf pial.surf.gii --outdir $subjectsDir/bert/label/label_type1
 }
 
-
-cd $pathto_participants
-i=0
-for subj in $(cat $pathto_participants/file_list_HCP_all_subset.txt);do
-((i += 1))
-  echo -e "$(tput setaf 2) $(tput setbf 7) Processing Subject $subj $(tput setaf 7) $(tput setbf 1)";
-  export SUBJECTS_DIR=$pathto_participants/$subj/T1w
-
-  if [ "$dataToUse" = 'U' ]; then 
-    runFreesurferReconAll;
-    getAparcAsecNii;
-    getROILabels;
-  elif [ "$dataToUse" = 'P' ]; then 
-    getAparcAsecNii;
-    getROILabels;
-  else
-    echo "You must enter either U or P.";
-    exit;
-  fi;
-
-done
+if [ "$dataToUse" = 'U' ]; then 
+  runFreesurferReconAll;
+  getAparcAsecNii;
+  getROILabels;
+elif [ "$dataToUse" = 'P' ]; then 
+  getAparcAsecNii;
+  getROILabels;
+else
+  echo  "You must enter either U or P.";
+  exit;
+fi;

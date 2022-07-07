@@ -57,3 +57,5 @@ Before running the script, the follow software/packages must be installed:
 - DSIStudio (we're using the DSI Studio with GPU Support, edition SM52, version "Chen", released 3rd Dec 2021) [https://dsi-studio.labsolver.org/download.html]
   - (_Optional_) CUDA Toolkit [https://developer.nvidia.com/cuda-downloads]
     - Required only for DSI Studio with GPU Support.
+- AWS CLI (version 2) [https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html]
+  - This is used to download data.

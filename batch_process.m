@@ -24,6 +24,7 @@ addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Alo
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Gifti');
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
 addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
+addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
 ft_defaults;
 
 
@@ -76,7 +77,6 @@ for i=1:length(subjects)
 end
 
 %% Make adjacency matrices (low and hi res)
-
 for i=1:length(subjects)
     [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices([pathToFile,subjects{i},'/']);
     filename=[pathToFile,subjects{i},'/matrices.mat'];

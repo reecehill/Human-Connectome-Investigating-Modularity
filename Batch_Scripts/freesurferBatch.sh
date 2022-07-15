@@ -25,7 +25,7 @@ function getAparcAsecNii {
 }
 
 function getROILabels {
-  # $1 = $SUBJECTS_DIR
+  # "Since normalization can introduce unwanted interpolations into the data, we can run our ROI analyses in native space using the parcellations from FreeSurfer" (https://andysbrainbook.readthedocs.io/en/latest/ML/ML_AppendixA_AFNI_Code.html?highlight=mri_annotation2label#creating-rois-from-freesurfer)
 
   ### get 68 ROI labels based on pial file
   echo  "Called getROILabels"

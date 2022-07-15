@@ -2,77 +2,91 @@
 # SET PARAMETERS
 ######
 # The drive letter that contains all files. In format like - C:\
-$drive = 'C:/'
+$drive = 'C:\'
 # Paths must begin from after the drive number. i.e., (C:\Users\... becomes \Users\...)
 $pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/license.txt"
 $pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
-$driveAndPathToParticipants = $($drive+$pathToParticipants)
-$pathToDsiStudio = $drive+'Users\Reece\Documents\Dissertation\dsi_studio_win'
+$driveAndPathToParticipants = $($drive + $pathToParticipants)
+$pathToDsiStudio = $drive + 'Users\Reece\Documents\Dissertation\dsi_studio_win'
 $numberOfTracts = 10000
 
+# "motor" : https://openfmri.org/s3-browser/?prefix=ds000244
+# "hcp": https://humanconnectome.org/study/hcp-young-adult
+$dataSetToUse = Read-host 'As of 15/07/22, only the Motor dataset works. Which dataset do you wish to use? ([M]otor/[H]cp)'
 $startAfresh = Read-host 'Delete all participant information and start afresh? (Y/N)'
 $dataToUse = Read-host 'Begin with Freesurfer and [U]nprocessed data, or retrieve [P]reprocessed data and skip Freesurfer? (U/P)'
 
-function getData($subjectId, $dataToFetch) {
-  if($dataToFetch -eq "unprocessed") {
-      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
-      $localFileToCheck = 'T1.nii.gz'
-      $localPathForInsert = $($localDirectoryToCheck + '/' + $localFileToCheck)
-      # Set the host's filepath as that of _T1.nii.gz file. Note that we change the folder hierarchy.
-      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/unprocessed/3T/T1w_MPR1/"+$subjectId+"_3T_T1w_MPR1.nii.gz"
-      $recursive = ''
+function getHcpData($subjectId, $dataToFetch) {
+  if ($dataToFetch -eq "unprocessed") {
+    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
+    $localFileToCheck = 'T1.nii.gz'
+    $localPathForInsert = $($localDirectoryToCheck + '/' + $localFileToCheck)
+    # Set the host's filepath as that of _T1.nii.gz file. Note that we change the folder hierarchy.
+    $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/unprocessed/3T/T1w_MPR1/" + $subjectId + "_3T_T1w_MPR1.nii.gz"
+    $recursive = ''
   }
   elseif ($dataToFetch -eq "preprocessed") {
-      # Set the directory in question as the subject's bert folder (the output of Freesurfer). We only check for aparc+aseg.mgz
-      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
-      $localPathForInsert = $localDirectoryToCheck
-      $localFileToCheck = 'mri/aparc+aseg.mgz'
-      # Set the host's filepath as that of the subject's bert folder. Note that we change the folder hierarchy.
-      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/$subjectId/"
-      $recursive = '--recursive';
+    # Set the directory in question as the subject's bert folder (the output of Freesurfer). We only check for aparc+aseg.mgz
+    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
+    $localPathForInsert = $localDirectoryToCheck
+    $localFileToCheck = 'mri/aparc+aseg.mgz'
+    # Set the host's filepath as that of the subject's bert folder. Note that we change the folder hierarchy.
+    $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/$subjectId/"
+    $recursive = '--recursive';
   }
   elseif ($dataToFetch -eq "diffusion") {
-      # Set the directory in question as the subject's Diffusion data folder (for use in DSIStudio). We only check for data.nii.gz.
-      $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
-      $localPathForInsert = $localDirectoryToCheck
-      $localFileToCheck = 'data.nii.gz'
-      # Set the host's filepath as that of the subject's Diffusion data folder (preprocessed).
-      $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/Diffusion/"
-      $recursive = '--recursive';
+    # Set the directory in question as the subject's Diffusion data folder (for use in DSIStudio). We only check for data.nii.gz.
+    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
+    $localPathForInsert = $localDirectoryToCheck
+    $localFileToCheck = 'data.nii.gz'
+    # Set the host's filepath as that of the subject's Diffusion data folder (preprocessed).
+    $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/Diffusion/"
+    $recursive = '--recursive';
   }
   else {
     Write-host "Data to fetch was incorrectly set." -ForegroundColor Red -BackgroundColor Black
     exit;
   }
   
-  $rawFilePath = $($localDirectoryToCheck+$localFileToCheck)
-      # Check that the necessary data for this subject exists. If it doesn't, get it from AWS.
+  $rawFilePath = $($localDirectoryToCheck + $localFileToCheck)
+  # Check that the necessary data for this subject exists. If it doesn't, get it from AWS.
   if (-not(Test-Path -Path $rawFilePath -PathType Leaf)) {
     Write-Host "The file [$rawFilePath] does not exist. Creating it now..."
     try {
-        $null = New-Item $localDirectoryToCheck -itemType Directory -Force -ErrorAction Stop;
-        & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$remotePath" "$localPathForInsert" "$recursive";
-        if ((Test-Path -Path $rawFilePath -PathType Leaf)) {
-          Write-Host "The file [$rawFilePath] has been created.";
-        }
-        else {
-          Write-Host "Could not download file [$rawFilePath]. Are you sure that subject ID exists? Please try again." -ForegroundColor Red -BackgroundColor Black
-          Write-Host "hostpath=$remotePath" -ForegroundColor Red -BackgroundColor Black
-          Write-Host "localDirectoryToCheck=$localDirectoryToCheck" -ForegroundColor Red -BackgroundColor Black
-          Write-Host "recursive=$recursive" -ForegroundColor Red -BackgroundColor Black
-          exit;
-        }
-        }
-    catch {
-        throw $_.Exception.Message;
+      $null = New-Item $localDirectoryToCheck -itemType Directory -Force -ErrorAction Stop;
+      & "C:\Program Files\Amazon\AWSCLIV2\aws.exe" "s3" "cp" "$remotePath" "$localPathForInsert" "$recursive";
+      if ((Test-Path -Path $rawFilePath -PathType Leaf)) {
+        Write-Host "The file [$rawFilePath] has been created.";
+      }
+      else {
+        Write-Host "Could not download file [$rawFilePath]. Are you sure that subject ID exists? Please try again." -ForegroundColor Red -BackgroundColor Black
+        Write-Host "hostpath=$remotePath" -ForegroundColor Red -BackgroundColor Black
+        Write-Host "localDirectoryToCheck=$localDirectoryToCheck" -ForegroundColor Red -BackgroundColor Black
+        Write-Host "recursive=$recursive" -ForegroundColor Red -BackgroundColor Black
         exit;
+      }
+    }
+    catch {
+      throw $_.Exception.Message;
+      exit;
     }
   }
   else {
     Write-Host "The file [$rawFilePath] was found. No need to get from AWS."
   }
 }
+function getMotorData($subjectId) {
+  $filesToCheck = Get-Content filesToCheck.csv
+  foreach ($filename in $filesToCheck) {
+    Get-ChildItem -Path $($driveAndPathToParticipants + '/sub-' + $subjectId + '/') -Include $('sub-'+$subjectId+"*"+ $filename) -Recurse -ErrorAction SilentlyContinue -Force
+  }
 
+
+  $pathToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
+  Get-ChildItem -Path V:\Myfolder -Filter CopyForbuild.bat -Recurse -ErrorAction SilentlyContinue -Force
+
+  Write-Host "We skipped the checks to ensure the subject has the files required. Please manually confirm."
+}
 ######
 # (END)
 ######
@@ -81,7 +95,7 @@ function getData($subjectId, $dataToFetch) {
 # CLEAR CURRENT DATA
 ######
 
-if("Y" -eq $startAfresh) {
+if ("Y" -eq $startAfresh) {
   # Remove # if folder cannot be deleted due to permissions issue.
   # Get-ChildItem -Recurse -Path $driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
   try {
@@ -98,7 +112,7 @@ if("Y" -eq $startAfresh) {
   Write-Host "The participant folder has been cleared. Please rerun the command and answer 'No'" -ForegroundColor Red -BackgroundColor Black
   exit;
 }
-elseif("N" -eq $startAfresh) {
+elseif ("N" -eq $startAfresh) {
   #continue...
 }
 else {
@@ -113,24 +127,34 @@ else {
 # GET DATA (START, STEP 1)
 ######
 
-$subjectList = Get-Content -Path $($driveAndPathToParticipants+'\file_list_HCP_all_subset.txt')
+$subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
 Write-Host "STEP 1 of 5: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList){
-    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-    if("U" -eq $dataToUse) {
+foreach ($subjectId in $subjectList) {
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  if ("M" -eq $dataSetToUse) {
+    Write-Host "Skipping check of Motor dataset..."
+  }
+  elseif ("H" -eq $dataSetToUse) {
+    if ("U" -eq $dataToUse) {
       # Get only the T1 raw data, to be processed later.
-      getData $subjectId "unprocessed";
-      getData $subjectId "diffusion";
+      getHcpData $subjectId "unprocessed";
+      getHcpData $subjectId "diffusion";
     }
     elseif ("P" -eq $dataToUse) {
       # Get the T1 raw data and the preprocessed data from the HCP Freesurfer pipeline.
-      getData $subjectId "preprocessed";
-      getData $subjectId "diffusion";
+      getHcpData $subjectId "preprocessed";
+      getHcpData $subjectId "diffusion";
     }
     else {
       Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black
       exit;
     }
+  }
+  else {
+    Write-Host "Please ensure you enter either M (for Motor dataset) or H (for HumanConnectomeProject dataset - unsupported)." -ForegroundColor Red -BackgroundColor Black
+    exit;
+  }
+
 }  
 
 ######
@@ -144,9 +168,9 @@ foreach ($subjectId in $subjectList){
 # Launch WSL (Ubuntu 18 environment)
 # We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
 Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList){
+foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/"+$pathToFreeSurferLicence) $("/mnt/c/"+$pathToParticipants) "$subjectId" "$dataToUse";
+  & wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "$subjectId" "$dataToUse";
 }
 ######
 # (END)
@@ -158,7 +182,7 @@ foreach ($subjectId in $subjectList){
 Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & $($PSScriptRoot+'\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
+  & $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
 ######
 # (END)
@@ -184,17 +208,17 @@ foreach ($subjectId in $subjectList) {
 $success = $true;
 foreach ($subjectId in $subjectList) {
   if (-not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/edgeList.mat" -PathType Leaf) -or
-  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/labelSRF.mat" -PathType Leaf) -or
-  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/matrices.mat" -PathType Leaf) -or
-  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/MNIcoor.mat" -PathType Leaf) -or
-  -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/trsfmTrk.mat" -PathType Leaf)
+    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/labelSRF.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/matrices.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/MNIcoor.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/trsfmTrk.mat" -PathType Leaf)
   ) {
     $success = $false;
-  Write-Host "Error: Subject $subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+    Write-Host "Error: Subject $subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
   }
 }
 
-if($success -eq $true) {
+if ($success -eq $true) {
   Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
   Write-Host "Success! All output files were created successfully. You may wish to check the console above for any errors, though." -ForegroundColor Green -BackgroundColor Black
   Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black

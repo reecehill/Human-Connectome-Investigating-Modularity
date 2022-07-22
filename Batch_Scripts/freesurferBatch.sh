@@ -5,13 +5,13 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 export pathToParticipants=$2
 export subjectId=$3
 export dataToUse=$4
-export SUBJECTS_DIR="$pathToParticipants/$subjectId/T1w";
+export SUBJECTS_DIR="$pathToParticipants/$subjectId/data";
 cd $pathToParticipants
 
 function runFreesurferReconAll {
   ### recon-all to processing data
-  mri_convert "$SUBJECTS_DIR/T1.nii.gz" "$SUBJECTS_DIR/T1.nii"
-  recon-all -i "$SUBJECTS_DIR/T1.nii" -s "bert" -all
+  mri_convert "$SUBJECTS_DIR/anat/T1w.nii.gz" "$SUBJECTS_DIR/anat/T1w.nii"
+  recon-all -i "$SUBJECTS_DIR/anat/T1w.nii" -s "bert" -all
 }
 ### get aparc+aseg.nii
 function getAparcAsecNii {

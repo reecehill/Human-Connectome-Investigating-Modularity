@@ -132,7 +132,7 @@ Write-Host "STEP 1 of 5: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -Back
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   if ("M" -eq $dataSetToUse) {
-    Write-Host "Skipping check of Motor dataset..."
+    Write-Host "Skipping checking for existence and/or downloading of Motor dataset..."
   }
   elseif ("H" -eq $dataSetToUse) {
     if ("U" -eq $dataToUse) {
@@ -170,8 +170,19 @@ foreach ($subjectId in $subjectList) {
 Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "$subjectId" "$dataToUse";
+
+  if (Test-Path "$driveAndPathToParticipants/sub-$subjectId/data/bert") {
+    Write-Host "Folder Exists"
+    # Confirm before you delete this, you silly bitch.
+    #Remove-Item "$driveAndPathToParticipants/sub-$subjectId/data/bert" -Force -Recurse -Confirm
+  }
+
+  #Start-Job -ScriptBlock { 
+  #  param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse)
+  #  wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" "$dataToUse"
+  #} -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
 }
+
 ######
 # (END)
 ######
@@ -184,6 +195,8 @@ foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   & $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
+
+exit;
 ######
 # (END)
 ######
@@ -198,7 +211,7 @@ Set-Location "$driveAndPathToParticipants/../"
 Write-Host "STEP 5 of 5: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & matlab -batch "try, batch_process $driveAndPathToParticipants/ $subjectId $type $downsample $rate; end;"
+  & matlab -batch "try, batch_process $driveAndPathToParticipants/sub- $subjectId $type $downsample $rate; end;"
 }
 ######
 # (END)

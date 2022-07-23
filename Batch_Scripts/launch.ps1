@@ -1,3 +1,13 @@
+### Due to having to make symlinks, this script must be ran as an admin.
+If (-NOT (([Security.Principal.WindowsPrincipal] `
+  [Security.Principal.WindowsIdentity]::GetCurrent() `
+).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)))
+{
+    Write-Host "You do not have Administrator rights to run this script! Please re-run this script as an Administrator!"  -ForegroundColor Red -BackgroundColor Black
+    exit;
+}
+
+
 ######
 # SET PARAMETERS
 ######
@@ -9,6 +19,7 @@ $pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
 $driveAndPathToParticipants = $($drive + $pathToParticipants)
 $pathToDsiStudio = $drive + 'Users\Reece\Documents\Dissertation\dsi_studio_win'
 $numberOfTracts = 10000
+#$numberOfTracts = 10000000
 
 # "motor" : https://openfmri.org/s3-browser/?prefix=ds000244
 # "hcp": https://humanconnectome.org/study/hcp-young-adult
@@ -183,6 +194,9 @@ foreach ($subjectId in $subjectList) {
   #} -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
 }
 
+# It is possible that freesurfer does not produce necessary symlinks:  cmd.exe /c mklink D:\Dissertation\Participants\sub-01\data\bert\surf\lh.pial D:\Dissertation\Participants\sub-01\data\bert\surf\lh.pial.T1
+
+
 ######
 # (END)
 ######
@@ -193,10 +207,9 @@ foreach ($subjectId in $subjectList) {
 Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
+  #& $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
 
-exit;
 ######
 # (END)
 ######
@@ -211,7 +224,7 @@ Set-Location "$driveAndPathToParticipants/../"
 Write-Host "STEP 5 of 5: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & matlab -batch "try, batch_process $driveAndPathToParticipants/sub- $subjectId $type $downsample $rate; end;"
+  & matlab -batch "try, batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate; end;"
 }
 ######
 # (END)
@@ -220,14 +233,14 @@ foreach ($subjectId in $subjectList) {
 
 $success = $true;
 foreach ($subjectId in $subjectList) {
-  if (-not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/edgeList.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/labelSRF.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/matrices.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/MNIcoor.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/$subjectId/trsfmTrk.mat" -PathType Leaf)
+  if (-not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/edgeList.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/labelSRF.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/matrices.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub=$subjectId/MNIcoor.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub=$subjectId/trsfmTrk.mat" -PathType Leaf)
   ) {
     $success = $false;
-    Write-Host "Error: Subject $subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+    Write-Host "Error: Subject sub-$subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
   }
 }
 

@@ -18,13 +18,14 @@ end
 
 disp(subjects);
 subjects={subjects};
+clear ft_hastoolbox;
 restoredefaultpath;
-addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip');
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\AlongTractStats');
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Gifti');
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
 addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
 addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip');
 ft_defaults;
 
 
@@ -51,7 +52,7 @@ end
 
 for i=1:length(subjects)
     subject = subjects{i}
-    pathToSubjectData = [pathToFile num2str(subject) '/T1w/']
+    pathToSubjectData = [pathToFile num2str(subject)]
     [trkEP,trk_len,trk_type]=conversion(pathToSubjectData,type);
     filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
     save(filename,'trkEP','trk_len','trk_type','-v7.3');
@@ -60,7 +61,7 @@ end
 %%  assign freesurfer ROI labels to each face
 
 for i=1:length(subjects)
-    [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i},'/T1w/'],type,downsample,rate);
+    [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i}],type,downsample,rate);
 %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
     % save data
     filename=[pathToFile,subjects{i},'/labelSRF.mat'];

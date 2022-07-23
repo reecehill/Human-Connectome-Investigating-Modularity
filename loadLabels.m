@@ -9,21 +9,21 @@ subfilenames={'lh.thalamus','lh.caudate','lh.putamen','lh.pallidum','lh.amygdala
 nbROI=length(filenames);
 nbInROI=zeros(nbROI,1);
 
-ft_defaults
-atlas=ft_read_mri([pathToFile,'bert/mri/aparc+aseg.nii']);% load aparc+aseg.nii to get subcortical coordinates
+%ft_defaults
+atlas=ft_read_mri([pathToFile,'/data/bert/mri/aparc+aseg.nii']);% load aparc+aseg.nii to get subcortical coordinates
 
 if type==1
     for i=1:nbROI
         ROIfacevert(i,1).id=filenames(i);
-        ROIfacevert(i,1).faces=importfile([pathToFile,'bert/label/label_type1/',filenames{i}]);    
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/data/bert/label/label_type1/',filenames{i}]);    
     end
     % load hi-res surface - pial.surf.gii
     display('load lh(rh).pial.surf.gii as surface')
     
-    giftilh=gifti([pathToFile,'/surf/lh.pial.surf.gii']);
+    giftilh=gifti([pathToFile,'/data/bert/surf/lh.pial.surf.gii']);
     glpfaces      = giftilh.faces;
     glpvertex     = giftilh.vertices;
-    giftirh=gifti([pathToFile,'/surf/rh.pial.surf.gii']);
+    giftirh=gifti([pathToFile,'/data/bert/surf/rh.pial.surf.gii']);
     grpfaces      = giftirh.faces;
     grpvertex     = giftirh.vertices;
     clear giftilh giftirh 
@@ -32,13 +32,13 @@ if type==1
 elseif type==2
     for i=1:nbROI
         ROIfacevert(i,1).id=filenames(i);
-        ROIfacevert(i,1).faces=importfile([pathToFile,'bert/label/label_type2/',filenames{i}]);    
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/data/bert/label/label_type2/',filenames{i}]);    
     end
     % load hi-res surface - pial
     display('load lh(rh).pial as surface')
     
-    l=SurfStatReadSurf([pathToFile,'bert/surf/lh.pial']);
-    r=SurfStatReadSurf([pathToFile,'bert/surf/rh.pial']);
+    l=SurfStatReadSurf([pathToFile,'/data/bert/surf/lh.pial']);
+    r=SurfStatReadSurf([pathToFile,'/data/bert/surf/rh.pial']);
     glpfaces = l.tri;
     glpvertex = l.coord';
     grpfaces = r.tri;

@@ -1,10 +1,9 @@
 ### Due to having to make symlinks, this script must be ran as an admin.
 If (-NOT (([Security.Principal.WindowsPrincipal] `
-  [Security.Principal.WindowsIdentity]::GetCurrent() `
-).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)))
-{
-    Write-Host "You do not have Administrator rights to run this script! Please re-run this script as an Administrator!"  -ForegroundColor Red -BackgroundColor Black
-    exit;
+        [Security.Principal.WindowsIdentity]::GetCurrent() `
+    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+  Write-Host "You do not have Administrator rights to run this script! Please re-run this script as an Administrator!"  -ForegroundColor Red -BackgroundColor Black
+  exit;
 }
 
 
@@ -18,8 +17,10 @@ $pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/licens
 $pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
 $driveAndPathToParticipants = $($drive + $pathToParticipants)
 $pathToDsiStudio = $drive + 'Users\Reece\Documents\Dissertation\dsi_studio_win'
-$numberOfTracts = 10000
-#$numberOfTracts = 10000000
+$pathToSpmPackage = $drive + 'Program Files\MATLAB\R2021b\spm12'
+#$numberOfTracts = 10000
+$numberOfTracts = 10000000
+
 
 # "motor" : https://openfmri.org/s3-browser/?prefix=ds000244
 # "hcp": https://humanconnectome.org/study/hcp-young-adult
@@ -89,13 +90,8 @@ function getHcpData($subjectId, $dataToFetch) {
 function getMotorData($subjectId) {
   $filesToCheck = Get-Content filesToCheck.csv
   foreach ($filename in $filesToCheck) {
-    Get-ChildItem -Path $($driveAndPathToParticipants + '/sub-' + $subjectId + '/') -Include $('sub-'+$subjectId+"*"+ $filename) -Recurse -ErrorAction SilentlyContinue -Force
+    Get-ChildItem -Path $($driveAndPathToParticipants + '/sub-' + $subjectId + '/') -Include $('sub-' + $subjectId + "*" + $filename) -Recurse -ErrorAction SilentlyContinue -Force
   }
-
-
-  $pathToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
-  Get-ChildItem -Path V:\Myfolder -Filter CopyForbuild.bat -Recurse -ErrorAction SilentlyContinue -Force
-
   Write-Host "We skipped the checks to ensure the subject has the files required. Please manually confirm."
 }
 ######
@@ -139,7 +135,7 @@ else {
 ######
 
 $subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
-Write-Host "STEP 1 of 5: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 1 of 7: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   if ("M" -eq $dataSetToUse) {
@@ -178,23 +174,31 @@ foreach ($subjectId in $subjectList) {
 
 # Launch WSL (Ubuntu 18 environment)
 # We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
-Write-Host "STEP 2-3 of 5: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
+<#
+Write-Host "STEP 2-3 of 7: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
 
   if (Test-Path "$driveAndPathToParticipants/sub-$subjectId/data/bert") {
-    Write-Host "Folder Exists"
-    # Confirm before you delete this, you silly bitch.
-    #Remove-Item "$driveAndPathToParticipants/sub-$subjectId/data/bert" -Force -Recurse -Confirm
+    Write-Host "Freesurfer output already exists..."
+    Remove-Item "$driveAndPathToParticipants/sub-$subjectId/data/bert" -Force -Recurse -Confirm
   }
 
-  #Start-Job -ScriptBlock { 
-  #  param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse)
-  #  wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" "$dataToUse"
-  #} -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
+  Start-Job -ScriptBlock { 
+    param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse)
+    wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" "$dataToUse" 
+  } -Name "fslJob-$subjectId" -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
+  
+  Register-ObjectEvent (Get-Job -Name "fslJob-$subjectId") StateChanged -Action {
+  # It is possible that freesurfer does not produce necessary symlinks. So once it's done, delete existing pial files/symlinks, and renew.
+    Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" -Force
+    Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" -Force
+    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T1"
+    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T1"
+  }
 }
-
-# It is possible that freesurfer does not produce necessary symlinks:  cmd.exe /c mklink D:\Dissertation\Participants\sub-01\data\bert\surf\lh.pial D:\Dissertation\Participants\sub-01\data\bert\surf\lh.pial.T1
+exit;
+#>
 
 
 ######
@@ -204,24 +208,26 @@ foreach ($subjectId in $subjectList) {
 ######
 # LAUNCH DSI (START, STEP 4)
 ######
-Write-Host "STEP 4 of 5: DSIStudio" -ForegroundColor Green -BackgroundColor Black
+<#
+Write-Host "STEP 4 of 7: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   #& $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
-
+#>
 ######
 # (END)
 ######
 # ---------------------------------------
 ######
+<#
 # LAUNCH WSL AND MATLAB (START, STEP 5)
 ######
 $type = 2
 $downsample = 'yes'
 $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
-Write-Host "STEP 5 of 5: MATLAB" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 5 of 7: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   & matlab -batch "try, batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate; end;"
@@ -236,16 +242,60 @@ foreach ($subjectId in $subjectList) {
   if (-not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/edgeList.mat" -PathType Leaf) -or
     -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/labelSRF.mat" -PathType Leaf) -or
     -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/matrices.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub=$subjectId/MNIcoor.mat" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub=$subjectId/trsfmTrk.mat" -PathType Leaf)
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/MNIcoor.mat" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/trsfmTrk.mat" -PathType Leaf)
   ) {
     $success = $false;
-    Write-Host "Error: Subject sub-$subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+    Write-Host "Error during structural analysis: Subject sub-$subjectId is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
+    exit;
   }
 }
 
 if ($success -eq $true) {
   Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
-  Write-Host "Success! All output files were created successfully. You may wish to check the console above for any errors, though." -ForegroundColor Green -BackgroundColor Black
+  Write-Host "Success! All output files from structural data were created successfully. You may wish to check the console above for any errors, though." -ForegroundColor Green -BackgroundColor Black
+  Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "_______________________________________" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "Now commencing analysis of functional MRI data..." -ForegroundColor Green -BackgroundColor Black
   Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
 } 
+#>
+# ---------------------------------------
+######
+# LAUNCH WSL AND MATLAB (START, STEP 6)
+######
+# So the matlab function can be found, set to current location of this .ps1 file.
+Set-Location $PSScriptRoot
+
+Write-Host "STEP 6 of 7: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black
+foreach ($subjectId in $subjectList) {
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  # Ensure timing files are all created, if not, create them.
+  if (
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_hand.txt" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_hand.txt" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_foot.txt" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_foot.txt" -PathType Leaf) -or
+    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/tongue.txt" -PathType Leaf)
+  ) {
+    
+    Write-Host "Creating timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black
+    & matlab -batch "try, createTimingFiles $driveAndPathToParticipants sub-$subjectId; end;"
+  }
+  else {
+      Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black
+  }
+
+  Write-Host "STEP 7 of 7: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
+foreach ($subjectId in $subjectList) {
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId"
+}
+
+
+}
+######
+# (END)
+######
+# ---------------------------------------

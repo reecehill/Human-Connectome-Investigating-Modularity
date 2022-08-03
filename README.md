@@ -108,6 +108,8 @@ Before running the script, some software/packages must be installed. We list the
     - Required only for DSI Studio with GPU Support.
 - AWS CLI (version 2) [https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html]
   - This is used to download data.
+- Powershell
+  - This must be updated using: "Update-Help" for $PSScriptRoot to be available.
 
 ## Instructions
 **TODO**

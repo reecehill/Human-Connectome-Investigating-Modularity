@@ -71,7 +71,7 @@ end
 
 %% Make edgelist and other stuff
 for i=1:length(subjects)
-    [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList([pathToFile,subjects{i},'/'],downsample);
+    [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList([pathToFile,subjects{i}],downsample);
     filename=[pathToFile,subjects{i},'/edgeList.mat'];
     save(filename,'edgeListRemote','edgeListLocal','lpcentroids','rpcentroids','subCoor','-v7.3');
     clear edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor
@@ -86,12 +86,12 @@ end
 
 %% map coordinates into MNI space
 for i=1:length(subjects)
-    [Coor_MNI305,Coor_MNI152]=getMNIcoor([pathToFile,subjects{i},'/'],type);
+    [Coor_MNI305,Coor_MNI152]=getMNIcoor([pathToFile,subjects{i}],type);
     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
 end
 
-display(["Finished in MATLAB."])
+display(["Finished using structural data in MATLAB."])
 end
 
 

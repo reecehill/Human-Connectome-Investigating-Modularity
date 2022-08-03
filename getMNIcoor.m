@@ -11,10 +11,10 @@ nlen = size(Coor,1);
 
 
 %% load linear transformation matrix
-[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'T1w/bert/mri/transforms/talairach.xfm']);
+[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'/data/bert/mri/transforms/talairach.xfm']);
 
 %ft_defaults
-mri=ft_read_mri([pathToFile,'T1w/bert/mri/aparc+aseg.nii']);
+mri=ft_read_mri([pathToFile,'/data/bert/mri/aparc+aseg.nii']);
 Norig = mri.hdr.vox2ras;
 Torig = mri.hdr.tkrvox2ras;
 

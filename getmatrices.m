@@ -11,13 +11,20 @@ load([pathToFile,'/trsfmTrk.mat']);
 
 
 %% get lengths of data
-nfllen=length(nfl);
-nfrlen=length(nfr);
-nsublen = size(subCoor,1);
+nfllen=length(nfl); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
+nfrlen=length(nfr); % as above, but right hemisphere.
+nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
 
-nbFaces=size(nfr,1)+size(nfl,1)+nsublen;
+nbFaces=size(nfr,1)+size(nfl,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+
+
 %% make local connection matrix
-adj_local=sparse(double(edgeListLocal(:,1)),double(edgeListLocal(:,2)),ones(length(edgeListLocal(:,1)),1),nbFaces,nbFaces);
+adj_local=sparse( ...
+    double(edgeListLocal(:,1)), ...
+    double(edgeListLocal(:,2)), ...
+    ones(length(edgeListLocal(:,1)),1), ...
+    nbFaces, ...
+    nbFaces);
 
 
 %% make binary connection matrix

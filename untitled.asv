@@ -1,70 +1,181 @@
-% Iterative community finetuning.
-% W is the input connection matrix.
-close all;
-showTicksPer = 500;
+try
+    % Iterative community finetuning.
+    % W is the input connection matrix.
+    %close all;
+    %clear;
+    showTicksPer = 500;
 
-adj_matrix = matfile('D:\Dissertation\Participants\sub-01\matlab-output-10-million\matrices.mat').adj_matrix;
-load('D:\Dissertation\Participants\sub-01\matlab-output-10-million\labelSRF.mat');
+    adj_matrix = matfile('D:\Dissertation\Participants\sub-002\matrices.mat').adj_matrix;
+    load('D:\Dissertation\Participants\sub-002\labelSRF.mat',"glpfaces","faceROIidL","faceROIidR","subROIid","filenames","subfilenames","glpvertex");
+    %load('D:\Dissertation\Participants\sub-002\edgeList.mat');
 
+    load('D:\Dissertation\Participants\sub-002\MNIcoor.mat',"Coor_MNI152");
+    load('D:\Dissertation\Participants\sub-002\1stlevel\fMRIModules_0001.mat');
 
-filenames={'lh.bankssts.label';'lh.caudalanteriorcingulate.label';'lh.caudalmiddlefrontal.label';'lh.cuneus.label';'lh.entorhinal.label';'lh.frontalpole.label';'lh.fusiform.label';'lh.inferiorparietal.label';'lh.inferiortemporal.label';'lh.insula.label';'lh.isthmuscingulate.label';'lh.lateraloccipital.label';'lh.lateralorbitofrontal.label';'lh.lingual.label';'lh.medialorbitofrontal.label';'lh.middletemporal.label';'lh.paracentral.label';'lh.parahippocampal.label';'lh.parsopercularis.label';'lh.parsorbitalis.label';'lh.parstriangularis.label';'lh.pericalcarine.label';'lh.postcentral.label';'lh.posteriorcingulate.label';'lh.precentral.label';'lh.precuneus.label';'lh.rostralanteriorcingulate.label';'lh.rostralmiddlefrontal.label';'lh.superiorfrontal.label';'lh.superiorparietal.label';'lh.superiortemporal.label';'lh.supramarginal.label';'lh.temporalpole.label';'lh.transversetemporal.label';'rh.bankssts.label';'rh.caudalanteriorcingulate.label';'rh.caudalmiddlefrontal.label';'rh.cuneus.label';'rh.entorhinal.label';'rh.frontalpole.label';'rh.fusiform.label';'rh.inferiorparietal.label';'rh.inferiortemporal.label';'rh.insula.label';'rh.isthmuscingulate.label';'rh.lateraloccipital.label';'rh.lateralorbitofrontal.label';'rh.lingual.label';'rh.medialorbitofrontal.label';'rh.middletemporal.label';'rh.paracentral.label';'rh.parahippocampal.label';'rh.parsopercularis.label';'rh.parsorbitalis.label';'rh.parstriangularis.label';'rh.pericalcarine.label';'rh.postcentral.label';'rh.posteriorcingulate.label';'rh.precentral.label';'rh.precuneus.label';'rh.rostralanteriorcingulate.label';'rh.rostralmiddlefrontal.label';'rh.superiorfrontal.label';'rh.superiorparietal.label';'rh.superiortemporal.label';'rh.supramarginal.label';'rh.temporalpole.label';'rh.transversetemporal.label'};
-subfilenames=transpose({'lh.thalamus'	'lh.caudate'	'lh.putamen'	'lh.pallidum'	'lh.amygdala'	'lh.hippocampus'	'lh.accumbens'	'lh.cerebellum'	'rh.thalamus'	'rh.caudate'	'rh.putamen'	'rh.pallidum'	'rh.amygdala'	'rh.hippocampus'	'rh.accumbens'	'rh.cerebellum'	'Brain-stem'});
-allFilenames = [filenames;subfilenames];
-
-regionNameIds = [faceROIidL; faceROIidR+34; subROIid+34+17];
-allLabels = allFilenames(regionNameIds);
-
-nodeIdsOfInterest = find(ismember(allLabels, ["lh.superiorfrontal.label","lh.superiorparietal.label"]));
-labelsOfInterest = allLabels(nodeIdsOfInterest);
-
-newMatrix = adj_matrix(nodeIdsOfInterest,nodeIdsOfInterest);
+    allFilenames = [filenames;transpose(subfilenames)];
+    regionNameIds = [faceROIidL; faceROIidR+34; subROIid+34+17];
+    allLabels = allFilenames(regionNameIds);
 
 
-figure2 = figure;
-plottedLabels = allLabels(1:showTicksPer:end);
+    baseStruct.adjacencyMatrix = [];
+    baseStruct.nodes.ids = [];
+    baseStruct.nodes.labels = [];
+    baseStruct.nodes.moduleIds = []; % for each node, list its module id.
+    baseStruct.nodes.mni152 = []; % the 3D coord of each node.
+    baseStruct.nodes.threeDimensions = []; % module ids in 3d
+    baseStruct.modules.nodeIds = []; % the ids of all nodes WITH a module.
+    tempStore = [];
+    if(exist("roiStructuralData",'var'))
+        tempStore = roiStructuralData.nodes.moduleIds;
+    end
+    allStructuralData = baseStruct;
+    roiStructuralData = baseStruct;
+    allFunctionalData = baseStruct;
+    roiFunctionalData = baseStruct;
 
-spy(adj_matrix);
-rectangle('Position',[min(nodeIdsOfInterest) min(nodeIdsOfInterest) length(nodeIdsOfInterest) length(nodeIdsOfInterest)])
-xticks(1:showTicksPer:length(allLabels));
-yticks(1:showTicksPer:length(allLabels));
-xticklabels(plottedLabels);
-yticklabels(plottedLabels);
+    %% Structural data
+    % All structure data
+    allStructuralData.nodes.ids = 1:1:length(allLabels);
+    allStructuralData.nodes.mni152 = Coor_MNI152; clear Coor_MNI152;
+    allStructuralData.nodes.labels = allLabels;
 
-figure1 = figure;
-plottedLabels = labelsOfInterest(1:showTicksPer:end);
-spy(newMatrix);
-xticks(1:showTicksPer:length(allLabels));
-yticks(1:showTicksPer:length(allLabels));
+    % Filtered structure data, of only those from ROI.
+    roiStructuralData.nodes.ids = find(ismember(allLabels, ["lh.superiorfrontal.label","lh.superiorparietal.label"]));
+    roiStructuralData.adjacencyMatrix = adj_matrix(roiStructuralData.nodes.ids,roiStructuralData.nodes.ids);
+    if(~isempty(tempStore))
+        roiStructuralData.nodes.moduleIds = tempStore;
+        
+    else
+        disp('Sorting structural data into modules...');
+        [roiStructuralData.nodes.moduleIds, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 1);
+    end
+    roiStructuralData.nodes.labels = allLabels(roiStructuralData.nodes.ids);
+    roiStructuralData.nodes.mni152 = allStructuralData.nodes.mni152(roiStructuralData.nodes.moduleIds,:);
+    clearvars tempStore;
 
-xticklabels(plottedLabels);
-yticklabels(plottedLabels);
 
-%% attempt module detection
-% Iterative community finetuning.
-%W is the input connection matrix.
-W = newMatrix;
-% n  = size(W,1);             % number of nodes
-% %M  = 1:n;                   % initial community affiliations
-% Q0 = -1; Q1 = 0;            % initialize modularity values
-% while Q1-Q0>1e-5           % while modularity increases
-%     Q0 = Q1;                % perform community detection
-%     [M, Q1] = community_louvain(W, []);
-% end
+    %% Functional data
+    allFunctionalData.nodes.mni152 = funcXyzCoordinatesmm;
+    allFunctionalData.nodes.moduleIds = fmriModules(:); % for each node, list its module id.
+    allFunctionalData.nodes.threeDimensions = intensitiesPerVoxel;
+    allFunctionalData.modules.threeDimensions = fmriModules; % module ids in 3d
+    allFunctionalData.modules.nodeIds = find(allFunctionalData.nodes.moduleIds>0); % the ids of all nodes with a module.
+    clearvars fmriModules intensitiesPerVoxel xyzCoordinatesmm;
 
-hold on;
-moduleIndex = min(M);
-%For each module
-cmap = hsv(length(M));
-for i = 1:max(M)
-    % Get ids of nodes that are in this module.
-    nodeIds = find(M == i);
-    nodesByModule = zeros(size(newMatrix));
-    nodesByModule(nodeIds, nodeIds) = 1;
-    figure1 = figure;
-    imagesc(newMatrixSelected);
-end
-x=get(gca,'children');
-for i = length(x)
-    color = cmap(i,:);
-    set(x(i),'color',color);
+    % Filtered functional data, on only those from ROI.
+    % TO DO: filter functional data to get only specific areas.
+
+
+
+    figure2 = figure;
+    plottedLabels = allStructuralData.nodes.labels(1:showTicksPer:end);
+    spy(adj_matrix);
+    rectangle('Position',[min(roiStructuralData.nodes.ids) min(roiStructuralData.nodes.ids) length(roiStructuralData.nodes.ids) length(roiStructuralData.nodes.ids)], 'EdgeColor','red')
+    xticks(1:showTicksPer:length(allStructuralData.nodes.labels));
+    yticks(1:showTicksPer:length(allStructuralData.nodes.labels));
+    xticklabels(plottedLabels);
+    yticklabels(plottedLabels);
+    title('Global network - connectivity matrix')
+    subtitle('Square shows local connectivity (figure 2)')
+
+    figure(2);
+    plottedLabels = roiStructuralData.nodes.labels(1:showTicksPer:end);
+    spy(roiStructuralData.adjacencyMatrix);
+    xticks(1:showTicksPer:length(roiStructuralData.nodes.labels));
+    yticks(1:showTicksPer:length(roiStructuralData.nodes.labels));
+    xticklabels(plottedLabels);
+    yticklabels(plottedLabels);
+    title('Local network (lSF-lSP) - connectivity matrix')
+
+
+
+
+    %% Visualise overlap
+    figure(6);
+    legend on;
+    hold on;
+
+    for funcModule=min(allFunctionalData.nodes.moduleIds,[],'all'):max(allFunctionalData.nodes.moduleIds,[],'all')
+        % For fmri data, a score of 0 means no module membership (e.g., no activation).
+        if(funcModule>0)
+            roiFunctionalData.modules.byId = find(allFunctionalData.nodes.moduleIds(:)==funcModule);
+            activeFmriModuleCoords = allFunctionalData.nodes.mni152(roiFunctionalData.modules.byId,:);
+            plot3(activeFmriModuleCoords(:,1),activeFmriModuleCoords(:,2),activeFmriModuleCoords(:,3),'s','DisplayName',['fMRI Module #' num2str(funcModule)]);
+            hold on;
+        end
+    end
+
+    for strucModule=min(roiStructuralData.nodes.moduleIds,[],'all'):max(roiStructuralData.nodes.moduleIds,[],'all')
+        activeStrucModules = find(roiStructuralData.nodes.moduleIds(:)==strucModule);
+        activeStrucModuleCoords = roiStructuralData.nodes.mni152(activeStrucModules,:);
+        plot3(activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'^','DisplayName',['DWI Module #' num2str(strucModule)]);
+        hold on;
+    end
+
+    figure(7);
+    hold on;
+    legend on;
+    circleSizes = ones(length(allStructuralData.nodes.mni152), 1) .* 0.1;
+
+%     %% Only plot brain outline
+%     for z=min(allStructuralData.nodes.mni152(:,3)):max(allStructuralData.nodes.mni152(:,3))
+%         nodeIdsAtSliceZ = find(allStructuralData.nodes.mni152(:,3) == z);
+%         if(length(nodeIdsAtSliceZ) == 1)
+%            
+%            scatter3(allStructuralData.nodes.mni152(nodeIdsAtSliceZ,1),allStructuralData.nodes.mni152(nodeIdsAtSliceZ,2),z,circleSizes(nodeIdsAtSliceZ),[.4, .4, .4]);
+%         else
+%         coordsAtSliceZ = allStructuralData.nodes.mni152(nodeIdsAtSliceZ,:);
+%         xs = coordsAtSliceZ(:,1);
+%         %For all coords in this slice, only plot the outermost ones. 
+%         indicesOfOutermostCoords = boundary(coordsAtSliceZ(:,1),coordsAtSliceZ(:,2));
+%         zs = ones(length(indicesOfOutermostCoords)) .* z;
+%         scatter3(allStructuralData.nodes.mni152(indicesOfOutermostCoords,1),allStructuralData.nodes.mni152(indicesOfOutermostCoords,2),zs,circleSizes,[.4, .4, .4]);
+%         end
+%     end
+    circleSizes = ones(length(allStructuralData.nodes.mni152), 1) .* 0.1;
+    %scatter3(allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3),circleSizes,[.4, .4, .4]);
+    boundaryOfBrain = boundary(allStructuralData.nodes.mni152,1);
+    trisurf(boundaryOfBrain,allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3),'FaceColor',[0.5 0.5 0.5],'FaceAlpha',0.2,'EdgeColor','none')
+    hold on;
+    for strucModule=min(roiStructuralData.nodes.moduleIds,[],'all'):max(roiStructuralData.nodes.moduleIds,[],'all')
+        activeStrucNodes = find(roiStructuralData.nodes.moduleIds(:)==strucModule);
+        activeStrucModuleCoords = roiStructuralData.nodes.mni152(activeStrucNodes,:);
+        %scatter3(activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'*','DisplayName',['DWI Module #' num2str(strucModule)]);
+        boundaryOfModule = boundary(activeStrucModuleCoords);
+        trisurf(boundaryOfModule,activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'FaceAlpha',1,'EdgeColor','none')
+    
+        hold on;
+    end
+
+    for funcModule=min(allFunctionalData.nodes.moduleIds,[],'all'):max(allFunctionalData.nodes.moduleIds,[],'all')
+        % For fmri data, a score of 0 means no module membership (e.g., no activation).
+        if(funcModule>0)
+            roiFunctionalData.modules.byId = find(allFunctionalData.nodes.moduleIds(:)==funcModule);
+            activeFmriModuleCoords = allFunctionalData.nodes.mni152(roiFunctionalData.modules.byId,:);
+            scatter = scatter3(activeFmriModuleCoords(:,1),activeFmriModuleCoords(:,2),activeFmriModuleCoords(:,3),'s','DisplayName',['fMRI Module #' num2str(funcModule)]);
+            hold on;
+        end
+    end
+
+    %% Visualise strucModules
+    % figure1 = figure;
+    % hold on;
+    % moduleIndex = min(strucModules);
+    % %For each module
+    % cmap = hsv(length(strucModules));
+    % for i = transpose(strucModules)
+    %     % Get ids of nodes that are in this module.
+    %     nodeIds = find(strucModules == i);
+    %     nodesByModule = zeros(size(roiStructuralData.adjacencyMatrix));
+    %     nodesByModule(nodeIds, nodeIds) = 1;
+    %     spy(nodesByModule);
+    %     x=get(gca,'children');
+    %     lastX = length(x);
+    %     color = [cmap(lastX,:)];
+    %     set(x(lastX),'color',color);
+    % end
+    sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
+catch ME
+    sound(tan(1:1000)); pause(0.2); sound(tan(1:1000));
+    rethrow(ME);
 end

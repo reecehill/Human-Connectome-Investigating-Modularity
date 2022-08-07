@@ -135,7 +135,7 @@ else {
 ######
 
 $subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
-Write-Host "STEP 1 of 7: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 1 of 8: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   if ("M" -eq $dataSetToUse) {
@@ -175,7 +175,7 @@ foreach ($subjectId in $subjectList) {
 # Launch WSL (Ubuntu 18 environment)
 # We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
 <#
-Write-Host "STEP 2-3 of 7: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 2-3 of 8: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
 
@@ -209,7 +209,7 @@ exit;
 # LAUNCH DSI (START, STEP 4)
 ######
 <#
-Write-Host "STEP 4 of 7: DSIStudio" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 4 of 8: DSIStudio" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   #& $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
@@ -227,7 +227,7 @@ $type = 2
 $downsample = 'yes'
 $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
-Write-Host "STEP 5 of 7: MATLAB" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 5 of 8: MATLAB" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   & matlab -batch "try, batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate; end;"
@@ -268,7 +268,7 @@ if ($success -eq $true) {
 # So the matlab function can be found, set to current location of this .ps1 file.
 Set-Location $PSScriptRoot
 
-Write-Host "STEP 6 of 7: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 6 of 8: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   # Ensure timing files are all created, if not, create them.
@@ -284,14 +284,37 @@ foreach ($subjectId in $subjectList) {
     & matlab -batch "try, createTimingFiles $driveAndPathToParticipants sub-$subjectId; end;"
   }
   else {
-      Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black
   }
 
-  Write-Host "STEP 7 of 7: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId"
-}
+
+
+
+  Write-Host "STEP 7 of 8: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
+  $step7jobs = foreach ($subjectId in $subjectList) {
+    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+    Start-Job -ScriptBlock { 
+      param($driveAndPathToParticipants, $subjectId, $PSScriptRoot)
+      Set-Location $PSScriptRoot;
+      & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
+    } -Name "matlab3-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
+  } 
+
+  # Wait for Step 7 to complete for all subjects before continuing...
+  Receive-Job $step7jobs -Wait -AutoRemoveJob
+
+  Write-Host "STEP 8 of 8: MATLAB (4)" -ForegroundColor Green -BackgroundColor Black
+  $step8jobs = foreach ($subjectId in $subjectList) {
+    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+    Start-Job -ScriptBlock { 
+      param($driveAndPathToParticipants, $subjectId, $PSScriptRoot)
+      Set-Location $PSScriptRoot;
+      & matlab -batch "try, convertIntensityToCoordinates $driveAndPathToParticipants sub-$subjectId; end;"
+    } -Name "matlab4-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
+  }
+
+  # Wait for Step 8 to complete for all subjects before continuing...
+  Receive-Job $step8jobs -Wait -AutoRemoveJob
 
 
 }

@@ -11,7 +11,6 @@ try
 
     load('D:\Dissertation\Participants\sub-002\MNIcoor.mat',"Coor_MNI152");
     load('D:\Dissertation\Participants\sub-002\1stlevel\fMRIModules_0001.mat');
-    [wholeBrainVoxelValues, wholeBrainmm] = spm_read_vols(spm_vol('D:\Dissertation\Participants\sub-002\data\anat/c1coregistered_T1w.nii'));
 
     allFilenames = [filenames;transpose(subfilenames)];
     regionNameIds = [faceROIidL; faceROIidR+34; subROIid+34+17];
@@ -29,19 +28,11 @@ try
     if(exist("roiStructuralData",'var'))
         tempStore = roiStructuralData.nodes.moduleIds;
     end
-
-    wholeBrainData = baseStruct;
     allStructuralData = baseStruct;
     roiStructuralData = baseStruct;
     allFunctionalData = baseStruct;
     roiFunctionalData = baseStruct;
 
-
-    %% Whole brain data
-    wholeBrainData.nodes.ids = 1:1:length(wholeBrainmm(:,1));
-    wholeBrainData.nodes.mni152 = transpose(wholeBrainmm);
-    wholeBrainData.nodes.threeDimensions = wholeBrainVoxelValues;
-    clearvars wholeBrainmm wholeBrainVoxelValues;
     %% Structural data
     % All structure data
     allStructuralData.nodes.ids = 1:1:length(allLabels);
@@ -57,7 +48,7 @@ try
         
     else
         disp('Sorting structural data into modules...');
-        [roiStructuralData.nodes.moduleIds, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 0.1, 0.12);
+        [roiStructuralData.nodes.moduleIds, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 0.6, 1.4);
 
     end
     roiStructuralData.nodes.labels = allLabels(roiStructuralData.nodes.ids);
@@ -126,16 +117,13 @@ try
     figure(7);
     hold on;
     legend on;
-    circleSizes = ones(length(wholeBrainData.nodes.mni152), 1) .* 0.1;
+    circleSizes = ones(length(allStructuralData.nodes.mni152), 1) .* 0.1;
     roiCircleSizes = ones(length(roiStructuralData.nodes.mni152), 1) .* 0.1;
-    voxelsWithBrain = find(wholeBrainData.nodes.threeDimensions>0);
-    %scatter3(wholeBrainData.nodes.mni152(:,1),wholeBrainData.nodes.mni152(:,2),wholeBrainData.nodes.mni152(:,3),circleSizes,[.4, .4, .4]);
-    boundaryOfBrain = boundary(wholeBrainData.nodes.mni152(voxelsWithBrain,:),1);
-    trisurf(boundaryOfBrain,wholeBrainData.nodes.mni152(voxelsWithBrain,1),wholeBrainData.nodes.mni152(voxelsWithBrain,2),wholeBrainData.nodes.mni152(voxelsWithBrain,3),'FaceColor',[0.1 0.1 0.1],'FaceAlpha',0.05,'EdgeColor','none','DisplayName','Brain')
+    %scatter3(allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3),circleSizes,[.4, .4, .4]);
+    boundaryOfBrain = boundary(allStructuralData.nodes.mni152,1);
+    trisurf(boundaryOfBrain,allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3),'FaceColor',[0.1 0.1 0.1],'FaceAlpha',0.05,'EdgeColor','none','DisplayName','Brain')
     hold on;
-    boundaryOfRoi = boundary(wholeBrainData.nodes.mni152(roiStructuralData.nodes.ids,:),0.5);
-    
-    
+    boundaryOfRoi = boundary(allStructuralData.nodes.mni152(roiStructuralData.nodes.ids,:),0.5);
     %trisurf(boundaryOfRoi,roiStructuralData.nodes.mni152(:,1),roiStructuralData.nodes.mni152(:,2),roiStructuralData.nodes.mni152(:,3),'FaceColor','none','FaceAlpha',0.2,'EdgeColor',[1 0.1 0.1],'DisplayName','ROI-Area')
     %hold on;
     %scatter3(roiStructuralData.nodes.mni152(:,1),roiStructuralData.nodes.mni152(:,2),roiStructuralData.nodes.mni152(:,3),roiCircleSizes,'DisplayName','ROI')
@@ -145,7 +133,7 @@ try
         activeStrucModuleCoords = roiStructuralData.nodes.mni152(activeStrucNodeIds,:);
         %scatter3(activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'*','DisplayName',['DWI Module #' num2str(strucModule)]);
         boundaryOfModule = boundary(activeStrucModuleCoords);
-        trisurf(boundaryOfModule,activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'FaceColor',[randi([0,1]) randi([0,1]) randi([0,1])],'FaceAlpha',0.1,'EdgeColor','none','DisplayName',['DWI Module #' num2str(strucModule)])
+        trisurf(boundaryOfModule,activeStrucModuleCoords(:,1),activeStrucModuleCoords(:,2),activeStrucModuleCoords(:,3),'FaceColor',[randi([0,1]) randi([0,1]) randi([0,1])],'FaceAlpha',0.5,'EdgeColor','none','DisplayName',['DWI Module #' num2str(strucModule)])
     
         hold on;
     end
@@ -158,7 +146,7 @@ try
             activeFmriModuleCoords = allFunctionalData.nodes.mni152(activeFuncNodeIds,:);
             %scatter3(activeFmriModuleCoords(:,1),activeFmriModuleCoords(:,2),activeFmriModuleCoords(:,3),'s','DisplayName',['fMRI Module #' num2str(funcModule)]);
             boundaryOfModule = boundary(activeFmriModuleCoords);
-            trisurf(boundaryOfModule,activeFmriModuleCoords(:,1),activeFmriModuleCoords(:,2),activeFmriModuleCoords(:,3),'FaceAlpha',0.5,'EdgeColor','none','DisplayName',['fMRI Activation: #' num2str(funcModule)])
+            trisurf(boundaryOfModule,activeFmriModuleCoords(:,1),activeFmriModuleCoords(:,2),activeFmriModuleCoords(:,3),'FaceAlpha',0.5,'FaceColor',[randi([0,1]) randi([0,1]) randi([0,1])],'EdgeColor','none','DisplayName',['fMRI Activation: #' num2str(funcModule)])
     
             hold on;
         end

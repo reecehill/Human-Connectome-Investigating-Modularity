@@ -1,6 +1,6 @@
 function [strucModules, Q1] = sortIntoModules(structuralAdjacencyMatrix, startGamma, endGamma)
 allGammas = startGamma:0.02:endGamma;
-allIterations = 1:1:2;
+allIterations = 1:1:3;
 Q_corts = zeros([max(allIterations),1]);
 Q_rands = zeros([max(allIterations),1]);
 Q_max = zeros([length(allGammas),1]);
@@ -20,11 +20,10 @@ randAxes = plot(0,0);
 for gamma=allGammas
     gammaIndex = gamma == allGammas;
 
-    for iterationIndex=allIterations
+    parfor iterationIndex=allIterations
         disp(['Sorting cortex (ROI) into modules: gamma=' num2str(gamma) ', iteration #' num2str(iterationIndex) '/' num2str(max(allIterations))]);
         Q0 = -1; Q1 = 0;            % initialize modularity values
         while Q1-Q0>1e-5           % while modularity increases
-            disp('Running...');
             Q0 = Q1;                % perform community detection
             [~, Q1] = community_louvain(structuralAdjacencyMatrix, gamma);
             Q_corts(iterationIndex) = Q1;

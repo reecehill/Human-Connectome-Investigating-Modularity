@@ -1,4 +1,4 @@
-function [strucModules, Q1] = sortIntoModules(structuralAdjacencyMatrix, startGamma, endGamma)
+function [strucModules, Q1, optimalGamma] = sortIntoModules(structuralAdjacencyMatrix, startGamma, endGamma)
 allGammas = startGamma:0.02:endGamma;
 allIterations = 1:1:3;
 Q_corts = zeros([max(allIterations),1]);

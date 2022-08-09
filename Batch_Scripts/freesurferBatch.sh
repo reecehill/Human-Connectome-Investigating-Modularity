@@ -19,7 +19,12 @@ function getAparcAsecNii {
   echo  "Called getAparcAsecNii";
   mri_convert "$SUBJECTS_DIR/bert/mri/aparc+aseg.mgz" "$SUBJECTS_DIR/bert/mri/aparc+aseg.nii"
   if [ ! -f $SUBJECTS_DIR/bert/mri/aparc+aseg.nii ]; then
-    echo "There was an error. Freesurfer did not convert aparc+aseg.mgz -> .nii.";
+    echo "There was an error. Freesurfer did not convert aparc+aseg.mgz -> aparc+aseg.nii.";
+    exit 0;
+  fi
+   mri_binarize --i "$SUBJECTS_DIR/bert/mri/aparc+aseg.mgz" --gm --o "$SUBJECTS_DIR/bert/mri/gm.nii";
+  if [ ! -f $SUBJECTS_DIR/bert/mri/gm.nii ]; then
+    echo "There was an error. Freesurfer could not create gm.nii from aparc+aseg.mgz";
     exit 0;
   fi
 }

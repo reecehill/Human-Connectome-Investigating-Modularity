@@ -191,10 +191,10 @@ foreach ($subjectId in $subjectList) {
   
   Register-ObjectEvent (Get-Job -Name "fslJob-$subjectId") StateChanged -Action {
   # It is possible that freesurfer does not produce necessary symlinks. So once it's done, delete existing pial files/symlinks, and renew.
-    Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" -Force
-    Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" -Force
-    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T1"
-    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T1"
+    #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" -Force
+    #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" -Force
+    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T1"
+    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T1"
   }
 }
 exit;

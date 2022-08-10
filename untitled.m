@@ -1,15 +1,22 @@
 try
+    addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Toolboxes\Brain Connectivity Toolbox'));
+    addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
+
+    
     % Iterative community finetuning. W is the input connection matrix.
     close all;
-    % clear workspace;
+    clearvars -except pathToParticipants subject roiStructuralData optimalGamma;
+    pathToParticipants = 'D:\Dissertation\Participants';
+    subject = 'sub-002';
+    roiLabels = ["lh.precentral.label"]; % only supports single values for now.
+    
     showTicksPer = 500;
 
-    adj_matrix = matfile('D:\Dissertation\Participants\sub-002\matrices.mat').adj_matrix;
-    load('D:\Dissertation\Participants\sub-002\labelSRF.mat',"glpfaces","faceROIidL","faceROIidR","subROIid","filenames","subfilenames","glpvertex");
-    %load('D:\Dissertation\Participants\sub-002\edgeList.mat');
-
-    load('D:\Dissertation\Participants\sub-002\MNIcoor.mat',"Coor_MNI152");
-    load('D:\Dissertation\Participants\sub-002\1stlevel\fMRIModules_0002.mat');
+    adj_matrix = matfile([pathToParticipants '\' subject '\matrices.mat']).adj_matrix;
+    load([pathToParticipants '\' subject '\labelSRF.mat'],"glpfaces","faceROIidL","faceROIidR","subROIid","filenames","subfilenames","glpvertex");
+    load([pathToParticipants '\' subject '\edgeList.mat']);
+    load([pathToParticipants '\' subject '\MNIcoor.mat'],"Coor_MNI152");
+    load([pathToParticipants '\' subject '\1stlevel\fMRIModules_0002.mat']);
 
     allFilenames = [filenames;transpose(subfilenames)];
     regionNameIds = [faceROIidL; faceROIidR+34; subROIid+34+17];
@@ -26,35 +33,80 @@ try
     baseStruct.modules.nodeIds = []; % the ids of all nodes WITH a module.
     baseStruct.modules.surfaceAreas = [];
     baseStruct.modules.centreOfMasses = [];
+    baseStruct.modules.shapes = {};
+
+
     tempStoreOfStrucModuleIds = [];
-    if(exist("roiStructuralData",'var'))
+    if(exist("roiStructuralData",'var') && exist("optimalGamma",'var'))
         tempStoreOfStrucModuleIds = roiStructuralData.nodes.moduleIds;
         tempStoreOfOptimalGamma = optimalGamma;
     end
-    baseStruct.modules.shapes = {};
+
     allStructuralData = baseStruct;
     roiStructuralData = baseStruct;
     allFunctionalData = baseStruct;
     roiFunctionalData = baseStruct;
+    allBrainData = baseStruct;
+    roiBrainData = baseStruct;
+
+    %% Brain data
+    importedBrainData = spm_vol([pathToParticipants '/' subject '/data/bert/mri/aparc+aseg.nii']);
+    [threeDimensions, mni152] = spm_read_vols(importedBrainData);
+    coordsWithData = mni152(:,find(threeDimensions>0));
+    allBrainData.nodes.mni152 = pcdownsample(pointCloud(transpose(coordsWithData)),"random",0.1).Location;
+    allBrainData.modules.shape = alphaShape(allBrainData.nodes.mni152);
+    [~,boundaryCoordsOfShape] = boundaryFacets(allBrainData.modules.shape);
+    allBrainData.modules.centreOfMasses = mean(boundaryCoordsOfShape);
+
+
+    
+    importedBrainData = spm_vol([pathToParticipants '/' subject '/data/bert/mri/' num2str(roiLabels(1))  '_mask.nii']);
+    [threeDimensions, mni152] = spm_read_vols(importedBrainData);
+    coordsWithData = mni152(:,find(threeDimensions>0));
+    [~,roiBrainData.nodes.mni152] = getMNIFromRasCoords([pathToParticipants '/' subject],transpose(coordsWithData),2);
+    %roiBrainData.nodes.mni152 = pcdownsample(pointCloud(transpose(coordsWithData)),"random",0.1).Location;
+    roiBrainData.modules.shape = alphaShape(roiBrainData.nodes.mni152);
+    [~,boundaryCoordsOfShape] = boundaryFacets(roiBrainData.modules.shape);
+    roiBrainData.modules.centreOfMasses(1,:) = mean(roiBrainData.modules.shape.Points);
+    clearvars importedBrainData threeDimensions mni152;
 
     %% Structural data
     % All structure data
     allStructuralData.nodes.ids = 1:1:length(allLabels);
     allStructuralData.nodes.mni152 = Coor_MNI152;
+    %TODO: This is not in MNI152 space!
+    %allStructuralData.nodes.mni152 = [lpcentroids;rpcentroids;subCoor];
+    allStructuralData.modules.shape = alphaShape(allStructuralData.nodes.mni152);
+    [~,boundaryCoordsOfShape] = boundaryFacets(allStructuralData.modules.shape);
+    allStructuralData.modules.centreOfMasses(1,:) = mean(allStructuralData.modules.shape.Points);
+
+    %% Offset structural data to match mask
+    offset = [1.4390   -3.9076   17.9498];
+    %offset = [-1.4390    3.9076  -17.9498];
+    %offset = [0,0,0];
+    %offset = [-0.5668    3.7624  -17.5733].*-1;
+    %offset = allStructuralData.modules.centreOfMasses - allBrainData.modules.centreOfMasses;
+    allBrainData.modules.shape.Points = allBrainData.modules.shape.Points + repmat(offset(1,:),length(allBrainData.modules.shape.Points),1);
+    allBrainData.nodes.mni152 = allBrainData.nodes.mni152 + repmat(offset(1,:),length(allBrainData.nodes.mni152),1);
+    roiBrainData.modules.shape.Points = roiBrainData.modules.shape.Points + repmat(offset(1,:),length(roiBrainData.modules.shape.Points),1);
+    roiBrainData.nodes.mni152 = roiBrainData.nodes.mni152 + repmat(offset(1,:),length(roiBrainData.nodes.mni152),1);
+    roiBrainData.modules.centreOfMasses = roiBrainData.modules.centreOfMasses + repmat(offset(1,:),length(roiBrainData.modules.centreOfMasses),1);
     clear Coor_MNI152;
     allStructuralData.nodes.labels = allLabels;
     %allStructuralData.nodes.threeDimensions =
     %getThreeDimensions(allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3));
 
+
     % Filtered structure data, of only those from ROI.
-    roiStructuralData.nodes.ids = find(ismember(allLabels, ["lh.precentral.label"]));
+    roiStructuralData.nodes.ids = find(ismember(allLabels, roiLabels));
     roiStructuralData.adjacencyMatrix = adj_matrix(roiStructuralData.nodes.ids,roiStructuralData.nodes.ids);
     if(~isempty(tempStoreOfStrucModuleIds))
         roiStructuralData.nodes.moduleIds = tempStoreOfStrucModuleIds;
         optimalGamma = tempStoreOfOptimalGamma;
     else
         disp('Sorting structural data into modules...');
-        [roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 0.6, 1.4);
+        %[roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 0.78, 0.80);
+        [roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, -0.02, 0);
     end
     roiStructuralData.nodes.labels = allLabels(roiStructuralData.nodes.ids);
     roiStructuralData.nodes.mni152 = allStructuralData.nodes.mni152(roiStructuralData.nodes.ids,:);
@@ -74,19 +126,18 @@ try
 
 
     %% Build shapes from coordinates.
-    allStructuralData.nodes.shape = alphaShape(allStructuralData.nodes.mni152);
+    allStructuralData.modules.shape = alphaShape(allStructuralData.nodes.mni152);
     roiStructuralData.nodes.shape = alphaShape(roiStructuralData.nodes.mni152);
     for moduleIndex=1:max(roiStructuralData.nodes.moduleIds)
         activeNodes = find(roiStructuralData.nodes.moduleIds == moduleIndex);
         % Do not build shape if module consists of 1, 2, or 3 nodes. (as 3D
         % is required)
         if(length(activeNodes)>3)
-            coords = roiStructuralData.nodes.mni152(activeNodes,:);
-            roiStructuralData.modules.shapes{moduleIndex} = alphaShape(coords);
+            roiStructuralData.modules.shapes{moduleIndex} = alphaShape(roiStructuralData.nodes.mni152(activeNodes,:));
+            shape = roiStructuralData.modules.shapes{moduleIndex};
             roiStructuralData.modules.surfaceAreas(moduleIndex) = surfaceArea(roiStructuralData.modules.shapes{moduleIndex});
-            boundaryPointsIndexes = boundaryFacets(roiStructuralData.modules.shapes{moduleIndex});
-            boundaryCoords = coords(boundaryPointsIndexes);
-            roiStructuralData.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoords);
+            [~,boundaryCoordsOfShape] = boundaryFacets(roiStructuralData.modules.shapes{moduleIndex});
+            roiStructuralData.modules.centreOfMasses(moduleIndex,:) = mean(roiStructuralData.modules.shapes{moduleIndex}.Points);
         else
             disp("Not draeing...")
         end
@@ -100,11 +151,11 @@ try
             coords = allFunctionalData.nodes.mni152(activeNodes,:);
             allFunctionalData.modules.shapes{moduleIndex} = alphaShape(coords);
             allFunctionalData.modules.surfaceAreas(moduleIndex) = surfaceArea(allFunctionalData.modules.shapes{moduleIndex});
-            boundaryPointsIndexes = boundaryFacets(allFunctionalData.modules.shapes{moduleIndex});
-            boundaryCoords = coords(boundaryPointsIndexes);
-            allFunctionalData.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoords);
+            [~,boundaryCoordsOfShape] = boundaryFacets(allFunctionalData.modules.shapes{moduleIndex});
+            allFunctionalData.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoordsOfShape);
         end
     end
+
 
     overlappingRegions = baseStruct;
     overlappingRegionIndex = 1;
@@ -118,14 +169,23 @@ try
                     % An overlapping area has been found. Build shape of
                     % the overlapping area.
                     overlappingRegions.modules.shapes{overlappingRegionIndex} = alphaShape(overlappingCoordinates);
-                    overlappingRegions.modules.centreOfMasses(overlappingRegionIndex,:) = mean(overlappingCoordinates);
+                    [~,boundaryCoordsOfShape] = boundaryFacets(overlappingRegions.modules.shapes{overlappingRegionIndex});
+                    overlappingRegions.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoordsOfShape);
                     overlappingRegions.modules.surfaceAreas(overlappingRegionIndex) = surfaceArea(overlappingRegions.modules.shapes{overlappingRegionIndex});
-                    overlappingRegionIndex =+ 1;
+                    overlappingRegionIndex = overlappingRegionIndex + 1;
                 end
             end
         end
     end
 
+    figure
+    plot(alphaShape(glpvertex));
+    hold on;
+    plot(allBrainData.modules.shape,'FaceColor','r');
+
+    totalSurfaceAreaOfAllModules = sum(roiStructuralData.modules.surfaceAreas,'all') + sum(allFunctionalData.modules.surfaceAreas,'all');
+    totalSurfaceAreaOfOverlappingRegions = sum(overlappingRegions.modules.surfaceAreas,'all');
+    percentageCover = (totalSurfaceAreaOfOverlappingRegions/totalSurfaceAreaOfAllModules)*100;
 
     figure2 = figure;
     plottedLabels = allStructuralData.nodes.labels(1:showTicksPer:end);
@@ -157,14 +217,20 @@ try
 
 
     figure('Name',"Shape Map");
-    suptitle('DWI- and fMRI-derived "modules" in MNI152 space');
-    title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma)]);
+    subtitle('DWI- and fMRI-derived "modules" in MNI152 space');
+    title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma) ' | % cover: ' num2str(percentageCover) '%']);
     xlabel('Right->Left');
     ylabel('Inferior->Superior');
     zlabel('Anterior-Posterior');
     legend on;
     hold on;
-    plot(brainShape,'FaceColor',[0.1 0.1 0.1],'FaceAlpha',0.05,'EdgeColor','none','DisplayName','Brain');
+
+    %plot(allBrainData.nodes.shape,'FaceColor',[0.8 0.15 0.15],'FaceAlpha',0.6,'BackFaceLighting','lit','FaceLighting','gouraud','EdgeColor','none','DisplayName','Brain from mask');
+    %plot(allStructuralData.modules.shape,'FaceColor',[0.1 0.8 0.1],'FaceAlpha',0.6,'EdgeColor','none','DisplayName','Brain from structural nodes','AmbientStrength',0.5,'AlignVertexCenters','on','FaceLighting','flat');
+    plot(roiBrainData.modules.shape,'FaceColor',[0.1 0.8 0.8],'FaceAlpha',0.6,'EdgeColor','none','DisplayName','ROI from mask','AmbientStrength',0.5,'AlignVertexCenters','on','FaceLighting','flat');
+    plot3(roiStructuralData.modules.centreOfMasses(:,1),roiStructuralData.modules.centreOfMasses(:,2),roiStructuralData.modules.centreOfMasses(:,3),'*','MarkerSize',10,'Color','g','DisplayName','Struc COM');
+   
+    plot3(roiBrainData.modules.centreOfMasses(:,1),roiBrainData.modules.centreOfMasses(:,2),roiBrainData.modules.centreOfMasses(:,3),'*','MarkerSize',10,'Color','r','DisplayName','ROIMask COM');
     strucModule = 1;
     for shapeToPlot=roiStructuralData.modules.shapes
         if(~isempty(shapeToPlot{1}))
@@ -195,7 +261,7 @@ try
 
     %% Visualise overlap
     figure(6);
-    suptitle('DWI- and fMRI-derived "modules" in MNI152 space');
+    subtitle(['DWI- and fMRI-derived "modules" in MNI152 space']);
     title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma)]);
     xlabel('Right->Left');
     ylabel('Inferior->Superior');
@@ -229,7 +295,7 @@ try
 
 
     figure(7);
-    suptitle('DWI- and fMRI-derived "modules" in MNI152 space');
+    %suptitle('DWI- and fMRI-derived "modules" in MNI152 space');
     title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma)]);
     subtitle('Modules made of only one node are excluded.');
     xlabel('Right->Left');
@@ -283,8 +349,7 @@ try
     circleSizes = ones(length(allStructuralData.nodes.mni152), 1) .* 0.1;
     roiCircleSizes = ones(length(roiStructuralData.nodes.mni152), 1) .* 0.1;
     %scatter3(allStructuralData.nodes.mni152(:,1),allStructuralData.nodes.mni152(:,2),allStructuralData.nodes.mni152(:,3),circleSizes,[.4, .4, .4]);
-    brainShape = alphaShape(allStructuralData.nodes.mni152);
-    plot(brainShape,'FaceColor',[0.1 0.1 0.1],'FaceAlpha',0.05,'EdgeColor','none','DisplayName','Brain')
+    plot(allStructuralData.modules.shape,'FaceColor',[0.1 0.1 0.1],'FaceAlpha',0.05,'EdgeColor','none','DisplayName','Brain')
     hold on;
     %boundaryOfRoi = boundary(allStructuralData.nodes.mni152(roiStructuralData.nodes.ids,:),0.5);
     %trisurf(boundaryOfRoi,roiStructuralData.nodes.mni152(:,1),roiStructuralData.nodes.mni152(:,2),roiStructuralData.nodes.mni152(:,3),'FaceColor','none','FaceAlpha',0.2,'EdgeColor',[1 0.1 0.1],'DisplayName','ROI-Area')
@@ -320,22 +385,22 @@ try
 
 
     %% Visualise strucModules
-    figure1 = figure;
-    hold on;
-    moduleIndex = min(strucModules); % For each module
-    cmap = hsv(length(strucModules));
-    for i = transpose(strucModules)
-        % Get ids of nodes that are in this module.
-        nodeIds = find(strucModules == i);
-        nodesByModule = zeros(size(roiStructuralData.adjacencyMatrix));
-
-        nodesByModule(nodeIds, nodeIds) = 1;
-        spy(nodesByModule);
-        x=get(gca,'children');
-        lastX = length(x);
-        color = [cmap(lastX,:)];
-        set(x(lastX),'color',color);
-    end
+%     figure1 = figure;
+%     hold on;
+%     moduleIndex = min(roiStructuralData.nodes.moduleIds); % For each module
+%     cmap = hsv(length(roiStructuralData.nodes.moduleIds));
+%     for i = transpose(roiStructuralData.nodes.moduleIds)
+%         % Get ids of nodes that are in this module.
+%         nodeIds = find(roiStructuralData.nodes.moduleIds == i);
+%         nodesByModule = zeros(size(roiStructuralData.adjacencyMatrix));
+% 
+%         nodesByModule(nodeIds, nodeIds) = 1;
+%         spy(nodesByModule);
+%         x=get(gca,'children');
+%         lastX = length(x);
+%         color = [cmap(lastX,:)];
+%         set(x(lastX),'color',color);
+%     end
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 catch ME
     sound(tan(1:1000)); pause(0.2); sound(tan(1:1000));

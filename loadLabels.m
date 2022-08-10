@@ -1,4 +1,5 @@
 function [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels(pathToFile,type,downsample,rate)
+addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
 %% load label info
 display('step2: load surface node coordinates and their denoted label')
 
@@ -37,8 +38,8 @@ elseif type==2
     % load hi-res surface - pial
     display('load lh(rh).pial as surface')
     
-    l=SurfStatReadSurf([pathToFile,'/data/bert/surf/lh.pial']);
-    r=SurfStatReadSurf([pathToFile,'/data/bert/surf/rh.pial']);
+    l=SurfStatReadSurf([pathToFile,'/data/bert/surf/lh.pial.windowsSymlink']);
+    r=SurfStatReadSurf([pathToFile,'/data/bert/surf/rh.pial.windowsSymlink']);
     glpfaces = l.tri;
     glpvertex = l.coord';
     grpfaces = r.tri;

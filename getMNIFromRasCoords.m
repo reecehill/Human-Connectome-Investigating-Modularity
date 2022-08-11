@@ -1,5 +1,6 @@
 function [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords(pathToFile,Coor,type)
-
+%% This file converts coordinates as follows:
+% "TkReg RAS" -> ""MNI305 RAS" -> "MNI152 RAS"
 display('step5: get high resolution coordinates in MNI space')
 
 disp('loading edgeList.mat')

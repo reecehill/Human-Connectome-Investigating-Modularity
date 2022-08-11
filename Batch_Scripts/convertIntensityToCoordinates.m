@@ -10,8 +10,8 @@ function convertIntensityToCoordinates(pathToParticipants, subject)
         binarisedVoxels = spm_vol([pathToParticipants '/' subject '/1stlevel/spmT_000' num2str(conditionIndex) '_allClustersBinary.nii']);
 
         [intensitiesPerVoxel, funcXyzCoordinatesmm] = spm_read_vols(binarisedVoxels);
-        funcXyzCoordinatesmm = transpose(funcXyzCoordinatesmm); % transpose to match struct data.
-
+        funcXyzCoordinatesmm = transpose(funcXyzCoordinatesmm) ; % transpose to match struct data format.
+        
 
         %% Sort voxels into "modules"
         % Here, a module is found by grouping adjacent active voxels together if their

@@ -292,16 +292,42 @@ try
     [LseparateNodes,LseparateFaces] = surfboolean(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'diff',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
     [RoverlappingNodes,RoverlappingFaces]=surfboolean(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'and',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
     
-    [~,~,matchingNodeIndexes] = intersect(LseparateNodes,allBrainData.surf.nodes,'rows');
-    [~,~,matchingFaceIndexes] = intersect(LseparateFaces,allBrainData.surf.faces,'rows');
+    [~,~,matchingNodeIndexes] = intersect(LoverlappingNodes,allBrainData.surf.nodes,'rows');
+    [~,~,matchingFaceIndexes] = intersect(LoverlappingFaces,allBrainData.surf.faces,'rows');
+    
+    %% Map fMRI activation clusters to surface.
+    % Generate point cloud of fMRI nodes to find closest DWI nodes.
+    pointCloudVar = pointCloud(allFunctionalData.surf.nodes);
+
+    % Find nearest nodes to each of the fMRI points.
+    nv = nodesurfnorm(allBrainData.surf.nodes,allBrainData.surf.faces(1:3));
+    [distanceToSurface,closestSurfaceNodeIds] = dist2surf(allBrainData.surf.nodes,nv,pointCloudVar.Location);
+    
+    % Compute a table that maps node to adjacent faces
+    [facesAdjacentToNodes,nodeNeighbourNumber,~]=neighborelem(allBrainData.surf.faces,length(allBrainData.surf.nodes));
+
+    % Find face IDs that are closest to activate nodes.
+    activeNodes = allBrainData.surf.nodes(closestSurfaceNodeIds);
+    neighbouringFacesPerActiveNode = facesAdjacentToNodes(find(activeNodes),:);
+    allNeighbouringFaces = cat(2,neighbouringFacesPerActiveNode{:});
+
+    % Change colour of neighbouring faces.
+    allBrainData.surf.faces(allNeighbouringFaces,4) = 100;
+
+    % Plot faces on brain.
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha','0.5');
+    plot3(allBrainData.surf.nodes(closestSurfaceNodeIds,1),allBrainData.surf.nodes(closestSurfaceNodeIds,2),allBrainData.surf.nodes(closestSurfaceNodeIds,3),'g.','MarkerSize',20);
+
     % Visualise overlapping regions.
     figure;
     hold on;
     title('fMRI regions on the surface.');
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'EdgeColor','none','FaceAlpha','0.05','FaceColor',[0.2 0.2 0.2]);
-    plotsurf(LoverlappingNodes,LoverlappingFaces);
-    
-
+    %plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'EdgeColor','none','FaceAlpha','0.05','FaceColor',[0.2 0.2 0.2]);
+    %plotsurf(LoverlappingNodes,LoverlappingFaces);
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.2,'EdgeAlpha',0.2,'FaceColor',[0.2 0.2 0.2],'DisplayName','Left hemisphere');
+    plot3(allBrainData.roi.centroids(:,1),allBrainData.roi.centroids(:,2),allBrainData.roi.centroids(:,3),'r.');
+    %plot3(allBrainData.surf.faces(matchingFaceIndexes,1),allBrainData.surf.faces(matchingFaceIndexes,2),allBrainData.surf.faces(matchingFaceIndexes,3),'g.')
+    plot3(allBrainData.surf.nodes(closestSurfaceNodeIds,1),allBrainData.surf.nodes(closestSurfaceNodeIds,2),allBrainData.surf.nodes(closestSurfaceNodeIds,3),'g.');
     volumeOverlap = fillsurf(LoverlappingNodes,LoverlappingFaces) + fillsurf(RoverlappingNodes,RoverlappingFaces);
     
     figure;

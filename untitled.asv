@@ -139,19 +139,12 @@ try
     plot3(LBrainMesh.roi.centroids(:,1),LBrainMesh.roi.centroids(:,2),LBrainMesh.roi.centroids(:,3),'r.');
     plot3(RBrainMesh.roi.centroids(:,1),RBrainMesh.roi.centroids(:,2),RBrainMesh.roi.centroids(:,3),'r.');
     %[node,elem,face]=vol2mesh(volimage,1:size(volimage,1),1:size(volimage,2),1:size(volimage,3),2,2,1);
-
-    [LoverlappingNodes,LoverlappingFaces]=surfboolean(LBrainMesh.nodes,LBrainMesh.elements,'and',no,el);
-    [LseparateNodes,LseparateFaces] = surfboolean(LBrainMesh.nodes,LBrainMesh.elements,'diff',no,el);
-    [RoverlappingNodes,RoverlappingFaces]=surfboolean(RBrainMesh.nodes,RBrainMesh.elements,'and',no,el);
-    [RseparateNodes,RseparateFaces] = surfboolean(RBrainMesh.nodes,RBrainMesh.elements,'diff',no,el);
-    figure;  
+[newnode,newface]=surfboolean(LBrainMesh.nodes,LBrainMesh.elements,'union',no,el);
+    figure(3);
+    
     hold all;
-    plotsurf(RoverlappingNodes,RoverlappingFaces,'FaceAlpha',0.3,'EdgeAlpha',0.3,'FaceColor','g');
-    plotsurf(RseparateNodes,RseparateFaces,'FaceAlpha',0.1,'EdgeAlpha',0.3,'FaceColor',[0.2 0.2 0.2]);
-    plotsurf(LoverlappingNodes,LoverlappingFaces,'FaceAlpha',0.3,'EdgeAlpha',0.3,'FaceColor','g');
-    plotsurf(LseparateNodes,LseparateFaces,'FaceAlpha',0.1,'EdgeAlpha',0.3,'FaceColor',[0.2 0.2 0.2]);
-    plot3(RBrainMesh.roi.centroids(:,1),RBrainMesh.roi.centroids(:,2),RBrainMesh.roi.centroids(:,3),'r.');
-    plot3(LBrainMesh.roi.centroids(:,1),LBrainMesh.roi.centroids(:,2),LBrainMesh.roi.centroids(:,3),'r.');
+    plotsurf(newnode,newface,'FaceAlpha',0.3,'EdgeAlpha',0.3,'FaceColor','r');
+
 
     importedBrainData = spm_vol([pathToParticipants '/' subject '/data/bert/mri/' num2str(roiLabels(1))  '_mask.nii']);
     [threeDimensions, mni152] = spm_read_vols(importedBrainData);
@@ -200,7 +193,7 @@ try
     else
         disp('Sorting structural data into modules...');
         %[roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, 0.78, 0.80);
-        [roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, -0.02, 0.02);
+        [roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, -0.02, 0);
     end
     roiStructuralData.nodes.labels = allLabels(roiStructuralData.nodes.ids);
     roiStructuralData.nodes.mni152 = allStructuralData.nodes.mni152(roiStructuralData.nodes.ids,:);

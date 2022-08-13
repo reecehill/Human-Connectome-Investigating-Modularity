@@ -8,7 +8,6 @@
 
 ISO2MESH_TEMP='C:\Users\Reece\Documents\tempiso2mesh';
 try
-    tic;
     %% Initialise.
     addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
     addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Toolboxes\Brain Connectivity Toolbox'));
@@ -307,23 +306,39 @@ try
         figure;
     title("Faces of overlap between function and structure");
     hold on;
-    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),[1:3,6]),'DisplayName','Left hemisphere');
-    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),[1:3,6]),'DisplayName','Right hemisphere');
-    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) > 0),[1:3,6]),'DisplayName',['fMRI + Structure'],'FaceColor','r');
-    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,6) > 0),[1:3,6]),'DisplayName',['fMRI + Structure'],'FaceColor','r');
+    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),1:6),'DisplayName','Left hemisphere');
+    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),1:6),'DisplayName','Right hemisphere');
+    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) > 0),1:6),'DisplayName',['fMRI + Structure']);
+    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,6) > 0),1:4),'DisplayName',['fMRI + Structure']);
     legend;
     view(190,25);
     clearvars tempStoreOfOptimalGamma tempStoreOfStrucModuleIds;
 
 
-    %% PLOTTING OF ADJACENCY MATRICES.
-    % TODO: Currently broken.
-    %{
+    % Visualise ROIs
+    figure;
+    title("ROI centroids plotted on left and right hemisphere");
+    hold on;
+    plotsurf(roiStructuralData.leftHemisphere.surf.nodes,roiStructuralData.leftHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Left hemisphere');
+    plotsurf(roiStructuralData.rightHemisphere.surf.nodes,roiStructuralData.rightHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Right hemisphere');
+    plot3(roiBrainData.leftHemisphere.surf.centroids(:,1),roiBrainData.leftHemisphere.surf.centroids(:,2),roiBrainData.leftHemisphere.surf.centroids(:,3),'r.','DisplayName','Left ROI nodes');
+    plot3(roiBrainData.rightHemisphere.surf.centroids(:,1),roiBrainData.rightHemisphere.surf.centroids(:,2),roiBrainData.rightHemisphere.surf.centroids(:,3),'r.','DisplayName','Right ROI nodes');
+
+    %% COARSE PLOTTING OF ROI
+    figure;
+    hold on;
+    title('Entire brain surface with nodes of ROI')
+    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Left hemisphere');
+    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Right hemisphere');
+    plot3(allBrainData.leftHemisphere.roi.centroids(:,1),allBrainData.leftHemisphere.roi.centroids(:,2),allBrainData.leftHemisphere.roi.centroids(:,3),'Color','#d1d1d1','LineStyle','none','Marker','.','DisplayName','Left ROI nodes (inherited)');
+    plot3(allBrainData.rightHemisphere.roi.centroids(:,1),allBrainData.rightHemisphere.roi.centroids(:,2),allBrainData.rightHemisphere.roi.centroids(:,3),'Color','#d1d1d1','LineStyle','none','Marker','.','DisplayName','Left ROI nodes (inherited)');
+
+
     figure2 = figure;
     plottedLabels = allStructuralData.nodes.labels(1:showTicksPer:end);
-    spy(allStructuralData.adjacencyMatrix);
-    rectangle('Position',[min(roiStructuralData.faceIdsOfAllBrain) min(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain)], 'EdgeColor','red')
-    xticks(1:showTicksPer:length(allBrainData.leftHemisphere.labels.names));
+    spy(adj_matrix);
+    rectangle('Position',[min(roiStructuralData.nodes.ids) min(roiStructuralData.nodes.ids) length(roiStructuralData.nodes.ids) length(roiStructuralData.nodes.ids)], 'EdgeColor','red')
+    xticks(1:showTicksPer:length(allStructuralData.nodes.labels));
     yticks(1:showTicksPer:length(allStructuralData.nodes.labels));
     xticklabels(plottedLabels);
     yticklabels(plottedLabels);
@@ -338,9 +353,44 @@ try
     xticklabels(plottedLabels);
     yticklabels(plottedLabels);
     title('Local network (lSF-lSP) - connectivity matrix')
-    %}
-    toc;
- disp("Script finished successfully.");
+
+
+
+    nStrucModulesToPlot = max(roiStructuralData.nodes.moduleIds,[],'all') - unique(roiStructuralData.nodes.moduleIds);
+    nFuncModulesToPlot = max(allFunctionalData.moduleIds,[],'all') - unique(allFunctionalData.moduleIds);
+    nThingsToPlot = length(nStrucModulesToPlot)+length(nFuncModulesToPlot);
+    strucColorMap = colormap(jet(nThingsToPlot));
+    funcColorMap = flipud(strucColorMap);
+
+
+    figure('Name',"Shape Map");
+    subtitle('DWI- and fMRI-derived "modules" in MNI152 space');
+    title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma) ' | % cover: ' num2str(percentageCover) '%']);
+    xlabel('Right->Left');
+    ylabel('Inferior->Superior');
+    zlabel('Anterior-Posterior');
+    legend on;
+    hold on;
+
+    %plot(allBrainData.nodes.shape,'FaceColor',[0.8 0.15 0.15],'FaceAlpha',0.6,'BackFaceLighting','lit','FaceLighting','gouraud','EdgeColor','none','DisplayName','Brain from mask');
+    %plot(allStructuralData.modules.shape,'FaceColor',[0.1 0.8 0.1],'FaceAlpha',0.6,'EdgeColor','none','DisplayName','Brain from structural nodes','AmbientStrength',0.5,'AlignVertexCenters','on','FaceLighting','flat');
+    plot(roiBrainData.modules.shape,'FaceColor',[0.1 0.8 0.8],'FaceAlpha',0.6,'EdgeColor','none','DisplayName','ROI from mask','AmbientStrength',0.5,'AlignVertexCenters','on','FaceLighting','flat');
+    plot3(roiStructuralData.modules.centreOfMasses(:,1),roiStructuralData.modules.centreOfMasses(:,2),roiStructuralData.modules.centreOfMasses(:,3),'*','MarkerSize',10,'Color','g','DisplayName','Struc COM');
+
+    plot3(roiBrainData.modules.centreOfMasses(:,1),roiBrainData.modules.centreOfMasses(:,2),roiBrainData.modules.centreOfMasses(:,3),'*','MarkerSize',10,'Color','r','DisplayName','ROIMask COM');
+
+
+    %% Visualise overlap
+    figure(6);
+    subtitle(['DWI- and fMRI-derived "modules" in MNI152 space']);
+    title(['Single subject (#02) | (fMRI: FWE<0.05, k=0) | gamma=' num2str(optimalGamma)]);
+    xlabel('Right->Left');
+    ylabel('Inferior->Superior');
+    zlabel('Anterior-Posterior');
+    legend on;
+    hold on;
+
+
  sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 
 catch ME

@@ -22,7 +22,7 @@ try
     baseStruct.adjacencyMatrix = [];
     baseStruct.nodes = nodes;
     baseStruct.modules = modules;
-    baseStruct.surf = surf;    
+    baseStruct.surf = surf;
     tempStoreOfStrucModuleIds = [];
     if(exist("roiStructuralData",'var') && exist("optimalGamma",'var'))
         tempStoreOfStrucModuleIds = roiStructuralData.nodes.moduleIds;
@@ -34,10 +34,11 @@ try
     roiFunctionalData = baseStruct;
     allBrainData = baseStruct;
     roiBrainData = baseStruct;
-
+    clearvars surf modules nodes baseStruct
     %% Parameters
     roiLabels = ["lh.precentral.label"]; % only supports single values for now.
     showTicksPer = 500;
+    viewSliceOfAllFmriModules = 0;
 
     %% Load external parameters
     adj_matrix = matfile([pathToParticipants '\' subject '\matrices.mat']).adj_matrix;
@@ -68,6 +69,7 @@ try
     regionNameIds = [faceROIidL; faceROIidR+34; subROIid+34+17];
     allLabels = allFilenames(regionNameIds);
 
+
     %% All mock data: functional voxel volume to confirm transformation matrices.
     % Generate binary image with central mock block (activation zone).
     dimensionsOfMockBlock = [40,40,51]; % must be [even even odd] if scan image is [even even odd]; min = [4 4 5];
@@ -80,7 +82,7 @@ try
     opt.keepratio = 1;
     opt.radbound = 10;
     opt.distbound = 0.2;
-    [nodes,elements,regions,holes]=vol2surf(intensitiesPerVoxel_mock,xSubsection,ySubsection,zSubsection,opt,0,'simplify',1);
+    [nodes,elements,~,~]=vol2surf(intensitiesPerVoxel_mock,xSubsection,ySubsection,zSubsection,opt,0,'simplify',1);
     % Transform block to tkRAS coordinates.
     colOfOnes = ones(size(nodes,1),1);
     nodes = [nodes colOfOnes];
@@ -91,7 +93,7 @@ try
     figure;
     title('View mock block data.');
     sliceViewer(intensitiesPerVoxel_mock);
-    % Plot the point cloud of mock block.
+    % View the mock block as a volume.
     figure;
     title('View mock block data: surface.');
     hold on;
@@ -101,6 +103,7 @@ try
 
     % TODO: For a scenario of mock block [4,4,5], a node is removed erroneously. Is this a problem?
 
+    clearvars colOfOnes dimensionsOfMockBlock nodes elements intensitiesPerVoxel_mock paddingSize opt xSubsection ySubsection zSubsection modulePointCloud
     %     -----------
     %     ---
     %     -----------
@@ -120,28 +123,32 @@ try
     %allBrainData.rightHemisphere.surf.nodes = grpvertex;
 
     % Both hemispheres make a whole.
+    allBrainData.surf.faces_mni152 = Coor_MNI152;
     [allBrainData.surf.nodes, allBrainData.surf.faces] = mergesurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces);
-    figure;
-    plotmesh(allBrainData.surf.nodes, allBrainData.surf.faces);
-    allBrainData.surf.faces_mni152 = Coor_MNI305;
     allBrainData.surf.edges = meshedge(allBrainData.surf.faces);
-
+    figure;
+    title("Whole brain");
+    subtitle("Left and right hemisphere merged before any computation.");
+    plotmesh(allBrainData.surf.nodes, allBrainData.surf.faces);
+    clearvars glpfaces grpfaces nvl nvr nfl nfr glpvertex grpvertex
 
     %% ROI Anatomical data
     % Left  hemisphere
-    LFaceIndexesOfRoi = find(ismember(faceROIidL, roiLabelIndexes));
-    allBrainData.roi.centroids = lpcentroids(LFaceIndexesOfRoi,:);
+    allBrainData.leftHemisphere.roi.faceIds = find(ismember(faceROIidL, roiLabelIndexes));
+    allBrainData.leftHemisphere.roi.centroids = lpcentroids(allBrainData.leftHemisphere.roi.faceIds,:);
     % Right hemisphere
-    RFaceIndexesOfRoi = find(ismember(faceROIidR, roiLabelIndexes));
-    allBrainData.roi.centroids = [allBrainData.roi.centroids; rpcentroids(RFaceIndexesOfRoi,:)];
-    
-    figure;
-    hold on;
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Both hemispheres');
-    plot3(allBrainData.roi.centroids(:,1),allBrainData.roi.centroids(:,2),allBrainData.roi.centroids(:,3),'r.','DisplayName','ROI nodes');
+    allBrainData.rightHemisphere.roi.faceIds = find(ismember(faceROIidR, roiLabelIndexes));
+    allBrainData.rightHemisphere.roi.centroids = rpcentroids(allBrainData.rightHemisphere.roi.faceIds,:);
 
-    
-    clearvars rpcentroids lpcentroids;
+    % Visualise
+    figure;
+    title("ROI centroids plotted on left and right hemisphere");
+    hold on;
+    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Left hemisphere');
+    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Right hemisphere');
+    plot3(allBrainData.leftHemisphere.roi.centroids(:,1),allBrainData.leftHemisphere.roi.centroids(:,2),allBrainData.leftHemisphere.roi.centroids(:,3),'r.','DisplayName','Left ROI nodes');
+    plot3(allBrainData.rightHemisphere.roi.centroids(:,1),allBrainData.rightHemisphere.roi.centroids(:,2),allBrainData.rightHemisphere.roi.centroids(:,3),'r.','DisplayName','Right ROI nodes');
+    clearvars rpcentroids lpcentroids Coor_MNI305 Coor_MNI152;
 
     %% All Structural data
     % All structure data
@@ -164,28 +171,18 @@ try
         %[roiStructuralData.nodes.moduleIds, optimalGamma, Q1] = sortIntoModules(roiStructuralData.adjacencyMatrix, -0.02, 0);
     end
 
-    xSubsection = 1:1:256;
-    ySubsection = 1:1:256;
-    zSubsection = 1:1:256;
-    volumeOfAVoxel = 1*1*1; % in mm (taken from scanner).
-    opt.radbound = 1;
-    opt.distbound = 1;
-    opt.keepratio = 0.1;
-    % Loop through structural modules to fill data, and plot resulting surface.
-    figure(4);
-    hold on;;
-    title('Structural modules surfaces');
-
     % Copy brain surface so that modules can be indicated.
     roiStructuralData.leftHemisphere.surf.faces = allBrainData.leftHemisphere.surf.faces;
     roiStructuralData.leftHemisphere.surf.nodes = allBrainData.leftHemisphere.surf.nodes;
     roiStructuralData.rightHemisphere.surf.faces = allBrainData.rightHemisphere.surf.faces;
     roiStructuralData.rightHemisphere.surf.nodes = allBrainData.rightHemisphere.surf.nodes;
     
-
+    % Loop through structural modules to fill data, and plot resulting surface.
     for moduleIndex=1:max(roiStructuralData.nodes.moduleIds)
         % Get node IDs related to this module
-        roiStructuralData.modules(moduleIndex).nodeIds =  roiStructuralData.nodes.ids(find(roiStructuralData.nodes.moduleIds == moduleIndex));
+        roiStructuralData.modules(moduleIndex).nodeIds = ...
+            roiStructuralData.nodes.ids(find(roiStructuralData.nodes.moduleIds == moduleIndex));
+        
         % Split them into L and R so we can use the face indexes.
         leftNodeIds = roiStructuralData.modules(moduleIndex).nodeIds(roiStructuralData.modules(moduleIndex).nodeIds <= 30606);
         rightNodeIds = roiStructuralData.modules(moduleIndex).nodeIds(roiStructuralData.modules(moduleIndex).nodeIds > 30606);
@@ -193,21 +190,28 @@ try
         % Change face color (4th column) of the elements associated with this module: https://github.com/fangq/iso2mesh/blob/master/plotsurf.m
         roiStructuralData.leftHemisphere.surf.faces(leftNodeIds, 4) = moduleIndex;
         roiStructuralData.rightHemisphere.surf.faces(rightNodeIds, 4) = moduleIndex;
-
     end
+
     figure;
+    title("Structural modules of the left precentral gyrus");
     hold on;
-    plotsurf(roiStructuralData.leftHemisphere.surf.nodes,roiStructuralData.leftHemisphere.surf.faces);
-    plotsurf(roiStructuralData.rightHemisphere.surf.nodes,roiStructuralData.rightHemisphere.surf.faces);
+    camlight;
+    lightangle(-45,30);
+    lightangle(100,0);
+    lightangle(0,0);
+    lightangle(100,100);
+    plotsurf(roiStructuralData.leftHemisphere.surf.nodes,roiStructuralData.leftHemisphere.surf.faces(find(roiStructuralData.leftHemisphere.surf.faces(:,4) > 0),1:4),'DisplayName',['Structural module']);
+    plotsurf(roiStructuralData.rightHemisphere.surf.nodes,roiStructuralData.rightHemisphere.surf.faces,'DisplayName','Right Brain Hemisphere');
+    legend;
+    view(190,25);
     clearvars tempStoreOfOptimalGamma tempStoreOfStrucModuleIds;
 
-   
+
     %% All fMRI data
     % Note: the nodes of the fMRI are NOT in the same space, so we cannot
     % just reassign a colour as seen for structural.
     allFunctionalData.nodes.mni152 = funcXyzCoordinatesmm;
     allFunctionalData.nodes.moduleIds = fmriModules(:); % for each node, list its module id.
-    %allFunctionalData.nodes.threeDimensions = intensitiesPerVoxel; 
     xSubsection = 1:1:size(fmriModules,1);
     ySubsection = 1:1:size(fmriModules,2);
     zSubsection = 1:1:size(fmriModules,3);
@@ -217,35 +221,46 @@ try
 
     %% As a test, mesh the entire fMRI volume as a whole first.
     [allFunctionalData.surf.nodes,allFunctionalData.surf.faces,allFunctionalData.surf.regions,allFunctionalData.surf.holes]= ...
-            vol2surf(fmriModules,xSubsection,ySubsection,zSubsection,opt,0,'simplify',1);
+        vol2surf(fmriModules,xSubsection,ySubsection,zSubsection,opt,0,'simplify',1);
     % Transform allFmriNodes CRS (column-row-slice) coordinates to tkRAS coordinates: https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems.
     colOfOnes = ones(size(allFunctionalData.surf.nodes,1),1);
     allFunctionalData.surf.nodes = [allFunctionalData.surf.nodes colOfOnes];
     allFunctionalData.surf.nodes = transpose(inv(rmmissing(Reg)) * tMov * allFunctionalData.surf.nodes'); %allFmriNodes are now represented in mm rather than indice.
     allFunctionalData.surf.nodes(:,4) = []; %remove column of ones;
+    figure;
+    title('fMRI modules determined by meshing all surfaces at once.');
+    hold on;
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
+    plotsurf(allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
+    
 
     %% Now, mesh individual fMRI modules.
-    figure(7);
+    figure(99);
+    hold on;
+    title('fMRI modules determined by meshing surfaces one at a time.');
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
+
     for moduleIndex=1:1:max(fmriModules,[],'all')
-        % Get nodeIds that belong to current module (starting from 1, not
-        % 0).
+        % Get nodeIds that belong to current module (starting from 1, not 0).
         allFunctionalData.modules(moduleIndex).nodeIds = find(allFunctionalData.nodes.moduleIds == moduleIndex); % the ids of all nodes with a module.
 
         % Build a binary volume for this module.
         % The threeDimensions variable is a MxNxP matrix of modules, its
         % not binary.
         allFunctionalData.modules(moduleIndex).volume = fmriModules==moduleIndex;
-        
+
         % View slice of each fMRI module.
-        figure;
-        title(['fMRI Module: ' num2str(moduleIndex)]);
-        subtitle("Note that this is pre-transformation into tkRAS coordinates.");
-        sliceViewer(allFunctionalData.modules(moduleIndex).volume);
+        if(viewSliceOfAllFmriModules ==1)
+            figure;
+            title(['fMRI Module: ' num2str(moduleIndex)]);
+            subtitle("Note that this is pre-transformation into tkRAS coordinates.");
+            sliceViewer(allFunctionalData.modules(moduleIndex).volume);
+        end
 
-
+        % Volume to surface.
         [allFunctionalData.modules(moduleIndex).surf.nodes,allFunctionalData.modules(moduleIndex).surf.faces,allFunctionalData.modules(moduleIndex).surf.regions,allFunctionalData.modules(moduleIndex).surf.holes]= ...
             vol2surf(allFunctionalData.modules(moduleIndex).volume,xSubsection,ySubsection,zSubsection,opt,0,'simplify',1);
-        
+
         % Transform fMRI coordinates into tkRAS coordinates (in aparc+aseg space).
         % As the surface works on CRS (column-row-slice) indices,
         % we transform each surface independently.
@@ -256,145 +271,68 @@ try
 
         % For the whole-fMRI mesh, change colour of module.
         %allFunctionalData.surf.faces(allFunctionalData.modules(moduleIndex).nodeIds,4) = moduleIndex;
-        
+
         % View generated surface for each fMRI module.
-        figure(7);
-        hold on;
+        figure(99)
         plotsurf(allFunctionalData.modules(moduleIndex).surf.nodes,allFunctionalData.modules(moduleIndex).surf.faces);
     end
-    figure(7);
-    hold on;
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
-
-    % Draw whole module for comparison.
-    figure(70);
-    hold on;
-    title("fMRI modules when meshed as a whole.")
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
-    plotsurf(allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
     clearvars fmriModules intensitiesPerVoxel xyzCoordinatesmm colOfOnes;
 
-    
 
-    %% COARSE PLOTTING
+
+    %% COARSE PLOTTING OF ROI
     figure;
+    hold on;
     title('Entire brain surface with nodes of ROI')
     plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Left hemisphere');
     plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Right hemisphere');
-    plot3(allBrainData.roi.centroids(:,1),allBrainData.roi.centroids(:,2),allBrainData.roi.centroids(:,3),'r.','DisplayName','ROI nodes');
+    plot3(allBrainData.leftHemisphere.roi.centroids(:,1),allBrainData.leftHemisphere.roi.centroids(:,2),allBrainData.leftHemisphere.roi.centroids(:,3),'Color','#d1d1d1','LineStyle','none','Marker','.','DisplayName','Left ROI nodes (inherited)');
+    plot3(allBrainData.rightHemisphere.roi.centroids(:,1),allBrainData.rightHemisphere.roi.centroids(:,2),allBrainData.rightHemisphere.roi.centroids(:,3),'Color','#d1d1d1','LineStyle','none','Marker','.','DisplayName','Left ROI nodes (inherited)');
 
-
-    % Find overlapping regions.
-    [LoverlappingNodes,LoverlappingFaces]=surfboolean(allBrainData.surf.nodes,allBrainData.surf.faces,'and',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
-    ISO2MESH_TEMP='C:\Users\Reece\Documents\tempiso2mesh';
-    [RseparateNodes,RseparateFaces] = surfboolean(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'diff',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
-    
-    [LseparateNodes,LseparateFaces] = surfboolean(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'diff',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
-    [RoverlappingNodes,RoverlappingFaces]=surfboolean(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'and',allFunctionalData.surf.nodes,allFunctionalData.surf.faces);
-    
-    [~,~,matchingNodeIndexes] = intersect(LoverlappingNodes,allBrainData.surf.nodes,'rows');
-    [~,~,matchingFaceIndexes] = intersect(LoverlappingFaces,allBrainData.surf.faces,'rows');
-    
-    %% Map fMRI activation clusters to surface.
-    % Generate point cloud of fMRI nodes to find closest DWI nodes.
-    pointCloudVar = pointCloud(allFunctionalData.surf.nodes);
-
-    % Find nearest nodes to each of the fMRI points.
-    nv = nodesurfnorm(allBrainData.surf.nodes,allBrainData.surf.faces(1:3));
-    [distanceToSurface,closestSurfaceNodeIds] = dist2surf(allBrainData.surf.nodes,nv,pointCloudVar.Location);
-    
+    %% Map fMRI activation clusters surface to combined anatomical surface.
+    nv = nodesurfnorm(allBrainData.surf.nodes,allBrainData.surf.faces(:,1:3));
     % Compute a table that maps node to adjacent faces
-    [facesAdjacentToNodes,nodeNeighbourNumber,~]=neighborelem(allBrainData.surf.faces,length(allBrainData.surf.nodes));
+    [facesAdjacentToNodes,~,~]=neighborelem(allBrainData.surf.faces,length(allBrainData.surf.nodes));
 
-    % Find face IDs that are closest to activate nodes.
-    activeNodes = allBrainData.surf.nodes(closestSurfaceNodeIds);
-    neighbouringFacesPerActiveNode = facesAdjacentToNodes(find(activeNodes),:);
-    allNeighbouringFaces = cat(2,neighbouringFacesPerActiveNode{:});
+    % Independently map each cluster to the surface.
+    for moduleIndex=1:1:size(allFunctionalData.modules,2)
+        % Generate point cloud of fMRI nodes to find closest DWI nodes.
+        pointCloudVar = pointCloud(allFunctionalData.modules(moduleIndex).surf.nodes(:,1:3));
 
-    % Change colour of neighbouring faces.
-    allBrainData.surf.faces(allNeighbouringFaces,4) = 100;
+        % Find nearest nodes to each of the fMRI points.
+        [distanceToSurface,closestSurfaceNodeIds] = dist2surf(allBrainData.surf.nodes,nv,pointCloudVar.Location);
+
+        % Find face IDs that are closest to activate nodes.
+        neighbouringFacesPerActiveNode = facesAdjacentToNodes(closestSurfaceNodeIds);
+        allNeighbouringFaces = unique(cat(2,neighbouringFacesPerActiveNode{:}));
+
+        % Change colour of neighbouring faces.
+        allBrainData.surf.faces(allNeighbouringFaces,5) = moduleIndex;
+    end
+   
+    % Visualise fMRI activations on the anatomical surface.
+    figure;
+    hold on;
+    title('fMRI activations projected to nearest surface triangle.');
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces(find(allBrainData.surf.faces(:,5)==0),:),'FaceAlpha',0.7,'FaceColor',[0.9 0.9 0.9],'EdgeAlpha',0.2,'EdgeColor',[0.5 0.5 0.5],'DisplayName','Brain');    
+    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces(find(allBrainData.surf.faces(:,5)>0),:),'FaceAlpha',0.8,'EdgeAlpha',0.7,'FaceColor','interp','DisplayName','fMRI Activations/Modules');
+    lightangle(100,0);
+    lightangle(0,0);
+    lightangle(100,100);
+    view(0,90);
+    legend;
+    
+    % Highlight centroids that match.
+    centroids = meshcentroid(allBrainData.surf.nodes,allBrainData.surf.faces(:,1:3));
+    allBrainData.roi.centroids_new = meshcentroid(allBrainData.surf.nodes,allBrainData.surf.faces(:,1:3));
+    %[~,test,matchedCentroidIndex] = intersect(centroids(allNeighbouringFaces),allBrainData.roi.centroids,'rows');
+
+    %plot3(centroids(allNeighbouringFaces,1),centroids(allNeighbouringFaces,2),centroids(allNeighbouringFaces,3),'k.');
+
 
     % Plot faces on brain.
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha','0.5');
-    plot3(allBrainData.surf.nodes(closestSurfaceNodeIds,1),allBrainData.surf.nodes(closestSurfaceNodeIds,2),allBrainData.surf.nodes(closestSurfaceNodeIds,3),'g.','MarkerSize',20);
-
-    % Visualise overlapping regions.
-    figure;
-    hold on;
-    title('fMRI regions on the surface.');
-    %plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'EdgeColor','none','FaceAlpha','0.05','FaceColor',[0.2 0.2 0.2]);
-    %plotsurf(LoverlappingNodes,LoverlappingFaces);
-    plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha',0.2,'EdgeAlpha',0.2,'FaceColor',[0.2 0.2 0.2],'DisplayName','Left hemisphere');
-    plot3(allBrainData.roi.centroids(:,1),allBrainData.roi.centroids(:,2),allBrainData.roi.centroids(:,3),'r.');
-    %plot3(allBrainData.surf.faces(matchingFaceIndexes,1),allBrainData.surf.faces(matchingFaceIndexes,2),allBrainData.surf.faces(matchingFaceIndexes,3),'g.')
-    plot3(allBrainData.surf.nodes(closestSurfaceNodeIds,1),allBrainData.surf.nodes(closestSurfaceNodeIds,2),allBrainData.surf.nodes(closestSurfaceNodeIds,3),'g.');
-    volumeOverlap = fillsurf(LoverlappingNodes,LoverlappingFaces) + fillsurf(RoverlappingNodes,RoverlappingFaces);
-    
-    figure;
-    hold on;
-    plotsurf(RoverlappingNodes,RoverlappingFaces,'FaceAlpha',0.3,'EdgeAlpha',0.3,'FaceColor','g');
-    plotsurf(RseparateNodes,RseparateFaces,'FaceAlpha',0.1,'EdgeAlpha',0.3,'FaceColor',[0.2 0.2 0.2]);
-    plotsurf(LoverlappingNodes,LoverlappingFaces,'FaceAlpha',0.3,'EdgeAlpha',0.3,'FaceColor','g');
-    plotsurf(LseparateNodes,LseparateFaces,'FaceAlpha',0.1,'EdgeAlpha',0.3,'FaceColor',[0.2 0.2 0.2]);
-    plot3(allBrainData.rightHemisphere.roi.centroids(:,1),allBrainData.rightHemisphere.roi.centroids(:,2),allBrainData.rightHemisphere.roi.centroids(:,3),'r.');
-    plot3(allBrainData.leftHemisphere.roi.centroids(:,1),allBrainData.leftHemisphere.roi.centroids(:,2),allBrainData.leftHemisphere.roi.centroids(:,3),'r.');
-
-    
-    for moduleIndex=1:max(allFunctionalData.nodes.moduleIds)
-        activeNodes = find(allFunctionalData.nodes.moduleIds == moduleIndex);
-        % Do not build shape if module consists of 1, 2, or 3 nodes. (as 3D
-        % is required)
-        if(length(activeNodes)>3)
-            [xSubsection,ySubsection,zSubsection] = ind2sub(size(allFunctionalData.modules.threeDimensions),activeNodes);
-
-            %[node,elem,face]=vol2mesh(allFunctionalData.modules.threeDimensions==moduleIndex,xSubsection,ySubsection,zSubsection,2,2,1);
-            opt.keepratio = 0.1;
-            opt(1).maxnode = 5000;
-            opt.autoregion=0;
-            [no,el,regions,holes]=vol2surf(allFunctionalData.modules.threeDimensions==moduleIndex,xSubsection,ySubsection,zSubsection,opt,1,'simplify',1);
-            modulePointCloud = pointCloud(no);
-
-            figure(1);
-            pcshow(modulePointCloud.Location);
-            %plotsurf(node,face,'FaceColor','g','EdgeColor','k','EdgeAlpha',0.5,'FaceAlpha',0.5);
-            coords = allFunctionalData.nodes.mni152(activeNodes,:);
-            allFunctionalData.modules.shapes{moduleIndex} = alphaShape(coords);
-            allFunctionalData.modules.surfaceAreas(moduleIndex) = surfaceArea(allFunctionalData.modules.shapes{moduleIndex});
-            [~,boundaryCoordsOfShape] = boundaryFacets(allFunctionalData.modules.shapes{moduleIndex});
-            allFunctionalData.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoordsOfShape);
-        end
-    end
-
-
-    overlappingRegions = baseStruct;
-    overlappingRegionIndex = 1;
-    %% Find the functional modules shapes that overlap with structural modules.
-    for strucShape=roiStructuralData.modules.shapes
-        for funcShape=allFunctionalData.modules.shapes
-            if(~isempty(funcShape{1}) && ~isempty(strucShape{1}))
-                coords = inShape(strucShape{1},funcShape{1}.Points);
-                overlappingCoordinates = funcShape{1}.Points(coords,:);
-                if(~isempty(overlappingCoordinates))
-                    % An overlapping area has been found. Build shape of
-                    % the overlapping area.
-                    overlappingRegions.modules.shapes{overlappingRegionIndex} = alphaShape(overlappingCoordinates);
-                    [~,boundaryCoordsOfShape] = boundaryFacets(overlappingRegions.modules.shapes{overlappingRegionIndex});
-                    overlappingRegions.modules.centreOfMasses(moduleIndex,:) = mean(boundaryCoordsOfShape);
-                    overlappingRegions.modules.surfaceAreas(overlappingRegionIndex) = surfaceArea(overlappingRegions.modules.shapes{overlappingRegionIndex});
-                    overlappingRegionIndex = overlappingRegionIndex + 1;
-                end
-            end
-        end
-    end
-
-    figure
-    plot(alphaShape(glpvertex));
-    hold on;
-    plot(allBrainData.modules.shape,'FaceColor','r');
-
-    totalSurfaceAreaOfAllModules = sum(roiStructuralData.modules.surfaceAreas,'all') + sum(allFunctionalData.modules.surfaceAreas,'all');
-    totalSurfaceAreaOfOverlappingRegions = sum(overlappingRegions.modules.surfaceAreas,'all');
-    percentageCover = (totalSurfaceAreaOfOverlappingRegions/totalSurfaceAreaOfAllModules)*100;
+    %plotsurf(allBrainData.surf.nodes,allBrainData.surf.faces,'FaceAlpha','0.5');
+    %plot3(allBrainData.surf.nodes(closestSurfaceNodeIds,1),allBrainData.surf.nodes(closestSurfaceNodeIds,2),allBrainData.surf.nodes(closestSurfaceNodeIds,3),'g.','MarkerSize',20);
 
     figure2 = figure;
     plottedLabels = allStructuralData.nodes.labels(1:showTicksPer:end);
@@ -407,7 +345,7 @@ try
     title('Global network - connectivity matrix')
     subtitle('Square shows local connectivity (figure 2)')
 
-    figure(2);
+    figure;
     plottedLabels = roiStructuralData.nodes.labels(1:showTicksPer:end);
     spy(roiStructuralData.adjacencyMatrix);
     xticks(1:showTicksPer:length(roiStructuralData.nodes.labels));
@@ -593,26 +531,9 @@ try
     end
 
 
-    %% Visualise strucModules
-    %     figure1 = figure;
-    %     hold on;
-    %     moduleIndex = min(roiStructuralData.nodes.moduleIds); % For each module
-    %     cmap = hsv(length(roiStructuralData.nodes.moduleIds));
-    %     for i = transpose(roiStructuralData.nodes.moduleIds)
-    %         % Get ids of nodes that are in this module.
-    %         nodeIds = find(roiStructuralData.nodes.moduleIds == i);
-    %         nodesByModule = zeros(size(roiStructuralData.adjacencyMatrix));
-    %
-    %         nodesByModule(nodeIds, nodeIds) = 1;
-    %         spy(nodesByModule);
-    %         x=get(gca,'children');
-    %         lastX = length(x);
-    %         color = [cmap(lastX,:)];
-    %         set(x(lastX),'color',color);
-    %     end
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 
-        %% COARSE PLOTTING
+    %% COARSE PLOTTING
     figure;
     title('Entire brain surface with nodes of ROI')
     plotsurf(allBrainData.leftHemisphere.nodes,allBrainData.leftHemisphere.faces,'FaceAlpha',0.5,'EdgeAlpha',0.5,'DisplayName','Left hemisphere');

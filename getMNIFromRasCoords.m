@@ -1,4 +1,10 @@
 function [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords(pathToFile,Coor,type)
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\AlongTractStats');
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Gifti');
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
+addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
+addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip');
 %% This file converts coordinates as follows:
 % "TkReg RAS" -> ""MNI305 RAS" -> "MNI152 RAS"
 display('step5: get high resolution coordinates in MNI space')
@@ -40,23 +46,4 @@ transform305_152 = [  0.9975   -0.0073    0.0176   -0.0429
 In = [Coor_MNI305 ones(nlen,1)]';
 Out = transform305_152*In;
 Coor_MNI152 = Out(1:3,:)';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 end

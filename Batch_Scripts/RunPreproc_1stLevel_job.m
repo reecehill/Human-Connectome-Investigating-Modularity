@@ -1,8 +1,21 @@
 function RunPreproc_1stLevel_job(pathToParticipants, subject)
+addpath 'C:\Users\Reece\Documents\Dissertation\Main\Batch_Scripts';
+addpath 'C:\Users\Reece\Documents\Dissertation\Main';
+addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
+close all;
+clearvars -except pathToParticipants subject;
 try
-    %% Ensure folder exists.
+    %% Wipe results folder if exists. Then remake.
+    if exist([pathToParticipants '/' subject '/1stlevel'], 'dir')
+        delete([pathToParticipants '/' subject '/1stlevel/*']);
+    end
     if ~exist([pathToParticipants '/' subject '/1stlevel'], 'dir')
-        mkdir([pathToParticipants '/' subject '/1stlevel'])
+        mkdir([pathToParticipants '/' subject '/1stlevel']);
+    end
+
+    %% Ensure fMRI is unzipped.
+    if ~exist([pathToParticipants '/' subject '/data/func/task-HcpMotor_acq-ap_bold.nii'], 'file')
+        gunzip([pathToParticipants '/' subject '/data/func/task-HcpMotor_acq-ap_bold.nii.gz'],[pathToParticipants '/' subject '/data/func']);
     end
     %-----------------------------------------------------------------------
     % Job saved on 31-Jul-2022 16:21:17 by cfg_util (rev $Rev: 7345 $)
@@ -11,132 +24,160 @@ try
     %-----------------------------------------------------------------------
 
     %% Name file. (?Possibly pointless, as only a single run)
-    matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_named_file.name = 'HcpMotorFiles';
+    matlabbatch{1}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+    matlabbatch{1}.cfg_basicio.run_ops.call_matlab.outputs = {};
+    matlabbatch{1}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    %matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_named_file.name = 'HcpMotorFiles';
     %matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_named_file.files = {{[pathToParticipants '\' subject '\data\func\task-HcpMotor_acq-ap_bold.nii.gz']}};
-    matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_named_file.files = {{[pathToParticipants '\' subject '\data\func\artask-HcpMotor_acq-ap_bold.nii']}};
+    %matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_named_file.files = {{[pathToParticipants '\' subject '\data\func\artask-HcpMotor_acq-ap_bold.nii']}};
 
     %% Unzip fmri Data.
-%     matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.files(1) = cfg_dep('Named File Selector: HcpMotorFiles(1) - Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files', '{}',{1}));
-%     matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.outdir = {''};
-%     matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.keep = true;
-matlabbatch{2}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{2}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{2}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    %matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.files(1) = cfg_dep('Named File Selector: HcpMotorFiles(1) - Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files', '{}',{1}));
+    %matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.outdir = {''};
+    %matlabbatch{2}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.keep = true;
+    matlabbatch{2}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+    matlabbatch{2}.cfg_basicio.run_ops.call_matlab.outputs = {};
+    matlabbatch{2}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+
+
     %% Estimate and reslice
-%     matlabbatch{3}.spm.spatial.realign.estwrite.data{1}(1) = cfg_dep('Gunzip Files: Gunzipped Files', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{':'}));
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.quality = 0.9;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.sep = 4;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.fwhm = 5;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.rtm = 1;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.interp = 2;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.wrap = [0 0 0];
-%     matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.weight = '';
-%     matlabbatch{3}.spm.spatial.realign.estwrite.roptions.which = [2 1];
-%     matlabbatch{3}.spm.spatial.realign.estwrite.roptions.interp = 4;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.roptions.wrap = [0 0 0];
-%     matlabbatch{3}.spm.spatial.realign.estwrite.roptions.mask = 1;
-%     matlabbatch{3}.spm.spatial.realign.estwrite.roptions.prefix = 'r';
-matlabbatch{3}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{3}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{3}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    if ~exist([pathToParticipants '/' subject '/data/func/rtask-HcpMotor_acq-ap_bold.nii'], 'file')
+        matlabbatch{3}.spm.spatial.realign.estwrite.data{1}(1) = {[pathToParticipants '\' subject '\data\func\task-HcpMotor_acq-ap_bold.nii']};
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.quality = 0.9;
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.sep = 4;
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.fwhm = 5;
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.rtm = 1;
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.interp = 2;
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.wrap = [0 0 0];
+        matlabbatch{3}.spm.spatial.realign.estwrite.eoptions.weight = '';
+        matlabbatch{3}.spm.spatial.realign.estwrite.roptions.which = [2 1];
+        matlabbatch{3}.spm.spatial.realign.estwrite.roptions.interp = 4;
+        matlabbatch{3}.spm.spatial.realign.estwrite.roptions.wrap = [0 0 0];
+        matlabbatch{3}.spm.spatial.realign.estwrite.roptions.mask = 1;
+        matlabbatch{3}.spm.spatial.realign.estwrite.roptions.prefix = 'r';
+    else
+        matlabbatch{3}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+        matlabbatch{3}.cfg_basicio.run_ops.call_matlab.outputs = {};
+        matlabbatch{3}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    end
+
     %% Slice timing
-%     matlabbatch{4}.spm.temporal.st.scans{1}(1) = cfg_dep('Realign: Estimate & Reslice: Resliced Images (Sess 1)', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','sess', '()',{1}, '.','rfiles'));
-%     matlabbatch{4}.spm.temporal.st.nslices = 93;
-%     matlabbatch{4}.spm.temporal.st.tr = 2;
-%     matlabbatch{4}.spm.temporal.st.ta = 1.97849462365591;
-%     matlabbatch{4}.spm.temporal.st.so = [0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575 0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575 0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575];
-%     matlabbatch{4}.spm.temporal.st.refslice = 0;
-%     matlabbatch{4}.spm.temporal.st.prefix = 'a';
-matlabbatch{4}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{4}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{4}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    if ~exist([pathToParticipants '/' subject '/data/func/artask-HcpMotor_acq-ap_bold.nii'], 'file')
+        matlabbatch{4}.spm.temporal.st.scans{1}(1) = {[pathToParticipants '/' subject '/data/func/rtask-HcpMotor_acq-ap_bold.nii']};
+        matlabbatch{4}.spm.temporal.st.nslices = 93;
+        matlabbatch{4}.spm.temporal.st.tr = 2;
+        matlabbatch{4}.spm.temporal.st.ta = 1.97849462365591;
+        matlabbatch{4}.spm.temporal.st.so = [0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575 0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575 0 1.0225 0.0625 1.085 0.1275 1.15 0.1925 1.2125 0.255 1.2775 0.32 1.34 0.3825 1.405 0.4475 1.47 0.51 1.5325 0.575 1.5975 0.6375 1.66 0.7025 1.725 0.765 1.7875 0.83 1.8525 0.895 1.915 0.9575];
+        matlabbatch{4}.spm.temporal.st.refslice = 0;
+        matlabbatch{4}.spm.temporal.st.prefix = 'a';
+    else
+        matlabbatch{4}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+        matlabbatch{4}.cfg_basicio.run_ops.call_matlab.outputs = {};
+        matlabbatch{4}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    end
+
+
+
     %% Coregister and reslice
-matlabbatch{5}.spm.spatial.coreg.estwrite.source  = cfg_dep('Realign: Estimate & Reslice: Mean Image', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','rmean'));
-matlabbatch{5}.spm.spatial.coreg.estwrite.ref(1)= {[pathToParticipants '\' subject '\data\bert\mri\orig\.nii,1']};
-matlabbatch{5}.spm.spatial.coreg.estwrite.other = {''};
-matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.cost_fun = 'nmi';
-matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.sep = [4 2];
-matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.tol = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
-matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.fwhm = [7 7];
-matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.interp = 4;
-matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.wrap = [0 0 0];
-matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.mask = 0;
-matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.prefix = 'r';
-% matlabbatch{5}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-% matlabbatch{5}.cfg_basicio.run_ops.call_matlab.outputs = {};
-% matlabbatch{5}.cfg_basicio.run_ops.call_matlab.fun = 'display';
-%     %% Segmentation
-%     matlabbatch{6}.spm.spatial.preproc.channel.vols(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','cfiles'));
-%     matlabbatch{6}.spm.spatial.preproc.channel.biasreg = 0.001;
-%     matlabbatch{6}.spm.spatial.preproc.channel.biasfwhm = 60;
-%     matlabbatch{6}.spm.spatial.preproc.channel.write = [0 1];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(1).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,1'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(1).ngaus = 1;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(1).native = [1 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(1).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(2).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,2'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(2).ngaus = 1;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(2).native = [1 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(2).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(3).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,3'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(3).ngaus = 2;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(3).native = [1 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(3).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(4).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,4'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(4).ngaus = 3;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(4).native = [1 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(4).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(5).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,5'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(5).ngaus = 4;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(5).native = [1 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(5).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(6).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,6'};
-%     matlabbatch{6}.spm.spatial.preproc.tissue(6).ngaus = 2;
-%     matlabbatch{6}.spm.spatial.preproc.tissue(6).native = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.tissue(6).warped = [0 0];
-%     matlabbatch{6}.spm.spatial.preproc.warp.mrf = 1;
-%     matlabbatch{6}.spm.spatial.preproc.warp.cleanup = 1;
-%     matlabbatch{6}.spm.spatial.preproc.warp.reg = [0 0.001 0.5 0.05 0.2];
-%     matlabbatch{6}.spm.spatial.preproc.warp.affreg = 'mni';
-%     matlabbatch{6}.spm.spatial.preproc.warp.fwhm = 0;
-%     matlabbatch{6}.spm.spatial.preproc.warp.samp = 3;
-%     matlabbatch{6}.spm.spatial.preproc.warp.write = [0 1];
-%     matlabbatch{6}.spm.spatial.preproc.warp.vox = NaN;
-%     matlabbatch{6}.spm.spatial.preproc.warp.bb = [NaN NaN NaN
-%         NaN NaN NaN];
-matlabbatch{6}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{6}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{6}.cfg_basicio.run_ops.call_matlab.fun = 'display';
-%     %% Normalise the fMRI to MNI space.
-%     matlabbatch{7}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{6}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
-%     matlabbatch{7}.spm.spatial.normalise.write.subj.resample(1) = cfg_dep('Slice Timing: Slice Timing Corr. Images (Sess 1)', substruct('.','val', '{}',{4}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
-%     matlabbatch{7}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
-%         78 76 85];
-%     matlabbatch{7}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
-%     matlabbatch{7}.spm.spatial.normalise.write.woptions.interp = 4;
-%     matlabbatch{7}.spm.spatial.normalise.write.woptions.prefix = 'w';
+    if ~exist([pathToParticipants '/' subject '/data/func/rmeantask-HcpMotor_acq-ap_bold.nii'], 'file')
+        matlabbatch{5}.spm.spatial.coreg.estwrite.ref = {[pathToParticipants '\' subject '\data\bert\mri\T1.nii,1']};
+        matlabbatch{5}.spm.spatial.coreg.estwrite.source(1) = {[pathToParticipants '/' subject '/data/func/meantask-HcpMotor_acq-ap_bold.nii,1']};
+        matlabbatch{5}.spm.spatial.coreg.estwrite.other = {''};
+        matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.cost_fun = 'nmi';
+        matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.sep = [4 2];
+        matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.tol = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
+        matlabbatch{5}.spm.spatial.coreg.estwrite.eoptions.fwhm = [7 7];
+        matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.interp = 4;
+        matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.wrap = [0 0 0];
+        matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.mask = 0;
+        matlabbatch{5}.spm.spatial.coreg.estwrite.roptions.prefix = 'r';
+    else
+        matlabbatch{5}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+        matlabbatch{5}.cfg_basicio.run_ops.call_matlab.outputs = {};
+        matlabbatch{5}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    end
+
+    %% Segmentation
+    % matlabbatch{6}.spm.spatial.preproc.channel.vols(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','cfiles'));
+    %     matlabbatch{6}.spm.spatial.preproc.channel.biasreg = 0.001;
+    %     matlabbatch{6}.spm.spatial.preproc.channel.biasfwhm = 60;
+    %     matlabbatch{6}.spm.spatial.preproc.channel.write = [0 1];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(1).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,1'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(1).ngaus = 1;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(1).native = [1 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(1).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(2).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,2'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(2).ngaus = 1;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(2).native = [1 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(2).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(3).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,3'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(3).ngaus = 2;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(3).native = [1 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(3).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(4).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,4'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(4).ngaus = 3;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(4).native = [1 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(4).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(5).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,5'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(5).ngaus = 4;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(5).native = [1 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(5).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(6).tpm = {'C:\Program Files\MATLAB\R2021b\spm12\tpm\TPM.nii,6'};
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(6).ngaus = 2;
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(6).native = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.tissue(6).warped = [0 0];
+    %     matlabbatch{6}.spm.spatial.preproc.warp.mrf = 1;
+    %     matlabbatch{6}.spm.spatial.preproc.warp.cleanup = 1;
+    %     matlabbatch{6}.spm.spatial.preproc.warp.reg = [0 0.001 0.5 0.05 0.2];
+    %     matlabbatch{6}.spm.spatial.preproc.warp.affreg = 'mni';
+    %     matlabbatch{6}.spm.spatial.preproc.warp.fwhm = 0;
+    %     matlabbatch{6}.spm.spatial.preproc.warp.samp = 3;
+    %     matlabbatch{6}.spm.spatial.preproc.warp.write = [0 1];
+    %     matlabbatch{6}.spm.spatial.preproc.warp.vox = NaN;
+    %     matlabbatch{6}.spm.spatial.preproc.warp.bb = [NaN NaN NaN
+    %         NaN NaN NaN];
+    matlabbatch{6}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+    matlabbatch{6}.cfg_basicio.run_ops.call_matlab.outputs = {};
+    matlabbatch{6}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+
+    %     %% Normalise the fMRI to MNI space.
+    %     matlabbatch{7}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{6}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
+    %     matlabbatch{7}.spm.spatial.normalise.write.subj.resample(1) = cfg_dep('Slice Timing: Slice Timing Corr. Images (Sess 1)', substruct('.','val', '{}',{4}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
+    %     matlabbatch{7}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
+    %         78 76 85];
+    %     matlabbatch{7}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
+    %     matlabbatch{7}.spm.spatial.normalise.write.woptions.interp = 4;
+    %     matlabbatch{7}.spm.spatial.normalise.write.woptions.prefix = 'w';
     matlabbatch{7}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{7}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{7}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    matlabbatch{7}.cfg_basicio.run_ops.call_matlab.outputs = {};
+    matlabbatch{7}.cfg_basicio.run_ops.call_matlab.fun = 'display';
 
     %% Smooth normalised fMRI data.
-    %matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{7}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
-    %matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
-    matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Named File Selector: HcpMotorFiles(1) - Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files', '{}',{1}));
-    
-    matlabbatch{8}.spm.spatial.smooth.fwhm = [5 5 5]; %changed from 8 to 5 as per: https://europepmc.org/article/PMC/7856658#hbm25189-bib-0112
-    matlabbatch{8}.spm.spatial.smooth.dtype = 0;
-    matlabbatch{8}.spm.spatial.smooth.im = 0;
-    matlabbatch{8}.spm.spatial.smooth.prefix = 's';
+    if ~exist([pathToParticipants '/' subject '/data/func/sartask-HcpMotor_acq-ap_bold.nii'], 'file')
+        %matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{7}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
+        %matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Slice Timing: Slice Timing Corr. Images (Sess 1)', substruct('.','val', '{}',{4}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
+        matlabbatch{8}.spm.spatial.smooth.data = {[pathToParticipants '/' subject '/data/func/artask-HcpMotor_acq-ap_bold.nii']};
+        %matlabbatch{8}.spm.spatial.smooth.data(1) = cfg_dep('Named File Selector: HcpMotorFiles(1) - Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files', '{}',{1}));
+        matlabbatch{8}.spm.spatial.smooth.fwhm = [5 5 5]; %changed from 8 to 5 as per: https://europepmc.org/article/PMC/7856658#hbm25189-bib-0112
+        matlabbatch{8}.spm.spatial.smooth.dtype = 0;
+        matlabbatch{8}.spm.spatial.smooth.im = 0;
+        matlabbatch{8}.spm.spatial.smooth.prefix = 's';
+    else
+        matlabbatch{8}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+        matlabbatch{8}.cfg_basicio.run_ops.call_matlab.outputs = {};
+        matlabbatch{8}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    end
 
     %% Define fMRI model
-    matlabbatch{9}.spm.stats.fmri_spec.dir = {[pathToParticipants '/' subject '\1stlevel']};
+     if ~exist([pathToParticipants '/' subject '/1stlevel/SPM.mat'], 'file')
+             matlabbatch{9}.spm.stats.fmri_spec.dir = {[pathToParticipants '/' subject '\1stlevel']};
     matlabbatch{9}.spm.stats.fmri_spec.timing.units = 'secs';
     matlabbatch{9}.spm.stats.fmri_spec.timing.RT = 2;
     matlabbatch{9}.spm.stats.fmri_spec.timing.fmri_t = 16;
     matlabbatch{9}.spm.stats.fmri_spec.timing.fmri_t0 = 8;
+    matlabbatch{9}.spm.stats.fmri_spec.sess.scans = {[pathToParticipants '/' subject '/data/func/sartask-HcpMotor_acq-ap_bold.nii']};
+
     % LEFT HAND
-    matlabbatch{9}.spm.stats.fmri_spec.sess.scans(1) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{8}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
     matlabbatch{9}.spm.stats.fmri_spec.sess.cond(1).name = 'left_hand';
     leftHandTimingFile = importdata([pathToParticipants '/' subject '\data\func\timing_files\left_hand.txt']);
     matlabbatch{9}.spm.stats.fmri_spec.sess.cond(1).onset = leftHandTimingFile(:,1);
@@ -193,10 +234,16 @@ matlabbatch{7}.cfg_basicio.run_ops.call_matlab.fun = 'display';
     matlabbatch{9}.spm.stats.fmri_spec.mthresh = 0.8;
     matlabbatch{9}.spm.stats.fmri_spec.mask = {''};
     matlabbatch{9}.spm.stats.fmri_spec.cvi = 'AR(1)';
+     else
+                 matlabbatch{9}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
+        matlabbatch{9}.cfg_basicio.run_ops.call_matlab.outputs = {};
+        matlabbatch{9}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+     end
+
 
     %% Estimate fMRI model
-    matlabbatch{10}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{9}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-    matlabbatch{10}.spm.stats.fmri_est.write_residuals = 1;
+    matlabbatch{10}.spm.stats.fmri_est.spmmat(1) = {[pathToParticipants '/' subject '/1stlevel/SPM.mat']};
+    matlabbatch{10}.spm.stats.fmri_est.write_residuals = 0;
     matlabbatch{10}.spm.stats.fmri_est.method.Classical = 1;
 
     %% Contrast manager
@@ -218,27 +265,28 @@ matlabbatch{7}.cfg_basicio.run_ops.call_matlab.fun = 'display';
     matlabbatch{11}.spm.stats.con.consess{5}.tcon.sessrep = 'sess';
     matlabbatch{11}.spm.stats.con.delete = 0;
 
-%     %% Normalise the coregistered mask to MNI space (for use in results report).
-%     matlabbatch{12}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{6}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
-%     matlabbatch{12}.spm.spatial.normalise.write.subj.resample(1) = {[pathToParticipants '/' subject '\data\bert\mri\rgm.nii,1']};
-%     matlabbatch{12}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
-%         78 76 85];
-%     matlabbatch{12}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
-%     matlabbatch{12}.spm.spatial.normalise.write.woptions.interp = 4;
-%     matlabbatch{12}.spm.spatial.normalise.write.woptions.prefix = 'w';
-
+    %% Normalise the coregistered mask to MNI space (for use in results report).
+    %     matlabbatch{12}.spm.spatial.normalise.write.subj.def(1) = cfg_dep('Segment: Forward Deformations', substruct('.','val', '{}',{6}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','fordef', '()',{':'}));
+    %     matlabbatch{12}.spm.spatial.normalise.write.subj.resample(1) = {[pathToParticipants '/' subject '\data\bert\mri\rgm.nii,1']};
+    %     matlabbatch{12}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
+    %         78 76 85];
+    %     matlabbatch{12}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
+    %     matlabbatch{12}.spm.spatial.normalise.write.woptions.interp = 4;
+    %     matlabbatch{12}.spm.spatial.normalise.write.woptions.prefix = 'w';
     matlabbatch{12}.cfg_basicio.run_ops.call_matlab.inputs{1}.evaluated = 'Skipped a module.';
-matlabbatch{12}.cfg_basicio.run_ops.call_matlab.outputs = {};
-matlabbatch{12}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+    matlabbatch{12}.cfg_basicio.run_ops.call_matlab.outputs = {};
+    matlabbatch{12}.cfg_basicio.run_ops.call_matlab.fun = 'display';
+
+
     %% Results report
     matlabbatch{13}.spm.stats.results.spmmat = {[pathToParticipants '/' subject '\1stlevel\SPM.mat']};
     matlabbatch{13}.spm.stats.results.conspec.titlestr = '';
     matlabbatch{13}.spm.stats.results.conspec.contrasts = Inf;
-    matlabbatch{13}.spm.stats.results.conspec.threshdesc = 'FWE';
-    matlabbatch{13}.spm.stats.results.conspec.thresh = 0.05;
+    matlabbatch{13}.spm.stats.results.conspec.threshdesc = 'none';
+    matlabbatch{13}.spm.stats.results.conspec.thresh = 0.001;
     matlabbatch{13}.spm.stats.results.conspec.extent = 0;
     matlabbatch{13}.spm.stats.results.conspec.conjunction = 1;
-    matlabbatch{13}.spm.stats.results.conspec.mask.image.name = {[pathToParticipants '/' subject '\data\bert\mri\wrgm.nii,1']};
+    matlabbatch{13}.spm.stats.results.conspec.mask.image.name = {[pathToParticipants '/' subject '\data\bert\mri\gm.nii,1']};
     matlabbatch{13}.spm.stats.results.conspec.mask.image.mtype = 0;
     matlabbatch{13}.spm.stats.results.units = 1;
     matlabbatch{13}.spm.stats.results.export{1}.binary.basename = 'allClustersBinary';
@@ -246,6 +294,11 @@ matlabbatch{12}.cfg_basicio.run_ops.call_matlab.fun = 'display';
     spm('defaults', 'FMRI');
     spm_jobman('run', matlabbatch);
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
+    disp("Running tkregister2...");
+
+    disp("Performing final step: saving output for next step in pipeline...");
+    convertIntensityToCoordinates(pathToParticipants, subject);
+    
 catch ME
     sound(tan(1:1000)); pause(0.2); sound(tan(1:1000));
     rethrow(ME);

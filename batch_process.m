@@ -86,7 +86,7 @@ end
 
 %% map coordinates into MNI space
 for i=1:length(subjects)
-    [Coor_MNI305,Coor_MNI152]=getMNIcoor([pathToFile,subjects{i}],[lpcentroids;rpcentroids;subCoor],type);
+    [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i}],[lpcentroids;rpcentroids;subCoor],type);
     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
     clear lpcentroids,rpcentroids,subCoor;

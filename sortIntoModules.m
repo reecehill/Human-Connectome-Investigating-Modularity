@@ -1,4 +1,7 @@
-function [strucModules, Q1, optimalGamma] = sortIntoModules(structuralAdjacencyMatrix, startGamma, endGamma)
+function [strucModules, Q1, optimalGamma] = sortIntoModules(structuralAdjacencyMatrix, startGamma, endGamma, visualiseData)
+strucAxes = [];
+randAxes = [];
+
 allGammas = startGamma:0.02:endGamma;
 allIterations = 1:1:3;
 Q_corts = zeros([max(allIterations),1]);
@@ -10,11 +13,12 @@ numberOfEdgesToCreate = nnz(structuralAdjacencyMatrix); %number of non-zero elem
 densityOfRandomMatrix = numberOfEdgesToCreate / numel(structuralAdjacencyMatrix);
 structuralAdjacencyMatrixDims = size(structuralAdjacencyMatrix);
 randomAdjacencyMatrix = sprand(structuralAdjacencyMatrixDims(1),structuralAdjacencyMatrixDims(2), densityOfRandomMatrix);
-
-figure("Name","Structural");
-strucAxes = plot(0,0);
-figure("Name","Random");
-randAxes = plot(0,0);
+if(visualiseData)
+    figure("Name","Structural");
+    strucAxes = plot(0,0);
+    figure("Name","Random");
+    randAxes = plot(0,0);
+end
 %% Trial all iterations for cortical data...
 %gammaIndex = 1;
 for gamma=allGammas
@@ -27,8 +31,10 @@ for gamma=allGammas
             Q0 = Q1;                % perform community detection
             [~, Q1] = community_louvain(structuralAdjacencyMatrix, gamma);
             Q_corts(iterationIndex) = Q1;
-            set(strucAxes,'XData',[get(strucAxes,'XData') iterationIndex],'YData',[get(strucAxes,'YData') Q1-Q0]);
-            drawnow;
+            if(visualiseData)
+                set(strucAxes,'XData',[get(strucAxes,'XData') iterationIndex],'YData',[get(strucAxes,'YData') Q1-Q0]);
+                drawnow;
+            end
 
         end
         
@@ -38,16 +44,20 @@ for gamma=allGammas
             Q0 = Q1;                % perform community detection
             [~, Q1] = community_louvain(randomAdjacencyMatrix, gamma);
             Q_rands(iterationIndex) = Q1;
-            set(randAxes,'XData',[get(randAxes,'XData') iterationIndex],'YData',[get(randAxes,'YData') Q1-Q0]);
-            drawnow;
+            if(visualiseData)
+                set(randAxes,'XData',[get(randAxes,'XData') iterationIndex],'YData',[get(randAxes,'YData') Q1-Q0]);
+                drawnow;
+            end
         end
     end
 
     Q_corts_mean = mean(Q_corts);
     Q_rand_mean = mean(Q_rands);
     Q_max(gammaIndex) = Q_corts_mean - Q_rand_mean;
-    set(strucAxes,'XData',[0],'YData',[0]);
-    set(randAxes,'XData',[0],'YData',[0]);
+    if(visualiseData)
+        set(strucAxes,'XData',[0],'YData',[0]);
+        set(randAxes,'XData',[0],'YData',[0]);     
+    end
     %gammaIndex =+ 1;
 end
 

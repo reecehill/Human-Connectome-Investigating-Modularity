@@ -129,14 +129,20 @@ else {
 ######
 # (END)
 ######
+
+
+
 # ---------------------------------------
+
+
+
+
 ######
 # GET DATA (START, STEP 1)
 ######
-
 $subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
-Write-Host "STEP 1 of 8: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
+Write-Host "STEP 1 of 9: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
+$step1jobs = foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   if ("M" -eq $dataSetToUse) {
     Write-Host "Skipping checking for existence and/or downloading of Motor dataset..."
@@ -163,7 +169,7 @@ foreach ($subjectId in $subjectList) {
   }
 
 }  
-
+Receive-Job $step1jobs -Wait -AutoRemoveJob
 ######
 # (END)
 ######
@@ -174,9 +180,10 @@ foreach ($subjectId in $subjectList) {
 
 # Launch WSL (Ubuntu 18 environment)
 # We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
+
 <#
-Write-Host "STEP 2-3 of 8: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
+Write-Host "STEP 2-3 of 9: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
+$step2jobs = foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
 
   if (Test-Path "$driveAndPathToParticipants/sub-$subjectId/data/bert") {
@@ -189,54 +196,60 @@ foreach ($subjectId in $subjectList) {
     wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" "$dataToUse" 
   } -Name "fslJob-$subjectId" -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
   
+  $pso = New-Object psobject @{subjectId=$subjectId; driveAndPathToParticipants=$driveAndPathToParticipants };
   Register-ObjectEvent (Get-Job -Name "fslJob-$subjectId") StateChanged -Action {
-  # It is possible that freesurfer does not produce necessary symlinks. So once it's done, delete existing pial files/symlinks, and renew.
+    # It is possible that freesurfer does not produce necessary symlinks. So once it's done, delete existing pial files/symlinks, and renew.
     #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" -Force
     #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" -Force
-    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T1"
-    cmd.exe /c mklink "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T1"
-  }
+    cmd.exe /c mklink "D:\Dissertation\Participants\sub-${Event.MessageData.subjectId}\data\bert\surf\lh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T1"
+    cmd.exe /c mklink "D:\Dissertation\Participants\sub-${Event.MessageData.subjectId}\data\bert\surf\rh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T1"
+  } -MessageData $pso;
+
 }
-exit;
+Receive-Job $step2jobs -Wait -AutoRemoveJob
+
 #>
-
-
 ######
 # (END)
 ######
+
+
+
 # ---------------------------------------
+
+
+
 ######
 # LAUNCH DSI (START, STEP 4)
 ######
-<#
-Write-Host "STEP 4 of 8: DSIStudio" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
+Write-Host "STEP 4 of 9: DSIStudio" -ForegroundColor Green -BackgroundColor Black
+$step4jobs = foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  #& $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
+  & $($PSScriptRoot + '\dsiBatch.ps1') -subjectId $subjectId -pathToDsiStudio $pathToDsiStudio -numberOfTracts $numberOfTracts
 }
-#>
+Receive-Job $step4jobs -Wait -AutoRemoveJob
 ######
 # (END)
 ######
+
+
+
 # ---------------------------------------
+
+
+
 ######
-<#
 # LAUNCH WSL AND MATLAB (START, STEP 5)
 ######
 $type = 2
 $downsample = 'yes'
 $rate = 0.1
 Set-Location "$driveAndPathToParticipants/../"
-Write-Host "STEP 5 of 8: MATLAB" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
+Write-Host "STEP 5 of 9: MATLAB" -ForegroundColor Green -BackgroundColor Black
+$step5jobs = foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   & matlab -batch "try, batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate; end;"
 }
-######
-# (END)
-######
-# ---------------------------------------
-
 $success = $true;
 foreach ($subjectId in $subjectList) {
   if (-not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/edgeList.mat" -PathType Leaf) -or
@@ -260,15 +273,27 @@ if ($success -eq $true) {
   Write-Host "Now commencing analysis of functional MRI data..." -ForegroundColor Green -BackgroundColor Black
   Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
 } 
-#>
+Receive-Job $step5jobs -Wait -AutoRemoveJob
+exit;
+######
+# (END)
+######
+# ---------------------------------------
+
+
+
+#---------------------------------------
+
+
+
+
 # ---------------------------------------
 ######
 # LAUNCH WSL AND MATLAB (START, STEP 6)
 ######
 # So the matlab function can be found, set to current location of this .ps1 file.
 Set-Location $PSScriptRoot
-
-Write-Host "STEP 6 of 8: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black
+Write-Host "STEP 6 of 9: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black
 foreach ($subjectId in $subjectList) {
   Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
   # Ensure timing files are all created, if not, create them.
@@ -286,38 +311,59 @@ foreach ($subjectId in $subjectList) {
   else {
     Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black
   }
-
-
-
-
-  Write-Host "STEP 7 of 8: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
-  $step7jobs = foreach ($subjectId in $subjectList) {
-    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-    Start-Job -ScriptBlock { 
-      param($driveAndPathToParticipants, $subjectId, $PSScriptRoot)
-      Set-Location $PSScriptRoot;
-      & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
-    } -Name "matlab3-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
-  } 
-
-  # Wait for Step 7 to complete for all subjects before continuing...
-  Receive-Job $step7jobs -Wait -AutoRemoveJob
-
-  Write-Host "STEP 8 of 8: MATLAB (4)" -ForegroundColor Green -BackgroundColor Black
-  $step8jobs = foreach ($subjectId in $subjectList) {
-    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-    Start-Job -ScriptBlock { 
-      param($driveAndPathToParticipants, $subjectId, $PSScriptRoot)
-      Set-Location $PSScriptRoot;
-      & matlab -batch "try, convertIntensityToCoordinates $driveAndPathToParticipants sub-$subjectId; end;"
-    } -Name "matlab4-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
-  }
-
-  # Wait for Step 8 to complete for all subjects before continuing...
-  Receive-Job $step8jobs -Wait -AutoRemoveJob
-
-
 }
+######
+# (END)
+######
+# ---------------------------------------
+
+
+
+
+#---------------------------------------
+
+
+
+
+# ---------------------------------------
+######
+Write-Host "STEP 7 of 9: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
+$step7jobs = foreach ($subjectId in $subjectList) {
+  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+  Start-Job -ScriptBlock { 
+    param($driveAndPathToParticipants, $subjectId, $PSScriptRoot)
+    Set-Location $PSScriptRoot;
+    & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
+  } -Name "matlab3-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
+} 
+
+# Wait for Step 8 to complete for all subjects before continuing...
+Receive-Job $step7jobs -Wait -AutoRemoveJob
+######
+# (END)
+######
+# ---------------------------------------
+
+# ---------------------------------------
+######
+# ---------------------------------------
+######
+Write-Host "STEP 8 of 9: FreeSurfer (2)" -ForegroundColor Green -BackgroundColor Black
+$step8jobs = foreach ($subjectId in $subjectList) {
+  Start-Job -ScriptBlock { 
+    param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $PSScriptRoot)
+    Set-Location $PSScriptRoot;
+    # Run one-liner to get transformation matrix processed fMRI -> anatomical image.
+
+    wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferGetMatrix.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" 
+  } -Name "fslJob2-$subjectId" -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $PSScriptRoot;
+}
+
+Receive-Job $step8jobs -Wait -AutoRemoveJob
+######
+# (END)
+######
+# ---------------------------------------
 ######
 # (END)
 ######

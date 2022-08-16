@@ -10,8 +10,9 @@ cd $pathToParticipants
 
 function runFreesurferReconAll {
   ### recon-all to processing data
-  mri_convert "$SUBJECTS_DIR/anat/T1w.nii.gz" "$SUBJECTS_DIR/anat/T1w.nii"
-  recon-all -i "$SUBJECTS_DIR/anat/T1w.nii" -s "bert" -all
+  mri_convert "$SUBJECTS_DIR/anat/T1w.nii.gz" "$SUBJECTS_DIR/anat/T1w.nii";
+  recon-all -i "$SUBJECTS_DIR/anat/T1w.nii" -s "bert" -T2 "$SUBJECTS_DIR/anat/spc_T2w.nii" -T2pial -all;
+  mri_convert "$SUBJECTS_DIR/bert/mri/T1.mgz" "$SUBJECTS_DIR/bert/mri/T1.nii";
 }
 ### get aparc+aseg.nii
 function getAparcAsecNii {
@@ -45,13 +46,18 @@ function getROILabels {
 #mri_annotation2label --subject "bert" --hemi rh --surf pial.surf.gii --outdir $SUBJECTS_DIR/bert/label/label_type1
 }
 
+function getTransformationMatrices {
+  mri_info --vox2ras-tkr ${SUBJECTS_DIR}/func/task-HcpMotor_acq-ap_bold.nii --o ${SUBJECTS_DIR}/func/vox2ras-tkr.csv
+}
 if [ "$dataToUse" = 'U' ]; then 
   runFreesurferReconAll;
   getAparcAsecNii;
   getROILabels;
+  getTransformationMatrices;
 elif [ "$dataToUse" = 'P' ]; then 
   getAparcAsecNii;
   getROILabels;
+  getTransformationMatrices;
 else
   echo  "You must enter either U or P.";
   exit;

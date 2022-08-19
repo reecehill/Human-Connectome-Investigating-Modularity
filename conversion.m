@@ -8,7 +8,7 @@ display('step1: performing conversion from .trk to surface and atlas')
 display(['Type: ' num2str(type) ' (' class(type) ')'])
 %ft_defaults 
 %atlas=ft_read_mri([pathToFile,'/mri/aparc+aseg.nii']);
-atlas=ft_read_mri([pathToFile,'/data/bert/mri/aparc+aseg.nii']);
+atlas=ft_read_mri([pathToFile '/data/bert/mri/aparc+aseg.nii']);
 
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates
@@ -35,7 +35,7 @@ trkEP_full=[];
 for i=1:1
 filename=[pathToFile,'/dsi-data/1m',num2str(0+i-1),'.trk']
 
-[rawTrkMeta,rawTrk]=eval(['trk_read(filename);']);
+[rawTrkMeta,rawTrk]=eval('trk_read(filename)');
 
 % filename2 = [pathToFile,'/tracks_mat.mat'];
 % eval(['load(filename2)']);
@@ -90,11 +90,17 @@ for k=1:lenrawTrk
     ttemp=atlasMat*round([trka(l,1); trka(l,2); trka(l,3); 1]);% by Xue
     trkstartp= round(ttemp(1:3))+1; %by Xue
 
-    
     l=trkSize;%end point
     ttemp=atlasMat*round([trka(l,1); trka(l,2); trka(l,3); 1]);% by Xue
     trkendp=round(ttemp(1:3))+1; %by Xue 
 
+    % by Reece - some trkstart/trkend are above 256 (presumed due to
+    % rounding). So, set cap to 256.
+    trkstartp(trkstartp>256) = 256;
+    trkendp(trkendp>256) = 256;
+    trkstartp(trkstartp<1) = 1;
+    trkendp(trkendp<1) = 1;
+    %
     
     tmp=zeros(1,3);
     tmp(1:2)=[atlas.anatomy(trkstartp(1),trkstartp(2),trkstartp(3)),atlas.anatomy(trkendp(1),trkendp(2),trkendp(3))];

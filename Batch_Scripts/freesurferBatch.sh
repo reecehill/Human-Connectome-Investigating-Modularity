@@ -62,3 +62,4 @@ else
   echo  "You must enter either U or P.";
   exit;
 fi;
+exit;

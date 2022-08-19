@@ -51,25 +51,27 @@ end
 
 
 %% assign labels to LH hi-res
-facesLH=[];
-for roi=1:nbROI/2
+facesLH={};
+parfor roi=1:nbROI/2
     x=sum(ismember(glpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0); %by Peter
     ROIfacevert(roi).ffaces=find(x>1); %by Xue
     nbffaces=length(ROIfacevert(roi).ffaces);
-    facesLH=[facesLH;glpfaces(ROIfacevert(roi).ffaces,:),ones(nbffaces,1)*roi];
-    
+    %facesLH(roi,1)=glpfaces(ROIfacevert(roi).ffaces,:);
+    facesLH{roi} = [glpfaces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
 end
+facesLH = cat(1,facesLH{:});
 %% assign labels to RH hi-res
-facesRH=[];
-for roi=(nbROI/2)+1:nbROI
+facesRH={};
+parfor roi=(nbROI/2)+1:nbROI
     x=sum(ismember(grpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0);% by Peter
     ROIfacevert(roi).ffaces=find(x>1);% by Xue
     nbffaces=length(ROIfacevert(roi).ffaces);
-    facesRH=[facesRH;grpfaces(ROIfacevert(roi).ffaces,:),ones(nbffaces,1)*roi-(nbROI/2)];
-    
+    facesRH{roi}=[grpfaces(ROIfacevert(roi).ffaces,:),ones(nbffaces,1)*roi-(nbROI/2)];
 end
+facesRH = cat(1,facesRH{:});
+
 
 %% get subcortical coordinates and then map to pial space
 subROIid = []; subCoor = [];
@@ -141,7 +143,7 @@ elseif strcmp(downsample,'yes')
     % LH
     numnfl=size(nfl,1);
     faceROIidL=zeros(size(nfl,1),1);
-    for k=1:numnfl
+    parfor k=1:numnfl
         if mod(k/1000,1)==0
             disp(num2str(numnfl\k))
         end
@@ -153,7 +155,7 @@ elseif strcmp(downsample,'yes')
     % RH
     numnfr=size(nfr,1);
     faceROIidR=zeros(size(nfr,1),1);
-    for k=1:numnfr
+    parfor k=1:numnfr
         if mod(k/1000,1)==0
             disp(num2str(numnfr\k))
         end

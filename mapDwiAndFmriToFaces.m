@@ -33,7 +33,7 @@ try
     allBrainData = baseStruct;
     clearvars surf modules nodes baseStruct
     %% Parameters
-    roiLabels = ["lh.precentral.label"]; % only supports single values for now.
+    roiLabels = ["precentral.label"]; % only supports single values for now.
     showTicksPer = 1000;
     viewSliceOfAllFmriModules = 0;
 
@@ -92,8 +92,8 @@ try
 
     %% ROI Anatomical Data
     % Add region of interest data (face IDs and centroids).
-    roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.leftHemisphere.labels.names,roiLabels));
-    roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.rightHemisphere.labels.names,roiLabels));
+    roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.leftHemisphere.labels.names,strcat('lh.',roiLabels)));
+    roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.rightHemisphere.labels.names,strcat('rh.',roiLabels)));
     roiStructuralData.faceIdsOfAllBrain = [roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain;roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain];
     roiStructuralData.surf.faces_mni152 = allBrainData.surf.faces_mni152(roiStructuralData.faceIdsOfAllBrain,:);
     roiStructuralData.leftHemisphere.surf.centroids = lpcentroids(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,:);
@@ -126,12 +126,12 @@ try
     else
         disp('Sorting DWI data into modules...');
         if(size(roiStructuralData.leftHemisphere.adjacencyMatrix,1) > 0)
-            [allBrainData.leftHemisphere.surf.faces(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.leftHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.leftHemisphere.adjacencyMatrix, 0.78, 0.78, visualiseData);
+            [allBrainData.leftHemisphere.surf.faces(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.leftHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData);
         else
             allBrainData.leftHemisphere.optimalGamma = [];
         end
         if(size(roiStructuralData.rightHemisphere.adjacencyMatrix,1) > 0)
-            [allBrainData.rightHemisphere.surf.faces(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.rightHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.rightHemisphere.adjacencyMatrix, 0.78, 0.78);
+            [allBrainData.rightHemisphere.surf.faces(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.rightHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData);
         else
             allBrainData.rightHemisphere.optimalGamma = [];
         end
@@ -329,6 +329,7 @@ try
         subtitle('Square shows local connectivity (figure 2)');
         plottedLabels = [allBrainData.leftHemisphere.labels.names; allBrainData.rightHemisphere.labels.names; allBrainData.subCortical.labels.names];
         spy(allStructuralData.adjacencyMatrix);
+        % Broken, doesnt work when both hemisphere are selected!
         rectangle('Position',[min(roiStructuralData.faceIdsOfAllBrain) min(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain)], 'EdgeColor','red')
         xticks(1:showTicksPer:length(plottedLabels));
         yticks(1:showTicksPer:length(plottedLabels));

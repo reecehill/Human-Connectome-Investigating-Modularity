@@ -1,4 +1,13 @@
 function [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList(pathToFile,downsample)
+clear ft_hastoolbox;
+restoredefaultpath;
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\AlongTractStats');
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Gifti');
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
+addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
+addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip');
+ft_defaults;
 
 display('step3: check if there are fibres connected between node pairs')
 
@@ -10,7 +19,7 @@ load(fileToLoad);
 %% load the data that was output by conversion.m
 disp('loading trsfmTrk.mat');
 fileToLoad=[pathToFile,'/trsfmTrk.mat'];
-load(fileToLoad);
+load(fileToLoad, "trk_type", "trk_len", "trkEP");
 %% get lengths of data
 nfllen=length(nfl);
 nfrlen=length(nfr);
@@ -23,25 +32,38 @@ lpcentroids=meshcentroid(nvl,nfl);
 rpcentroids=meshcentroid(nvr,nfr);
 
 %% make edge list for remote connections
-disp('building remote connection elist');
 edgeListRemote=zeros(nbTracts,5,'single');
 % parfor k=1:nbTracts
 tic
-for k=1:nbTracts
-    
+lpCentroidsFirstCol = lpcentroids(:,1);
+lpCentroidsSecCol = lpcentroids(:,2);
+lpCentroidsThirdCol = lpcentroids(:,3);
+rpCentroidsFirstCol = rpcentroids(:,1);
+rpCentroidsSecCol = rpcentroids(:,2);
+rpCentroidsThirdCol = rpcentroids(:,3);
+subCoorFirstCol = subCoor(:,1);
+subCoorSecCol = subCoor(:,2);
+subCoorThirdCol = subCoor(:,3);
+fprintf('Building Remove connection elist:\n');
+fprintf(['\n' repmat('.',1,round(nbTracts/100000)) '\n\n']);
+parfor k=1:nbTracts    
     if mod(k/1000,1)==0
-    disp(num2str(nbTracts\k))
+    %disp(num2str(nbTracts\k))
+    end
+    if mod(k/100000,1)==0
+    %disp(num2str(nbTracts\k))
+    fprintf('\b|\n');
     end
     
     if trk_type(k,3) ~=0
         startp=trkEP(k,1:3);
         endp=trkEP(k,4:6);
-        dsl=(lpcentroids(:,1)-startp(1)).^2 + (lpcentroids(:,2)-startp(2)).^2 + (lpcentroids(:,3)-startp(3)).^2 ;
-        dsr=(rpcentroids(:,1)-startp(1)).^2 + (rpcentroids(:,2)-startp(2)).^2 + (rpcentroids(:,3)-startp(3)).^2 ;
-        del=(lpcentroids(:,1)-endp(1)).^2 + (lpcentroids(:,2)-endp(2)).^2 + (lpcentroids(:,3)-endp(3)).^2 ;
-        der=(rpcentroids(:,1)-endp(1)).^2 + (rpcentroids(:,2)-endp(2)).^2 + (rpcentroids(:,3)-endp(3)).^2 ;
-        dss=(subCoor(:,1)-startp(1)).^2 + (subCoor(:,2)-startp(2)).^2 + (subCoor(:,3)-startp(3)).^2 ;
-        des =(subCoor(:,1)-endp(1)).^2 + (subCoor(:,2)-endp(2)).^2 + (subCoor(:,3)-endp(3)).^2 ;
+        dsl=(lpCentroidsFirstCol-startp(1)).^2 + (lpCentroidsSecCol-startp(2)).^2 + (lpCentroidsThirdCol-startp(3)).^2 ;
+        dsr=(rpCentroidsFirstCol-startp(1)).^2 + (rpCentroidsSecCol-startp(2)).^2 + (rpCentroidsThirdCol-startp(3)).^2 ;
+        del=(lpCentroidsFirstCol-endp(1)).^2 + (lpCentroidsSecCol-endp(2)).^2 + (lpCentroidsThirdCol-endp(3)).^2 ;
+        der=(rpCentroidsFirstCol-endp(1)).^2 + (rpCentroidsSecCol-endp(2)).^2 + (rpCentroidsThirdCol-endp(3)).^2 ;
+        dss=(subCoorFirstCol-startp(1)).^2 + (subCoorSecCol-startp(2)).^2 + (subCoorThirdCol-startp(3)).^2 ;
+        des =(subCoorFirstCol-endp(1)).^2 + (subCoorSecCol-endp(2)).^2 + (subCoorThirdCol-endp(3)).^2 ;
         
         endpoints=[del;der;des];
         startpoints=[dsl;dsr;dss];

@@ -64,7 +64,7 @@ faceROI_all=[faceROIidL;faceROIidR+34;subROIid+68];
 ROIlen = max(faceROI_all);
 for i=1:ROIlen
     ilocs=find(faceROI_all==i);
-    for j=1:ROIlen
+    parfor j=1:ROIlen
         jlocs=find(faceROI_all==j);
         lo_adj_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
     end 
@@ -76,7 +76,7 @@ faceROI_cortical=[faceROIidL;faceROIidR+34];
 ROIlen = max(faceROI_cortical);
 for i=1:ROIlen
     ilocs=find(faceROI_cortical==i);
-    for j=1:ROIlen
+    parfor j=1:ROIlen
         jlocs=find(faceROI_cortical==j);
         lo_adj_cortical_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
     end 

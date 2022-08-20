@@ -189,11 +189,20 @@ elseif ($global:dataToUse -eq "Str") {
   step4;
 }
 elseif ($global:dataToUse -eq "F") {
-  #step5;
-  #step6;
-  step7;
+  $originIsSet = Read-Host("Have you set the origin to the anterior commisure using SPM? [Y/N]");
+  if($originIsSet -eq "Y") {
+    step5;
+    step6;
+    step7;
+  }
+  else {
+    Write-Host "Please set origin first.";
+    exit;
+  }
+
 }
 elseif ($global:dataToUse -eq "O") {
+  
   step8;
 }
 elseif ($global:dataToUse -eq "Sta") {

@@ -10,4 +10,5 @@ function [modules, Q1] = sortIntoModules(adjacencyMatrix, gamma)
         Q0 = Q1;                % perform community detection
         [modules, Q1] = community_louvain(adjacencyMatrix, gamma);
     end
+
 end

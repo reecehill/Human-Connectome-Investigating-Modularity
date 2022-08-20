@@ -288,6 +288,9 @@ function step8() {
   ######
   # (START)
   ######
+  Write-Host "STEP 8 of 8: Matlab" -ForegroundColor Green -BackgroundColor Black
+
+    foreach ($subjectId in $subjectList) {
   $jobName = "step8-sub-${subjectId}"
   $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
   $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
@@ -302,6 +305,7 @@ function step8() {
     Remove-Job -Id $EventSubscriber.SourceObject.Id;
   } -MessageData $pso | Out-Null;
   Receive-Job -Job $job -Wait;
+  }
   ######
   # (END)
   ######

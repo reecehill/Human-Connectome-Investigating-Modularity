@@ -180,6 +180,8 @@ try
     opt.keepratio = 1;
     opt.radbound = 10;
     opt.distbound = 0.2;
+    allBrainData.leftHemisphere.surf.faces(:,5) = 0;
+    allBrainData.rightHemisphere.surf.faces(:,5) = 0;
 
     %% Convert all fMRI activations into surfaces.
     % Note that fMRI data is not split into hemispheres.

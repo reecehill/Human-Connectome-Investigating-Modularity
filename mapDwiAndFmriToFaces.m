@@ -99,16 +99,16 @@ try
     roiStructuralData.leftHemisphere.surf.centroids = lpcentroids(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,:);
     roiStructuralData.rightHemisphere.surf.centroids = rpcentroids(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,:);
     roiStructuralData.leftHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain);
-    
-%     %Testing if labels are inaccurate...
+
+    %     %Testing if labels are inaccurate...
     % Offset the face IDs of right hemisphere to skip past the left
     % hemisphere faces!
-     roiStructuralData.rightHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
-%     adjacencyMatrixChangesAtPoint = find(ischange(roiStructuralData.rightHemisphere.adjacencyMatrix) ==1);
-%     [pointX, pointY] = ind2sub(size(roiStructuralData.rightHemisphere.adjacencyMatrix), adjacencyMatrixChangesAtPoint);
-%     %Update adjacency matrix accordingly...
-%     roiStructuralData.rightHemisphere.adjacencyMatrix = roiStructuralData.rightHemisphere.adjacencyMatrix(1:pointX,1:pointX);
-%     roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain(1:pointX);
+    roiStructuralData.rightHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
+    %     adjacencyMatrixChangesAtPoint = find(ischange(roiStructuralData.rightHemisphere.adjacencyMatrix) ==1);
+    %     [pointX, pointY] = ind2sub(size(roiStructuralData.rightHemisphere.adjacencyMatrix), adjacencyMatrixChangesAtPoint);
+    %     %Update adjacency matrix accordingly...
+    %     roiStructuralData.rightHemisphere.adjacencyMatrix = roiStructuralData.rightHemisphere.adjacencyMatrix(1:pointX,1:pointX);
+    %     roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain(1:pointX);
 
     roiStructuralData.leftHemisphere.labels.names = allBrainData.leftHemisphere.labels.names(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain);
     roiStructuralData.rightHemisphere.labels.names = allBrainData.rightHemisphere.labels.names(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
@@ -135,11 +135,11 @@ try
 
     else
         disp('Sorting DWI data into modules...');
-        
+
         if(size(roiStructuralData.leftHemisphere.adjacencyMatrix,1) > 0)
             if(isfile([pathToParticipants '/' subject '/moduleResults/leftOptimalGamma.mat']))
-                    load([pathToParticipants '\' subject '\moduleResults\leftOptimalGamma.mat'], "leftOptimalGamma");
-                    allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
+                load([pathToParticipants '\' subject '\moduleResults\leftOptimalGamma.mat'], "leftOptimalGamma");
+                allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
             else
                 [leftOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
                 allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
@@ -154,8 +154,8 @@ try
 
         if(size(roiStructuralData.rightHemisphere.adjacencyMatrix,1) > 0)
             if(isfile([pathToParticipants '/' subject '/moduleResults/rightOptimalGamma.mat']))
-                    load([pathToParticipants '\' subject '\moduleResults\rightOptimalGamma.mat'], "rightOptimalGamma");
-                    allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
+                load([pathToParticipants '\' subject '\moduleResults\rightOptimalGamma.mat'], "rightOptimalGamma");
+                allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
             else
                 [rightOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
                 allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
@@ -369,7 +369,7 @@ try
         rectangle('Position',[min(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) min(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain)], 'EdgeColor','red')
         % Right hemisphere ROI
         rectangle('Position',[length(allBrainData.leftHemisphere.surf.faces) + min(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(allBrainData.leftHemisphere.surf.faces) + min(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain)], 'EdgeColor','red')
-        
+
         xticks(1:showTicksPer:length(plottedLabels));
         yticks(1:showTicksPer:length(plottedLabels));
         xticklabels(plottedLabels(1:showTicksPer:end));
@@ -388,34 +388,34 @@ try
             yticklabels(plottedLabels(1:(showTicksPer/50):end));
         end
 
-    if(numel(roiStructuralData.rightHemisphere.adjacencyMatrix) > 0)
-        figure;
-        title('Local network (lSF-lSP) - connectivity matrix (right)')
+        if(numel(roiStructuralData.rightHemisphere.adjacencyMatrix) > 0)
+            figure;
+            title('Local network (lSF-lSP) - connectivity matrix (right)')
 
-        plottedLabels = roiStructuralData.rightHemisphere.labels.names;
-        spy(roiStructuralData.rightHemisphere.adjacencyMatrix);
+            plottedLabels = roiStructuralData.rightHemisphere.labels.names;
+            spy(roiStructuralData.rightHemisphere.adjacencyMatrix);
 
-        xticks(1:(showTicksPer/50):length(plottedLabels));
-        yticks(1:(showTicksPer/50):length(plottedLabels));
-        xticklabels(plottedLabels(1:(showTicksPer/50):end));
-        yticklabels(plottedLabels(1:(showTicksPer/50):end));
+            xticks(1:(showTicksPer/50):length(plottedLabels));
+            yticks(1:(showTicksPer/50):length(plottedLabels));
+            xticklabels(plottedLabels(1:(showTicksPer/50):end));
+            yticklabels(plottedLabels(1:(showTicksPer/50):end));
+        end
     end
-end
-toc;
-disp("Saving...");
-% Remove data that we won't use again.
-allBrainData.surf = [];
-allBrainData.leftHemisphere.surfaceNorm = [];
-allBrainData.rightHemisphere.surfaceNorm = [];
-allBrainData.leftHemisphere.nodesToFaces = [];
-allBrainData.rightHemisphere.nodesToFaces = [];
-clearvars -except allBrainData pathToParticipants subject conditionIndex;
-filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
-save(filename,'allBrainData','-v7.3');
-disp("Script finished successfully.");
+    toc;
+    disp("Saving...");
+    % Remove data that we won't use again.
+    allBrainData.surf = [];
+    allBrainData.leftHemisphere.surfaceNorm = [];
+    allBrainData.rightHemisphere.surfaceNorm = [];
+    allBrainData.leftHemisphere.nodesToFaces = [];
+    allBrainData.rightHemisphere.nodesToFaces = [];
+    clearvars -except allBrainData pathToParticipants subject conditionIndex;
+    filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
+    save(filename,'allBrainData','-v7.3');
+    disp("Script finished successfully.");
 
 
-sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
+    sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 
 catch ME
     sound(tan(1:1000)); pause(0.2); sound(tan(1:1000));

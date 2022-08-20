@@ -1,3 +1,21 @@
+### TEMPLATE
+<#
+$jobName = "stepX-sub-${subjectId}"
+$pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
+$job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+  param($global:driveAndPathToParticipants, $subjectId, $scriptLocation)
+  Set-Location "$scriptLocation";
+  # ACTION
+};
+Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
+  Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
+  Unregister-Event $EventSubscriber.SourceIdentifier;
+  Remove-Job $EventSubscriber.SourceIdentifier;
+  Remove-Job -Id $EventSubscriber.SourceObject.Id;
+} -MessageData $pso | Out-Null;
+Receive-Job -Job $job -Wait;
+#>
+
 ### Due to having to make symlinks, this script must be ran as an admin.
 If (-NOT (([Security.Principal.WindowsPrincipal] `
         [Security.Principal.WindowsIdentity]::GetCurrent() `
@@ -11,38 +29,49 @@ If (-NOT (([Security.Principal.WindowsPrincipal] `
 # SET PARAMETERS
 ######
 # The drive letter that contains all files. In format like - C:\
-$drive = 'C:\'
+$global:drive = 'C:\'
 # Paths must begin from after the drive number. i.e., (C:\Users\... becomes \Users\...)
-$pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/license.txt"
-$pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
-$driveAndPathToParticipants = $($drive + $pathToParticipants)
-$pathToDsiStudio = $drive + 'Users\Reece\Documents\Dissertation\dsi_studio_win'
-$pathToSpmPackage = $drive + 'Program Files\MATLAB\R2021b\spm12'
-#$numberOfTracts = 10000
-$numberOfTracts = 10000000
-$type = 2
-$downsample = 'yes'
-$rate = 0.1
+$global:pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/license.txt"
+$global:pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
+$global:driveAndPathToParticipants = $($global:drive + $global:pathToParticipants)
+$global:pathToDsiStudio = $global:drive + 'Users\Reece\Documents\Dissertation\dsi_studio_win'
+$global:pathToSpmPackage = $global:drive + 'Program Files\MATLAB\R2021b\spm12'
+#$global:numberOfTracts = 10000
+$global:numberOfTracts = 10000000
+$global:type = 2
+$global:downsample = 'yes'
+$global:rate = 0.1
+
+<# 
+**OVERVIEW OF SCRIPT**
+As a brief overview, this script processes data in three parts. When prompted, you can instruct the script to begin from any one of these sections.
+ ---1) Unprocessed: begin with raw, fMRI, DWI and MRI (T1 and T2) scans. Uses Freesurfer for surface extraction from T1/T2 data, and DSIStudio for streamline/tract detection.
+ ---2) Structural: begin from pial surface files (aparc+aseg.nii) and DSIStudio tracts (1m0.trk) file. Matlab is used to convert tracts into same space, to assign anatomical labels to the surface files, and to compute a global connectivity matrix from the tracts.
+ ---3) Functional: begin from the raw fMRI scan, and use SPM (Matlab) to perform 1st-level analysis and produce a binary volume of activated clusters.
+ ---4) Overlay: take the output of (2) and (3) and independently sort their modules. The output is then the ROI surface with the modules assigned. Parts of the surface with modules from the two sections are also highlighted.    
+ ---5) Statistics: take the output of (4), and calculate percentage overlap (measured in millimetres) for each fMRI condition (left hand, right hand etc.)
+***
+#>
 
 
 # "motor" : https://openfmri.org/s3-browser/?prefix=ds000244
 # "hcp": https://humanconnectome.org/study/hcp-young-adult
-$dataSetToUse = Read-host 'As of 15/07/22, only the Motor dataset works. Which dataset do you wish to use? ([M]otor/[H]cp)'
-$startAfresh = Read-host 'Delete all participant information and start afresh? (Y/N)'
-$dataToUse = Read-host 'Begin with Freesurfer and [U]nprocessed data, or retrieve [P]reprocessed data and skip Freesurfer? (U/P)'
+$global:dataSetToUse = Read-host 'As of 15/07/22, only the Motor dataset works. Which dataset do you wish to use? ([M]otor/[H]cp)'
+$global:startAFresh = Read-host 'Delete all participant information and start afresh? (Y/N)'
+$global:dataToUse = Read-host 'Which type of data do you wish to handle? [A]ll; [U]nprocessed data; [Str]uctural data; [F]unctional data; [O]verlay; [Sta]tistics. '
 
 function getHcpData($subjectId, $dataToFetch) {
   if ($dataToFetch -eq "unprocessed") {
-    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
+    $localDirectoryToCheck = $($global:driveAndPathToParticipants + '\' + $subjectId + '\T1w\')
     $localFileToCheck = 'T1.nii.gz'
     $localPathForInsert = $($localDirectoryToCheck + '/' + $localFileToCheck)
     # Set the host's filepath as that of _T1.nii.gz file. Note that we change the folder hierarchy.
     $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/unprocessed/3T/T1w_MPR1/" + $subjectId + "_3T_T1w_MPR1.nii.gz"
     $recursive = ''
   }
-  elseif ($dataToFetch -eq "preprocessed") {
+  elseif ($dataToFetch -eq "structural") {
     # Set the directory in question as the subject's bert folder (the output of Freesurfer). We only check for aparc+aseg.mgz
-    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
+    $localDirectoryToCheck = $($global:driveAndPathToParticipants + '\' + $subjectId + '\T1w\bert\')
     $localPathForInsert = $localDirectoryToCheck
     $localFileToCheck = 'mri/aparc+aseg.mgz'
     # Set the host's filepath as that of the subject's bert folder. Note that we change the folder hierarchy.
@@ -51,10 +80,10 @@ function getHcpData($subjectId, $dataToFetch) {
   }
   elseif ($dataToFetch -eq "diffusion") {
     # Set the directory in question as the subject's Diffusion data folder (for use in DSIStudio). We only check for data.nii.gz.
-    $localDirectoryToCheck = $($driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
+    $localDirectoryToCheck = $($global:driveAndPathToParticipants + '\' + $subjectId + '\T1w\Diffusion\')
     $localPathForInsert = $localDirectoryToCheck
     $localFileToCheck = 'data.nii.gz'
-    # Set the host's filepath as that of the subject's Diffusion data folder (preprocessed).
+    # Set the host's filepath as that of the subject's Diffusion data folder (structural).
     $remotePath = "s3://hcp-openaccess/HCP_1200/$subjectId/T1w/Diffusion/"
     $recursive = '--recursive';
   }
@@ -93,7 +122,7 @@ function getHcpData($subjectId, $dataToFetch) {
 function getMotorData($subjectId) {
   $filesToCheck = Get-Content filesToCheck.csv
   foreach ($filename in $filesToCheck) {
-    Get-ChildItem -Path $($driveAndPathToParticipants + '/sub-' + $subjectId + '/') -Include $('sub-' + $subjectId + "*" + $filename) -Recurse -ErrorAction SilentlyContinue -Force
+    Get-ChildItem -Path $($global:driveAndPathToParticipants + '/sub-' + $subjectId + '/') -Include $('sub-' + $subjectId + "*" + $filename) -Recurse -ErrorAction SilentlyContinue -Force
   }
   Write-Host "We skipped the checks to ensure the subject has the files required. Please manually confirm."
 }
@@ -105,24 +134,24 @@ function getMotorData($subjectId) {
 # CLEAR CURRENT DATA
 ######
 
-if ("Y" -eq $startAfresh) {
+if ("Y" -eq $global:startAFresh) {
   # Remove # if folder cannot be deleted due to permissions issue.
-  # Get-ChildItem -Recurse -Path $driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
+  # Get-ChildItem -Recurse -Path $global:driveAndPathToParticipants | Set-ItemProperty -Name IsReadOnly -Value $false
   try {
-    Rename-Item -Path $driveAndPathToParticipants -NewName $($driveAndPathToParticipants + '-old') -ErrorAction Stop
+    Rename-Item -Path $global:driveAndPathToParticipants -NewName $($global:driveAndPathToParticipants + '-old') -ErrorAction Stop
   }
   catch {
     Write-Host "There is a permissions issue with the Participants folder. Please manually delete the sub-folders within the Participants folder." -ForegroundColor Red -BackgroundColor Black
     exit;
   }
-  New-Item -Path $driveAndPathToParticipants -ItemType Directory
-  Copy-Item $($driveAndPathToParticipants + '-old/file_list_HCP_all_subset.txt') $($driveAndPathToParticipants + '/file_list_HCP_all_subset.txt')
-  Copy-Item $($driveAndPathToParticipants + '-old/.gitignore') $($driveAndPathToParticipants + '/.gitignore')
-  Remove-Item $($driveAndPathToParticipants + '-old') -Recurse
+  New-Item -Path $global:driveAndPathToParticipants -ItemType Directory
+  Copy-Item $($global:driveAndPathToParticipants + '-old/file_list_HCP_all_subset.txt') $($global:driveAndPathToParticipants + '/file_list_HCP_all_subset.txt')
+  Copy-Item $($global:driveAndPathToParticipants + '-old/.gitignore') $($global:driveAndPathToParticipants + '/.gitignore')
+  Remove-Item $($global:driveAndPathToParticipants + '-old') -Recurse
   Write-Host "The participant folder has been cleared. Please rerun the command and answer 'No'" -ForegroundColor Red -BackgroundColor Black
   exit;
 }
-elseif ("N" -eq $startAfresh) {
+elseif ("N" -eq $global:startAFresh) {
   #continue...
 }
 else {
@@ -137,263 +166,39 @@ else {
 
 # ---------------------------------------
 
+$global:subjectList = Get-Content -Path $($global:driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
 
+. "${PSScriptRoot}/launch_functions.ps1";
 
-
-######
-# GET DATA (START, STEP 1)
-######
-$subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
-Write-Host "STEP 1 of 9: RETRIEVAL OF MISSING DATA" -ForegroundColor Green -BackgroundColor Black
-$step1jobs = foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  if ("M" -eq $dataSetToUse) {
-    Write-Host "Skipping checking for existence and/or downloading of Motor dataset..."
-  }
-  elseif ("H" -eq $dataSetToUse) {
-    if ("U" -eq $dataToUse) {
-      # Get only the T1 raw data, to be processed later.
-      getHcpData $subjectId "unprocessed";
-      getHcpData $subjectId "diffusion";
-    }
-    elseif ("P" -eq $dataToUse) {
-      # Get the T1 raw data and the preprocessed data from the HCP Freesurfer pipeline.
-      getHcpData $subjectId "preprocessed";
-      getHcpData $subjectId "diffusion";
-    }
-    else {
-      Write-Host "Please ensure you enter either U (for unprocessed data) or P (for preprocessed data)." -ForegroundColor Red -BackgroundColor Black
-      exit;
-    }
-  }
-  else {
-    Write-Host "Please ensure you enter either M (for Motor dataset) or H (for HumanConnectomeProject dataset - unsupported)." -ForegroundColor Red -BackgroundColor Black
-    exit;
-  }
-
-}  
-Receive-Job $step1jobs -Wait -AutoRemoveJob
-######
-# (END)
-######
-# ---------------------------------------
-######
-# LAUNCH WSL AND FREESURFER (START, STEP 2-3)
-######
-
-# Launch WSL (Ubuntu 18 environment)
-# We did loop through subjects inside Linux, but this led to unexpected behaviour where only the last subject was processed. For consistency, we loop through all here.
-<#
-Write-Host "STEP 2-3 of 9: FreeSurfer" -ForegroundColor Green -BackgroundColor Black
-$step2jobs = foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-
-  if (Test-Path "$driveAndPathToParticipants/sub-$subjectId/data/bert") {
-    Write-Host "Freesurfer output already exists..."
-    Remove-Item "$driveAndPathToParticipants/sub-$subjectId/data/bert" -Force -Recurse -Confirm
-  }
-
-  Start-Job -ScriptBlock { 
-    param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse)
-    wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferBatch.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" "$dataToUse" 
-  } -Name "fslJob-$subjectId" -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $dataToUse;
-  
-  $pso = New-Object psobject @{subjectId=$subjectId; driveAndPathToParticipants=$driveAndPathToParticipants };
-  Register-ObjectEvent (Get-Job -Name "fslJob-$subjectId") StateChanged -Action {
-    # It is possible that freesurfer does not produce necessary symlinks. So once it's done, delete existing pial files/symlinks, and renew.
-    #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\lh.pial" -Force
-    #Remove-Item "$driveAndPathToParticipants\sub-$subjectId\data\bert\surf\rh.pial" -Force
-    cmd.exe /c mklink "D:\Dissertation\Participants\sub-"+$Event.MessageData.subjectId+"\data\bert\surf\lh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\lh.pial.T2"
-    cmd.exe /c mklink "D:\Dissertation\Participants\sub-"+$Event.MessageData.subjectId+"\data\bert\surf\rh.pial.windowsSymlink" "D:\Dissertation\Participants\sub-$subjectId\data\bert\surf\rh.pial.T2"
-  } -MessageData $pso;
-
+if ($global:dataToUse -eq "A") {
+  step1;
+  step2;
+  step3;
+  step4;
+  step5;
+  step6;
+  step7;
+  step8;
 }
-Receive-Job $step2jobs -Wait -AutoRemoveJob
-#>
-######
-# (END)
-######
-
-
-
-# ---------------------------------------
-
-
-
-######
-# LAUNCH DSI (START, STEP 4)
-######
-
-Write-Host "STEP 4 of 9: DSIStudio" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-    $jobName = "step4-sub-" + $subjectId;
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName=$jobName };
-    $job = Start-Job -Name ${jobName}  -ScriptBlock {
-    param($driveAndPathToParticipants, $subjectId, $pathToDsiStudio, $numberOfTracts, $scriptLocation);
-    Set-Location $scriptLocation;
-    & $($scriptLocation + '\dsiBatch.ps1') $driveAndPathToParticipants $subjectId $pathToDsiStudio $numberOfTracts | Out-Null;
-  } -ArgumentList $driveAndPathToParticipants,$subjectId,$pathToDsiStudio,$numberOfTracts,$PSScriptRoot;
-  
-    Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
-    Write-Host ("Job #"+$Event.MessageData.jobName+" complete.");
-    Unregister-Event $EventSubscriber.SourceIdentifier;
-    Remove-Job $EventSubscriber.SourceIdentifier;
-    Remove-Job -Id $EventSubscriber.SourceObject.Id;
-  } -MessageData $pso ;
-  Receive-Job -Job $job -Wait;
+elseif ($global:dataToUse -eq "U") {
+  step1;
+  step2;
 }
-######
-# (END)
-######
-
-
-
-# ---------------------------------------
-
-#>
-
-######
-# LAUNCH WSL AND MATLAB (START, STEP 5)
-######
-Write-Host "STEP 5 of 9: MATLAB" -ForegroundColor Green -BackgroundColor Black
-foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black;
-  $jobName = "step5-sub-${subjectId}"
-  $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName=$jobName };
-  $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $type, $downsample, $rate, $PSScriptRoot -ScriptBlock {
-    param($driveAndPathToParticipants, $subjectId, $type, $downsample, $rate, $scriptLocation)
-    Set-Location "$scriptLocation/../";
-    & matlab -batch "batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate"
-  };
-  Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
-    Write-Host ("Job #"+$Event.MessageData.jobName+" complete.");
-    Write-Host ("Checking if all files were successfully created...");
-    # Ensure files were successfully made.
-    if (-not(Test-Path -Path $Event.MessageData.driveAndPathToParticipants + "/sub-" + $Event.MessageData.subjectId "/edgeList.mat" -PathType Leaf) -or
-      -not(Test-Path -Path $Event.MessageData.driveAndPathToParticipants + "/sub-" + $Event.MessageData.subjectId + "/labelSRF.mat" -PathType Leaf) -or
-      -not(Test-Path -Path $Event.MessageData.driveAndPathToParticipants + "/sub-" + $Event.MessageData.subjectId + "/matrices.mat" -PathType Leaf) -or
-      -not(Test-Path -Path $Event.MessageData.driveAndPathToParticipants + "/sub-" + $Event.MessageData.subjectId + "/MNIcoor.mat" -PathType Leaf) -or
-      -not(Test-Path -Path $Event.MessageData.driveAndPathToParticipants + "/sub-" + $Event.MessageData.subjectId + "/trsfmTrk.mat" -PathType Leaf)
-    ) {
-      Write-Host "Error during structural analysis: Subject sub-" + $Event.MessageData.subjectId + " is missing some output. Check the console log above for errors. You can delete all data and try again." -ForegroundColor Red -BackgroundColor Black
-      exit;
-    }
-    else {
-      Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
-      Write-Host "Success for subject " + $Event.MessageData.subjectId + "! All output files from structural data were created successfully. You may wish to check the console above for any errors, though." -ForegroundColor Green -BackgroundColor Black
-      Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
-      Write-Host "_______________________________________" -ForegroundColor Green -BackgroundColor Black
-      Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
-      Write-Host "Now commencing analysis of functional MRI data..." -ForegroundColor Green -BackgroundColor Black
-      Write-Host "---------------------------------------" -ForegroundColor Green -BackgroundColor Black
-    }
-    Unregister-Event $EventSubscriber.SourceIdentifier;
-    Remove-Job $EventSubscriber.SourceIdentifier;
-    Remove-Job -Id $EventSubscriber.SourceObject.Id;
-  } -MessageData $pso | Out-Null;
-  Receive-Job -Job $job -Wait;
+elseif ($global:dataToUse -eq "Str") {
+  step3;
+  step4;
 }
-exit;
-######
-# (END)
-######
-# ---------------------------------------
-
-
-
-#---------------------------------------
-
-
-
-
-# ---------------------------------------
-######
-# LAUNCH WSL AND MATLAB (START, STEP 6)
-######
-# So the matlab function can be found, set to current location of this .ps1 file.
-Write-Host "STEP 6 of 9: MATLAB (2)" -ForegroundColor Green -BackgroundColor Black;
-$steps6jobs = foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  # Ensure timing files are all created, if not, create them.
-  if (
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_hand.txt" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_hand.txt" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_foot.txt" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_foot.txt" -PathType Leaf) -or
-    -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/tongue.txt" -PathType Leaf)
-  ) {
-    Start-Job -ScriptBlock { 
-      param($driveAndPathToParticipants, $subjectId, $scriptLocation)
-      Set-Location "$scriptLocation/../";
-      Write-Host "Creating timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black;
-      & matlab -batch "try, createTimingFiles $driveAndPathToParticipants sub-$subjectId; end;";
-    } -Name "matlab-2-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
-  }
-  else {
-    Start-Job -ScriptBlock { 
-      param($driveAndPathToParticipants, $subjectId, $scriptLocation)
-      Set-Location "$scriptLocation/../";
-      Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black;
-    } -Name "matlab-2none-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
-  }
-};
-Receive-Job $step6jobs -Wait -AutoRemoveJob;
-
-exit;
-######
-# (END)
-######
-# ---------------------------------------
-
-
-
-
-#---------------------------------------
-
-
-
-# ---------------------------------------
-######
-Write-Host "STEP 7 of 9: MATLAB (3)" -ForegroundColor Green -BackgroundColor Black
-$step7jobs = foreach ($subjectId in $subjectList) {
-  Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
-  Start-Job -ScriptBlock { 
-    param($driveAndPathToParticipants, $subjectId, $scriptLocation)
-    Set-Location $scriptLocation;
-    & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
-  } -Name "matlab3-$subjectId" -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot;
-} 
-
-# Wait for Step 8 to complete for all subjects before continuing...
-Receive-Job $step7jobs -Wait -AutoRemoveJob
-######
-# (END)
-######
-# ---------------------------------------
-
-# ---------------------------------------
-######
-# ---------------------------------------
-######
-
-Write-Host "STEP 8 of 9: FreeSurfer (2)" -ForegroundColor Green -BackgroundColor Black
-$step8jobs = foreach ($subjectId in $subjectList) {
-  Start-Job -ScriptBlock { 
-    param($pathToFreeSurferLicence, $pathToParticipants, $subjectId, $scriptLocation)
-    Set-Location $scriptLocation;
-    # Run one-liner to get transformation matrix processed fMRI -> anatomical image.
-
-    wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferGetMatrix.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId" 
-  } -Name "fslJob2-$subjectId" -ArgumentList $pathToFreeSurferLicence, $pathToParticipants, $subjectId, $PSScriptRoot;
+elseif ($global:dataToUse -eq "F") {
+  step5;
+  step6;
+  step7;
 }
-
-Receive-Job $step8jobs -Wait -AutoRemoveJob
-######
-# (END)
-######
-# ---------------------------------------
-######
-# (END)
-######
-# ---------------------------------------
+elseif ($global:dataToUse -eq "O") {
+  step8;
+}
+elseif ($global:dataToUse -eq "Sta") {
+  Write-Host "This hasn't been coded yet!";
+}
+else {
+  Write-Host "Error: Please type either A, U, Str, F, O or Sta.";
+}

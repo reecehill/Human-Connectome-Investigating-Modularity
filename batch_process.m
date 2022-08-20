@@ -60,14 +60,14 @@ end
 %  end
  %%  assign freesurfer ROI labels to each face
  
-%  for i=1:length(subjects)
-%      [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i}],type,downsample,rate);
-%  %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
-%      % save data
-%      filename=[pathToFile,subjects{i},'/labelSRF.mat'];
-%      save(filename,'faceROIidL','faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','-v7.3');
-%      clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
-%  end
+ for i=1:length(subjects)
+     [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i}],type,downsample,rate);
+ %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
+     % save data
+     filename=[pathToFile,subjects{i},'/labelSRF.mat'];
+     save(filename,'faceROIidL','faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','-v7.3');
+     clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
+ end
 
 %% Make edgelist and other stuff
 for i=1:length(subjects)

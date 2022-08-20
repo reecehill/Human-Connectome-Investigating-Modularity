@@ -1,9 +1,9 @@
-$drive = 'C:\'
+$global:drive = 'C:\'
 # Paths must begin from after the drive number. i.e., (C:\Users\... becomes \Users\...)
-$pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/license.txt"
-$pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
+$global:pathToFreeSurferLicence = "Users/Reece/Documents/Dissertation/freesurfer/license.txt"
+$global:pathToParticipants = "Users/Reece/Documents/Dissertation/Main/Participants"
 
-$subjectList = Get-Content -Path $($driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
+$subjectList = Get-Content -Path $($global:driveAndPathToParticipants + '\file_list_HCP_all_subset.txt')
 $filesToCheck = Get-Content $PSScriptRoot/filesToCheck.csv
 
 

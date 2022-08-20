@@ -59,9 +59,9 @@ try
 
     %% Integrate/handle labels into dataset.
     allBrainData.leftHemisphere.labels.ids = faceROIidL;
-    allBrainData.rightHemisphere.labels.ids = faceROIidR;
-    allBrainData.leftHemisphere.labels.names = filenames(faceROIidL);
-    allBrainData.rightHemisphere.labels.names = filenames(faceROIidR+34);
+    allBrainData.rightHemisphere.labels.ids = faceROIidR+34;
+    allBrainData.leftHemisphere.labels.names = filenames( allBrainData.leftHemisphere.labels.ids);
+    allBrainData.rightHemisphere.labels.names = filenames( allBrainData.rightHemisphere.labels.ids);
     allBrainData.subCortical.labels.names = transpose(subfilenames(subROIid));
 
     %% All Anatomical data
@@ -94,12 +94,22 @@ try
     % Add region of interest data (face IDs and centroids).
     roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.leftHemisphere.labels.names,strcat('lh.',roiLabels)));
     roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = find(ismember(allBrainData.rightHemisphere.labels.names,strcat('rh.',roiLabels)));
-    roiStructuralData.faceIdsOfAllBrain = [roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain;roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain];
-    roiStructuralData.surf.faces_mni152 = allBrainData.surf.faces_mni152(roiStructuralData.faceIdsOfAllBrain,:);
+    %roiStructuralData.faceIdsOfAllBrain = [roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain; length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain];
+    %roiStructuralData.surf.faces_mni152 = allBrainData.surf.faces_mni152(roiStructuralData.faceIdsOfAllBrain,:);
     roiStructuralData.leftHemisphere.surf.centroids = lpcentroids(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,:);
     roiStructuralData.rightHemisphere.surf.centroids = rpcentroids(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,:);
     roiStructuralData.leftHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain);
-    roiStructuralData.rightHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
+    
+%     %Testing if labels are inaccurate...
+    % Offset the face IDs of right hemisphere to skip past the left
+    % hemisphere faces!
+     roiStructuralData.rightHemisphere.adjacencyMatrix = allStructuralData.adjacencyMatrix(length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,length(allBrainData.leftHemisphere.surf.faces) + roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
+%     adjacencyMatrixChangesAtPoint = find(ischange(roiStructuralData.rightHemisphere.adjacencyMatrix) ==1);
+%     [pointX, pointY] = ind2sub(size(roiStructuralData.rightHemisphere.adjacencyMatrix), adjacencyMatrixChangesAtPoint);
+%     %Update adjacency matrix accordingly...
+%     roiStructuralData.rightHemisphere.adjacencyMatrix = roiStructuralData.rightHemisphere.adjacencyMatrix(1:pointX,1:pointX);
+%     roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain = roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain(1:pointX);
+
     roiStructuralData.leftHemisphere.labels.names = allBrainData.leftHemisphere.labels.names(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain);
     roiStructuralData.rightHemisphere.labels.names = allBrainData.rightHemisphere.labels.names(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain);
     roiStructuralData.subCortical.labels.names = []; % script is incompatible with ROI within the subcortical regions.
@@ -125,19 +135,40 @@ try
 
     else
         disp('Sorting DWI data into modules...');
+        
         if(size(roiStructuralData.leftHemisphere.adjacencyMatrix,1) > 0)
-            [allBrainData.leftHemisphere.surf.faces(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.leftHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData);
+            if(isfile([pathToParticipants '/' subject '/moduleResults/leftOptimalGamma.mat']))
+                    load([pathToParticipants '\' subject '\moduleResults\leftOptimalGamma.mat'], "leftOptimalGamma");
+                    allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
+            else
+                [leftOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
+                allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
+                filename=[pathToParticipants '/' subject '/moduleResults/leftOptimalGamma.mat'];
+                save(filename,'leftOptimalGamma','-v7.3');
+            end
+            [allBrainData.leftHemisphere.surf.faces(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.leftHemisphere.Q1] = sortIntoModules(roiStructuralData.leftHemisphere.adjacencyMatrix, allBrainData.leftHemisphere.optimalGamma);
         else
             allBrainData.leftHemisphere.optimalGamma = [];
         end
+
+
         if(size(roiStructuralData.rightHemisphere.adjacencyMatrix,1) > 0)
-            [allBrainData.rightHemisphere.surf.faces(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.rightHemisphere.optimalGamma, ~] = sortIntoModules(roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData);
+            if(isfile([pathToParticipants '/' subject '/moduleResults/rightOptimalGamma.mat']))
+                    load([pathToParticipants '\' subject '\moduleResults\rightOptimalGamma.mat'], "rightOptimalGamma");
+                    allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
+            else
+                [rightOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
+                allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
+                filename=[pathToParticipants '/' subject '/moduleResults/rightOptimalGamma.mat'];
+                save(filename,'rightOptimalGamma','-v7.3');
+            end
+            [allBrainData.rightHemisphere.surf.faces(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain,4), allBrainData.rightHemisphere.Q1] = sortIntoModules(roiStructuralData.rightHemisphere.adjacencyMatrix, allBrainData.rightHemisphere.optimalGamma);
         else
             allBrainData.rightHemisphere.optimalGamma = [];
         end
     end
 
-    %% All fMRI data
+    %% fMRI data
     % Note: the nodes of the fMRI are NOT in the same space, so we cannot
     % just reassign a colour as seen for structural. Instead, we build a
     % surface (for 3D visualisation) and also project each point onto the anatomical surface.
@@ -200,9 +231,6 @@ try
         allFunctionalData.modules(moduleIndex).surf.nodes = transpose(inv(rmmissing(Reg)) * tMov * allFunctionalData.modules(moduleIndex).surf.nodes'); %nodes are now represented in mm rather than indice.
         allFunctionalData.modules(moduleIndex).surf.nodes(:,4) = moduleIndex; %remove column of ones, replace with moduleIndex for colouring.;
 
-        % For the whole-fMRI mesh, change colour of module.
-        %allFunctionalData.surf.faces(allFunctionalData.modules(moduleIndex).nodeIds,4) = moduleIndex;
-
         % View generated surface for each fMRI module.
         if(visualiseData==1)
             figure(99);
@@ -230,7 +258,7 @@ try
         [distanceToRightSurface,closestRightSurfaceNodeIds] = dist2surf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surfaceNorm,pointCloudVar.Location);
 
         for fmriPoint=1:size(pointCloudVar.Location,1)
-            if(distanceToLeftSurface(fmriPoint)<distanceToRightSurface(fmriPoint))
+            if(distanceToLeftSurface(fmriPoint)<=distanceToRightSurface(fmriPoint))
                 % Find face IDs that are closest to activate nodes.
                 neighbouringFacesOfNode = allBrainData.leftHemisphere.nodesToFaces(closestLeftSurfaceNodeIds(fmriPoint));
                 allNeighbouringFaces = unique(cat(2,neighbouringFacesOfNode{:}));
@@ -295,17 +323,24 @@ try
 
 
         figure;
-        title("Structural modules of the left precentral gyrus");
+        title("Structural modules of the precentral gyrus");
         hold on;
+        xlabel('Left-Right');
+        ylabel('Anterior-Posterior');
+        zlabel('Inferior-Superior');
+        hold on;
+        ax = gca;               % get the current axis
+        ax.Clipping = 'off';    % turn clipping off
         camlight;
         lightangle(-45,30);
         lightangle(100,0);
         lightangle(0,0);
         lightangle(100,100);
-        plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) == 0),1:4),'DisplayName','Left hemisphere');
-        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) == 0),1:4),'DisplayName','Right hemisphere');
-        plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) > 0),1:4),'DisplayName','Structural module');
-        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4) > 0),1:4),'DisplayName','Structural module');
+        lighting gouraud;
+        plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) == 0),1:4),'DisplayName','Left hemisphere','EdgeColor','#575757','EdgeAlpha',0.2,'FaceColor','#d69696','Marker','o','MarkerSize',1);
+        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4) == 0),1:4),'DisplayName','Right hemisphere','EdgeColor','#575757','EdgeAlpha',0.2,'FaceColor','#d69696','Marker','o','MarkerSize',1);
+        plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) > 0),1:4),'DisplayName','Structural module','EdgeColor','#575757','EdgeAlpha',0.2,'Marker','o','MarkerSize',1,'FaceLighting','none');
+        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4) > 0),1:4),'DisplayName','Structural module','EdgeColor','#575757','EdgeAlpha',0.2,'Marker','o','MarkerSize',1,'FaceLighting','none');
         legend;
         view(190,25);
         clearvars tempStoreOfOptimalGamma tempStoreOfStrucModuleIds;
@@ -314,7 +349,7 @@ try
         title("Faces of overlap between function and structure");
         hold on;
         plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),[1:3,6]),'DisplayName','Left hemisphere');
-        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) == 0),[1:3,6]),'DisplayName','Right hemisphere');
+        plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,6) == 0),[1:3,6]),'DisplayName','Right hemisphere');
         plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,6) > 0),[1:3,6]),'DisplayName','fMRI + Structure','FaceColor','r');
         plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,6) > 0),[1:3,6]),'DisplayName','fMRI + Structure','FaceColor','r');
         legend;
@@ -330,43 +365,57 @@ try
         plottedLabels = [allBrainData.leftHemisphere.labels.names; allBrainData.rightHemisphere.labels.names; allBrainData.subCortical.labels.names];
         spy(allStructuralData.adjacencyMatrix);
         % Broken, doesnt work when both hemisphere are selected!
-        rectangle('Position',[min(roiStructuralData.faceIdsOfAllBrain) min(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain) length(roiStructuralData.faceIdsOfAllBrain)], 'EdgeColor','red')
+        %Left hemisphere ROI
+        rectangle('Position',[min(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) min(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.leftHemisphere.surf.faceIdsOfAllBrain)], 'EdgeColor','red')
+        % Right hemisphere ROI
+        rectangle('Position',[length(allBrainData.leftHemisphere.surf.faces) + min(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(allBrainData.leftHemisphere.surf.faces) + min(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain) length(roiStructuralData.rightHemisphere.surf.faceIdsOfAllBrain)], 'EdgeColor','red')
+        
         xticks(1:showTicksPer:length(plottedLabels));
         yticks(1:showTicksPer:length(plottedLabels));
         xticklabels(plottedLabels(1:showTicksPer:end));
         yticklabels(plottedLabels(1:showTicksPer:end));
 
-
-        figure;
-        title('Local network (lSF-lSP) - connectivity matrix')
         if(numel(roiStructuralData.leftHemisphere.adjacencyMatrix) > 0)
+            figure;
+            title('Local network (lSF-lSP) - connectivity matrix (left)')
+
             plottedLabels = roiStructuralData.leftHemisphere.labels.names;
             spy(roiStructuralData.leftHemisphere.adjacencyMatrix);
+
+            xticks(1:(showTicksPer/50):length(plottedLabels));
+            yticks(1:(showTicksPer/50):length(plottedLabels));
+            xticklabels(plottedLabels(1:(showTicksPer/50):end));
+            yticklabels(plottedLabels(1:(showTicksPer/50):end));
         end
-        if(numel(roiStructuralData.rightHemisphere.adjacencyMatrix) > 0)
-            plottedLabels = roiStructuralData.rightHemisphere.labels.names;
-            spy(roiStructuralData.rightHemisphere.adjacencyMatrix);
-        end
+
+    if(numel(roiStructuralData.rightHemisphere.adjacencyMatrix) > 0)
+        figure;
+        title('Local network (lSF-lSP) - connectivity matrix (right)')
+
+        plottedLabels = roiStructuralData.rightHemisphere.labels.names;
+        spy(roiStructuralData.rightHemisphere.adjacencyMatrix);
+
         xticks(1:(showTicksPer/50):length(plottedLabels));
         yticks(1:(showTicksPer/50):length(plottedLabels));
         xticklabels(plottedLabels(1:(showTicksPer/50):end));
         yticklabels(plottedLabels(1:(showTicksPer/50):end));
     end
-    toc;
-    disp("Saving...");
-    % Remove data that we won't use again.
-    allBrainData.surf = [];
-    allBrainData.leftHemisphere.surfaceNorm = [];
-    allBrainData.rightHemisphere.surfaceNorm = [];
-    allBrainData.leftHemisphere.nodesToFaces = [];
-    allBrainData.rightHemisphere.nodesToFaces = [];
-    clearvars -except allBrainData pathToParticipants subject conditionIndex;
-    filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
-    save(filename,'allBrainData','-v7.3');
-    disp("Script finished successfully.");
-    
+end
+toc;
+disp("Saving...");
+% Remove data that we won't use again.
+allBrainData.surf = [];
+allBrainData.leftHemisphere.surfaceNorm = [];
+allBrainData.rightHemisphere.surfaceNorm = [];
+allBrainData.leftHemisphere.nodesToFaces = [];
+allBrainData.rightHemisphere.nodesToFaces = [];
+clearvars -except allBrainData pathToParticipants subject conditionIndex;
+filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
+save(filename,'allBrainData','-v7.3');
+disp("Script finished successfully.");
 
-    sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
+
+sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 
 catch ME
     sound(tan(1:1000)); pause(0.2); sound(tan(1:1000));

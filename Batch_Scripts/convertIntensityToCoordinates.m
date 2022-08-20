@@ -25,6 +25,5 @@ for conditionIndex=[1:nConditions]
     filename=[pathToParticipants '/' subject '/1stlevel/fMRIModules_000' num2str(conditionIndex) '.mat'];
     save(filename,'intensitiesPerVoxel','funcXyzCoordinatesmm','fmriModules','nModules','-v7.3');
     disp("SPM output has been sorted into modules and saved.");
-    % mapDwiAndFmriToFaces(pathToParticipants,subject,conditionIndex,0);
 end
 end

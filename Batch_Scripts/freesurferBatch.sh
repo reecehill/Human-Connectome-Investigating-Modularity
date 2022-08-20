@@ -54,6 +54,11 @@ if [ "$dataToUse" = 'U' ]; then
   getAparcAsecNii;
   getROILabels;
   getTransformationMatrices;
+elif [ "$dataToUse" = 'A' ]; then 
+  runFreesurferReconAll;
+  getAparcAsecNii;
+  getROILabels;
+  getTransformationMatrices;
 elif [ "$dataToUse" = 'P' ]; then 
   getAparcAsecNii;
   getROILabels;

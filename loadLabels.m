@@ -68,7 +68,7 @@ parfor roi=(nbROI/2)+1:nbROI
 %     ROIfacevert(roi).ffaces=find(x>0);% by Peter
     ROIfacevert(roi).ffaces=find(x>1);% by Xue
     nbffaces=length(ROIfacevert(roi).ffaces);
-    facesRH{roi}=[grpfaces(ROIfacevert(roi).ffaces,:),ones(nbffaces,1)*roi-(nbROI/2)];
+    facesRH{roi}=[grpfaces(ROIfacevert(roi).ffaces,:),ones(nbffaces,1)*(roi-(nbROI/2))];
 end
 facesRH = cat(1,facesRH{:});
 

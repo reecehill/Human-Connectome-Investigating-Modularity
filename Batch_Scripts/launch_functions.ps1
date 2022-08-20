@@ -236,9 +236,9 @@ function step6() {
     $jobName = "step7-sub-${subjectId}"
     $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
     $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
-      param($global:driveAndPathToParticipants, $subjectId, $scriptLocation)
+      param($driveAndPathToParticipants, $subjectId, $scriptLocation)
       Set-Location "$scriptLocation";
-      & matlab -batch "RunPreproc_1stLevel_job $global:driveAndPathToParticipants sub-$subjectId;"
+      & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
     };
     Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
       Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
@@ -261,12 +261,12 @@ function step7() {
   ######
   Write-Host "STEP 7 of 9: FreeSurfer (2)" -ForegroundColor Green -BackgroundColor Black
   foreach ($subjectId in $subjectList) {
-    $jobName = "step8-sub-${subjectId}"
+    $jobName = "step7-sub-${subjectId}"
     $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:pathToFreeSurferLicence $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
-      param($global:pathToFreeSurferLicence, $global:pathToParticipants, $subjectId, $scriptLocation)
+    $job = Start-Job -Name ${jobName} -ArgumentList $global:pathToFreeSurferLicence, $global:driveAndPathToParticipants, $global:pathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+      param($pathToFreeSurferLicence, $driveAndPathToParticipants, $pathToParticipants, $subjectId, $scriptLocation)
       Set-Location "$scriptLocation";
-      wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferGetMatrix.sh $("/mnt/c/" + $global:pathToFreeSurferLicence) $("/mnt/c/" + $global:pathToParticipants) "sub-$subjectId";
+      wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferGetMatrix.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId";
     };
     Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
       Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
@@ -291,9 +291,9 @@ function step8() {
   $jobName = "step8-sub-${subjectId}"
   $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
   $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
-    param($global:driveAndPathToParticipants, $subjectId, $scriptLocation)
+    param($driveAndPathToParticipants, $subjectId, $scriptLocation)
     Set-Location "$scriptLocation";
-    & matlab -batch "mapDwiAndFmriToFaces_batch $global:driveAndPathToParticipants sub-$subjectId;"
+    & matlab -batch "mapDwiAndFmriToFaces_batch $driveAndPathToParticipants sub-$subjectId;"
   };
   Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
     Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");

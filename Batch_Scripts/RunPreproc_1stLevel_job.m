@@ -282,8 +282,8 @@ try
     matlabbatch{13}.spm.stats.results.spmmat = {[pathToParticipants '/' subject '\1stlevel\SPM.mat']};
     matlabbatch{13}.spm.stats.results.conspec.titlestr = '';
     matlabbatch{13}.spm.stats.results.conspec.contrasts = Inf;
-    matlabbatch{13}.spm.stats.results.conspec.threshdesc = 'none';
-    matlabbatch{13}.spm.stats.results.conspec.thresh = 0.001;
+    matlabbatch{13}.spm.stats.results.conspec.threshdesc = 'FWE';
+    matlabbatch{13}.spm.stats.results.conspec.thresh = 0.05;
     matlabbatch{13}.spm.stats.results.conspec.extent = 0;
     matlabbatch{13}.spm.stats.results.conspec.conjunction = 1;
     matlabbatch{13}.spm.stats.results.conspec.mask.image.name = {[pathToParticipants '/' subject '\data\bert\mri\gm.nii,1']};
@@ -294,8 +294,6 @@ try
     spm('defaults', 'FMRI');
     spm_jobman('run', matlabbatch);
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
-    disp("Running tkregister2...");
-
     disp("Performing final step: saving output for next step in pipeline...");
     convertIntensityToCoordinates(pathToParticipants, subject);
     

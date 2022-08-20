@@ -189,8 +189,8 @@ elseif ($global:dataToUse -eq "Str") {
   step4;
 }
 elseif ($global:dataToUse -eq "F") {
-  step5;
-  step6;
+  #step5;
+  #step6;
   step7;
 }
 elseif ($global:dataToUse -eq "O") {

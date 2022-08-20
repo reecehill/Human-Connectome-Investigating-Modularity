@@ -6,8 +6,8 @@ function step1() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     $jobName = "step1-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $global:dataSetToUse, $PSScriptRoot -ScriptBlock {
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $dataSetToUse, $PSScriptRoot -ScriptBlock {
       param($driveAndPathToParticipants, $subjectId, $dataSetToUse, $scriptLocation)
       Set-Location "$scriptLocation";
       if ("M" -eq $dataSetToUse) {
@@ -60,8 +60,8 @@ function step2() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     $jobName = "step2-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:pathToFreeSurferLicence, $global:driveAndPathToParticipants, $subjectId, $global:pathToParticipants, $global:dataToUse, $PSScriptRoot -ScriptBlock {
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $pathToFreeSurferLicence, $driveAndPathToParticipants, $subjectId, $pathToParticipants, $dataToUse, $PSScriptRoot -ScriptBlock {
       param($pathToFreeSurferLicence, $driveAndPathToParticipants, $subjectId, $pathToParticipants, $dataToUse, $scriptLocation)
       Set-Location "$scriptLocation";
       Write-Host "$driveAndPathToParticipants";
@@ -103,12 +103,12 @@ function step3() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     $jobName = "step4-sub-" + $subjectId;
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
     $job = Start-Job -Name ${jobName}  -ScriptBlock {
       param($driveAndPathToParticipants, $subjectId, $pathToDsiStudio, $numberOfTracts, $scriptLocation);
       Set-Location $scriptLocation;
       & $($scriptLocation + '\dsiBatch.ps1') $driveAndPathToParticipants $subjectId $pathToDsiStudio $numberOfTracts | Out-Null;
-    } -ArgumentList $global:driveAndPathToParticipants, $subjectId, $global:pathToDsiStudio, $global:numberOfTracts, $PSScriptRoot;
+    } -ArgumentList $driveAndPathToParticipants, $subjectId, $pathToDsiStudio, $numberOfTracts, $PSScriptRoot;
   
     Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
       Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
@@ -135,11 +135,11 @@ function step4() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black;
     $jobName = "step5-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $global:type, $global:downsample, $rate, $PSScriptRoot -ScriptBlock {
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $type, $downsample, $rate, $PSScriptRoot -ScriptBlock {
       param($driveAndPathToParticipants, $subjectId, $type, $downsample, $rate, $scriptLocation)
       Set-Location "$scriptLocation/../";
-      & matlab -batch "batch_process $global:driveAndPathToParticipants/ sub-$subjectId $global:type $global:downsample $global:rate"
+      & matlab -batch "batch_process $driveAndPathToParticipants/ sub-$subjectId $type $downsample $rate"
     };
     Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
       Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
@@ -187,24 +187,24 @@ function step5() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     $jobName = "step6-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
     # Ensure timing files are all created, if not, create them.
     if (
-      -not(Test-Path -Path "$global:driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_hand.txt" -PathType Leaf) -or
-      -not(Test-Path -Path "$global:driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_hand.txt" -PathType Leaf) -or
-      -not(Test-Path -Path "$global:driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_foot.txt" -PathType Leaf) -or
-      -not(Test-Path -Path "$global:driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_foot.txt" -PathType Leaf) -or
-      -not(Test-Path -Path "$global:driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/tongue.txt" -PathType Leaf)
+      -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_hand.txt" -PathType Leaf) -or
+      -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_hand.txt" -PathType Leaf) -or
+      -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/left_foot.txt" -PathType Leaf) -or
+      -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/right_foot.txt" -PathType Leaf) -or
+      -not(Test-Path -Path "$driveAndPathToParticipants/sub-$subjectId/data/func/timing_files/tongue.txt" -PathType Leaf)
     ) {
-      $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+      $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
         param($driveAndPathToParticipants, $subjectId, $scriptLocation)
         Set-Location "$scriptLocation/../";
         Write-Host "Creating timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black;
-        & matlab -batch "try, createTimingFiles $global:driveAndPathToParticipants sub-$subjectId; end;";
+        & matlab -batch "try, createTimingFiles $driveAndPathToParticipants sub-$subjectId; end;";
       }
     }
     else {
-      $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+      $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
         param($driveAndPathToParticipants, $subjectId, $scriptLocation)
         Set-Location "$scriptLocation/../";
         Write-Host "No need to create timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black;
@@ -234,8 +234,8 @@ function step6() {
   foreach ($subjectId in $subjectList) {
     Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
     $jobName = "step7-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
       param($driveAndPathToParticipants, $subjectId, $scriptLocation)
       Set-Location "$scriptLocation";
       & matlab -batch "RunPreproc_1stLevel_job $driveAndPathToParticipants sub-$subjectId;"
@@ -262,8 +262,8 @@ function step7() {
   Write-Host "STEP 7 of 9: FreeSurfer (2)" -ForegroundColor Green -BackgroundColor Black
   foreach ($subjectId in $subjectList) {
     $jobName = "step7-sub-${subjectId}"
-    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-    $job = Start-Job -Name ${jobName} -ArgumentList $global:pathToFreeSurferLicence, $global:driveAndPathToParticipants, $global:pathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $pathToFreeSurferLicence, $driveAndPathToParticipants, $pathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
       param($pathToFreeSurferLicence, $driveAndPathToParticipants, $pathToParticipants, $subjectId, $scriptLocation)
       Set-Location "$scriptLocation";
       wsl -d "Ubuntu-18.04" -u reece /mnt/c/Users/Reece/Documents/Dissertation/Main/Batch_Scripts/freesurferGetMatrix.sh $("/mnt/c/" + $pathToFreeSurferLicence) $("/mnt/c/" + $pathToParticipants) "sub-$subjectId";
@@ -289,8 +289,8 @@ function step8() {
   # (START)
   ######
   $jobName = "step8-sub-${subjectId}"
-  $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $global:driveAndPathToParticipants; jobName = $jobName };
-  $job = Start-Job -Name ${jobName} -ArgumentList $global:driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+  $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+  $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
     param($driveAndPathToParticipants, $subjectId, $scriptLocation)
     Set-Location "$scriptLocation";
     & matlab -batch "mapDwiAndFmriToFaces_batch $driveAndPathToParticipants sub-$subjectId;"

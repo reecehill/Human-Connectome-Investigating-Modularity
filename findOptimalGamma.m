@@ -3,7 +3,7 @@ strucAxes = [];
 randAxes = [];
 
 allGammas = startGamma:0.02:endGamma;
-allIterations = 1:1:3;
+allIterations = 1:1:25;
 Q_corts = zeros([max(allIterations),1]);
 Q_rands = zeros([max(allIterations),1]);
 Q_max = zeros([length(allGammas),1]);

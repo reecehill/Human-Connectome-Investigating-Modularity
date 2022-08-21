@@ -1,7 +1,8 @@
-function [leftCollectionOfMetrics, rightCollectionOfMetrics] = calculateOverlap(pathToParticipants, subject, conditionIndex)
-clearvars -except pathToParticipants subject conditionIndex;
+function [leftCollectionOfMetrics, rightCollectionOfMetrics] = calculateOverlap(pathToParticipants, subject, conditionIndex, visualiseData)
+clearvars -except pathToParticipants subject conditionIndex visualiseData;
 addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
 load([pathToParticipants '\' subject '\moduleResults\allBrainData__' num2str(conditionIndex) '.mat'], "allBrainData");
+disp(['Calculating overlap for condition' conditionIndex]);
 
 %% LEFT HEMISPHERE
 leftOverlappingFaces = find(allBrainData.leftHemisphere.surf.faces(:,6) == 1);
@@ -30,10 +31,10 @@ leftFuncModuleIndexes = transpose(unique(allBrainData.leftHemisphere.surf.faces(
 for funcModuleIndex=leftFuncModuleIndexes
     leftFuncModuleFacesIndexes{funcModuleIndex} = intersect(leftOverlappingFaces,find(allBrainData.leftHemisphere.surf.faces(:,5) == funcModuleIndex));
     leftFuncModuleAreaMm{funcModuleIndex} = sum(elemvolume(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(leftFuncModuleFacesIndexes{funcModuleIndex},1:3)));
-    
+
     leftGlobalFuncModuleFacesIndexes{funcModuleIndex}= find(allBrainData.leftHemisphere.surf.faces(:,5) == funcModuleIndex);
     leftGlobalFuncModuleAreaMm{funcModuleIndex} = sum(elemvolume(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(leftFuncModuleFacesIndexes{funcModuleIndex},1:3)));
-    
+
     leftFuncModuleNodeIndexesTemp = allBrainData.leftHemisphere.surf.faces(leftFuncModuleFacesIndexes{funcModuleIndex},1:3);
     leftFuncModuleNodeIndexes{funcModuleIndex} = unique(leftFuncModuleNodeIndexesTemp(:));
     [leftFuncEdges{funcModuleIndex},~]=surfedge(allBrainData.leftHemisphere.surf.faces(leftFuncModuleFacesIndexes{funcModuleIndex},(1:3)));
@@ -44,20 +45,20 @@ leftOverlapMatrix = [{}];
 leftModuleCounter=0;
 for funcModuleIndex=leftFuncModuleIndexes
     leftModuleCounter = leftModuleCounter+1;
-    % This gets all face ids - even those outside the ROI. 
+    % This gets all face ids - even those outside the ROI.
     leftFuncFaceIds = find(allBrainData.leftHemisphere.surf.faces(:,5) == funcModuleIndex);
     leftStrucModuleIds = transpose(unique(allBrainData.leftHemisphere.surf.faces(intersect(leftOverlappingFaces,leftFuncFaceIds),4)));
-        for strucModuleIndex=leftStrucModuleIds
-            leftStrucFaceIds = find(allBrainData.leftHemisphere.surf.faces(:,4) == strucModuleIndex);  
-            metrics.funcModuleId = funcModuleIndex;
-            metrics.strucModuleId = strucModuleIndex;
-            metrics.faceIdsOfOverlap = intersect(leftFuncFaceIds,leftStrucFaceIds);
-            metrics.overlapArea = sum(elemvolume(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(metrics.faceIdsOfOverlap,1:3)));
-            metrics.areaOverlapAsPercentOfFunc = metrics.overlapArea / leftFuncModuleAreaMm{funcModuleIndex};
-            metrics.areaOverlapAsPercentOfStruc = metrics.overlapArea / leftStrucModuleAreaMm{strucModuleIndex};
-            leftOverlapMatrix = [leftOverlapMatrix; metrics];
-            clear metrics;
-        end
+    for strucModuleIndex=leftStrucModuleIds
+        leftStrucFaceIds = find(allBrainData.leftHemisphere.surf.faces(:,4) == strucModuleIndex);
+        metrics.funcModuleId = funcModuleIndex;
+        metrics.strucModuleId = strucModuleIndex;
+        metrics.faceIdsOfOverlap = intersect(leftFuncFaceIds,leftStrucFaceIds);
+        metrics.overlapArea = sum(elemvolume(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(metrics.faceIdsOfOverlap,1:3)));
+        metrics.areaOverlapAsPercentOfFunc = metrics.overlapArea / leftFuncModuleAreaMm{funcModuleIndex};
+        metrics.areaOverlapAsPercentOfStruc = metrics.overlapArea / leftStrucModuleAreaMm{strucModuleIndex};
+        leftOverlapMatrix = [leftOverlapMatrix; metrics];
+        clear metrics;
+    end
 end
 leftCollectionOfMetrics = cat(2,leftOverlapMatrix{:});
 
@@ -88,10 +89,10 @@ rightFuncModuleIndexes = transpose(unique(allBrainData.rightHemisphere.surf.face
 for funcModuleIndex=rightFuncModuleIndexes
     rightFuncModuleFacesIndexes{funcModuleIndex} = intersect(rightOverlappingFaces,find(allBrainData.rightHemisphere.surf.faces(:,5) == funcModuleIndex));
     rightFuncModuleAreaMm{funcModuleIndex} = sum(elemvolume(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(rightFuncModuleFacesIndexes{funcModuleIndex},1:3)));
-    
+
     rightGlobalFuncModuleFacesIndexes{funcModuleIndex}= find(allBrainData.rightHemisphere.surf.faces(:,5) == funcModuleIndex);
     rightGlobalFuncModuleAreaMm{funcModuleIndex} = sum(elemvolume(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(rightFuncModuleFacesIndexes{funcModuleIndex},1:3)));
-    
+
     rightFuncModuleNodeIndexesTemp = allBrainData.rightHemisphere.surf.faces(rightFuncModuleFacesIndexes{funcModuleIndex},1:3);
     rightFuncModuleNodeIndexes{funcModuleIndex} = unique(rightFuncModuleNodeIndexesTemp(:));
     [rightFuncEdges{funcModuleIndex},~]=surfedge(allBrainData.rightHemisphere.surf.faces(rightFuncModuleFacesIndexes{funcModuleIndex},(1:3)));
@@ -102,20 +103,20 @@ rightOverlapMatrix = [{}];
 rightModuleCounter=0;
 for funcModuleIndex=rightFuncModuleIndexes
     rightModuleCounter = rightModuleCounter+1;
-    % This gets all face ids - even those outside the ROI. 
+    % This gets all face ids - even those outside the ROI.
     rightFuncFaceIds = find(allBrainData.rightHemisphere.surf.faces(:,5) == funcModuleIndex);
     rightStrucModuleIds = transpose(unique(allBrainData.rightHemisphere.surf.faces(intersect(rightOverlappingFaces,rightFuncFaceIds),4)));
-        for strucModuleIndex=rightStrucModuleIds
-            rightStrucFaceIds = find(allBrainData.rightHemisphere.surf.faces(:,4) == strucModuleIndex);  
-            metrics.funcModuleId = funcModuleIndex;
-            metrics.strucModuleId = strucModuleIndex;
-            metrics.faceIdsOfOverlap = intersect(rightFuncFaceIds,rightStrucFaceIds);
-            metrics.overlapArea = sum(elemvolume(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(metrics.faceIdsOfOverlap,1:3)));
-            metrics.areaOverlapAsPercentOfFunc = metrics.overlapArea / rightFuncModuleAreaMm{funcModuleIndex};
-            metrics.areaOverlapAsPercentOfStruc = metrics.overlapArea / rightStrucModuleAreaMm{strucModuleIndex};
-            rightOverlapMatrix = [rightOverlapMatrix; metrics];
-            clear metrics;
-        end
+    for strucModuleIndex=rightStrucModuleIds
+        rightStrucFaceIds = find(allBrainData.rightHemisphere.surf.faces(:,4) == strucModuleIndex);
+        metrics.funcModuleId = funcModuleIndex;
+        metrics.strucModuleId = strucModuleIndex;
+        metrics.faceIdsOfOverlap = intersect(rightFuncFaceIds,rightStrucFaceIds);
+        metrics.overlapArea = sum(elemvolume(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(metrics.faceIdsOfOverlap,1:3)));
+        metrics.areaOverlapAsPercentOfFunc = metrics.overlapArea / rightFuncModuleAreaMm{funcModuleIndex};
+        metrics.areaOverlapAsPercentOfStruc = metrics.overlapArea / rightStrucModuleAreaMm{strucModuleIndex};
+        rightOverlapMatrix = [rightOverlapMatrix; metrics];
+        clear metrics;
+    end
 end
 rightCollectionOfMetrics = cat(2,rightOverlapMatrix{:});
 
@@ -125,106 +126,108 @@ save(filename,'leftCollectionOfMetrics','rightCollectionOfMetrics','-v7.3');
 disp("Script ran successfully.");
 
 
+if(visualiseData == 1)
+    %% Visualisations
+    figure;
+    xlabel('Left-Right');
+    ylabel('Anterior-Posterior');
+    zlabel('Inferior-Superior');
+    hold on;
+    ax = gca;               % get the current axis
+    ax.Clipping = 'off';    % turn clipping off
+    title("Left motor homonculus parcellated into triangular nodes");
+    %plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(:,1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
+    plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) > 0),1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
+    leftColormap_hsv = hsv(maxLeftStructuralModule);
+    for moduleIndex=1:maxLeftStructuralModule
+        color = leftColormap_hsv(moduleIndex,:);
+        plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(leftStrucModuleFacesIndexes{moduleIndex},1:3),'DisplayName',['Structural Module: #' num2str(moduleIndex)],'EdgeAlpha',0.3,'FaceColor',[color]);
+        %plotedges(allBrainData.leftHemisphere.surf.nodes(:,1:3), strucEdges{moduleIndex},'linewidth',randi(5,1),'Color',[color 0.9],'linestyle','-','DisplayName',['Structural Module: #' num2str(moduleIndex)]);
+    end
 
-%% Visualisations
-figure;
-xlabel('Left-Right');
-ylabel('Anterior-Posterior');
-zlabel('Inferior-Superior');
-hold on;
-ax = gca;               % get the current axis
-ax.Clipping = 'off';    % turn clipping off
-title("Left motor homonculus parcellated into triangular nodes");
-%plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(:,1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
-plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4) > 0),1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
-leftColormap_hsv = hsv(maxLeftStructuralModule);
-for moduleIndex=1:maxLeftStructuralModule
-    color = leftColormap_hsv(moduleIndex,:);
-    plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(leftStrucModuleFacesIndexes{moduleIndex},1:3),'DisplayName',['Structural Module: #' num2str(moduleIndex)],'EdgeAlpha',0.3,'FaceColor',[color]);
-    %plotedges(allBrainData.leftHemisphere.surf.nodes(:,1:3), strucEdges{moduleIndex},'linewidth',randi(5,1),'Color',[color 0.9],'linestyle','-','DisplayName',['Structural Module: #' num2str(moduleIndex)]);
-end
+    leftColormap_jet = jet(length(leftFuncModuleIndexes));
+    count = 0;
+    for funcModuleIndex=leftFuncModuleIndexes
+        count = count+1;
+        color = leftColormap_jet(count,:);
+        %plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(intersect(leftOverlappingFaces,funcModuleFacesIndexes{funcModuleIndex}),1:3),'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'EdgeAlpha',0.3,'FaceColor',colormap_jet(funcModuleIndex,:));
+        plotedges(allBrainData.leftHemisphere.surf.nodes(:,1:3), leftFuncEdges{funcModuleIndex},'linewidth',3,'Color',[color],'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off');
+        plot(NaN,NaN,'linewidth',5,'Color',[color],'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3)
+    end
 
-leftColormap_jet = jet(length(leftFuncModuleIndexes));
-count = 0;
-for funcModuleIndex=leftFuncModuleIndexes
-    count = count+1;
-    color = leftColormap_jet(count,:);
-    %plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(intersect(leftOverlappingFaces,funcModuleFacesIndexes{funcModuleIndex}),1:3),'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'EdgeAlpha',0.3,'FaceColor',colormap_jet(funcModuleIndex,:));
-    plotedges(allBrainData.leftHemisphere.surf.nodes(:,1:3), leftFuncEdges{funcModuleIndex},'linewidth',3,'Color',[color],'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off');    
-    plot(NaN,NaN,'linewidth',5,'Color',[color],'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3)
-end
+    camlight;
+    lighting gouraud;
+    legend;
 
-camlight;
-lighting gouraud;
-legend;
+    figure;
+    xlabel('Left-Right');
+    ylabel('Anterior-Posterior');
+    zlabel('Inferior-Superior');
+    hold on;
+    ax = gca;               % get the current axis
+    ax.Clipping = 'off';    % turn clipping off
+    title("Right motor homonculus parcellated into triangular nodes");
+    %plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(:,1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
+    plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4) > 0),1:3),'DisplayName','Right hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
+    rightColormap_hsv = hsv(maxRightStructuralModule);
+    for moduleIndex=1:maxRightStructuralModule
+        color = rightColormap_hsv(moduleIndex,:);
+        plotsurf(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(rightStrucModuleFacesIndexes{moduleIndex},1:3),'DisplayName',['Structural Module: #' num2str(moduleIndex)],'EdgeAlpha',0.3,'FaceColor',[color]);
+    end
 
-figure;
-xlabel('Left-Right');
-ylabel('Anterior-Posterior');
-zlabel('Inferior-Superior');
-hold on;
-ax = gca;               % get the current axis
-ax.Clipping = 'off';    % turn clipping off
-title("Right motor homonculus parcellated into triangular nodes");
-%plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces(:,1:3),'DisplayName','Left hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
-plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4) > 0),1:3),'DisplayName','Right hemisphere','FaceAlpha',0.5,'EdgeColor','black','EdgeAlpha',0.05,'FaceColor','white');
-rightColormap_hsv = hsv(maxRightStructuralModule);
-for moduleIndex=1:maxRightStructuralModule
-    color = rightColormap_hsv(moduleIndex,:);
-    plotsurf(allBrainData.rightHemisphere.surf.nodes(:,1:3),allBrainData.rightHemisphere.surf.faces(rightStrucModuleFacesIndexes{moduleIndex},1:3),'DisplayName',['Structural Module: #' num2str(moduleIndex)],'EdgeAlpha',0.3,'FaceColor',[color]);
-end
-
-rightColormap_jet = jet(length(rightFuncModuleIndexes));
-count = 0;
-for funcModuleIndex=rightFuncModuleIndexes
-    count = count+1;
-    color = rightColormap_jet(count,:);
-    %plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(intersect(leftOverlappingFaces,funcModuleFacesIndexes{funcModuleIndex}),1:3),'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'EdgeAlpha',0.3,'FaceColor',colormap_jet(funcModuleIndex,:));
-    plotedges(allBrainData.rightHemisphere.surf.nodes(:,1:3), rightFuncEdges{funcModuleIndex},'linewidth',3,'Color',[color],'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off');    
-    plot(NaN,NaN,'linewidth',5,'Color',[color],'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3)
-end
-camlight;
-lighting gouraud;
-legend;
+    rightColormap_jet = jet(length(rightFuncModuleIndexes));
+    count = 0;
+    for funcModuleIndex=rightFuncModuleIndexes
+        count = count+1;
+        color = rightColormap_jet(count,:);
+        %plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),allBrainData.leftHemisphere.surf.faces(intersect(leftOverlappingFaces,funcModuleFacesIndexes{funcModuleIndex}),1:3),'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'EdgeAlpha',0.3,'FaceColor',colormap_jet(funcModuleIndex,:));
+        plotedges(allBrainData.rightHemisphere.surf.nodes(:,1:3), rightFuncEdges{funcModuleIndex},'linewidth',3,'Color',[color],'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off');
+        plot(NaN,NaN,'linewidth',5,'Color',[color],'DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3)
+    end
+    camlight;
+    lighting gouraud;
+    legend;
 
 
-figure;
-hold on;
-title("Independent view of each structural module from left hemisphere");
-modulesWith1OrMoreFaces = cat(2,leftStrucModuleFacesBiggerThan1Indexes{:});
-tiledlayout(ceil(sum(modulesWith1OrMoreFaces)/3),3,'TileSpacing','None','Padding','None');
+    figure;
+    hold on;
+    title("Independent view of each structural module from left hemisphere");
+    modulesWith1OrMoreFaces = cat(2,leftStrucModuleFacesBiggerThan1Indexes{:});
+    tiledlayout(ceil(sum(modulesWith1OrMoreFaces)/3),3,'TileSpacing','None','Padding','None');
 
-for moduleIndex=1:maxLeftStructuralModule
-    if(modulesWith1OrMoreFaces(moduleIndex) == 1)
-        ax = nexttile;               % get the current axis
-        hold on;
-        ax.Clipping = 'off';    % turn clipping offcamlight;
-        light(ax,'Position',[0 0 0]);
-        light(ax,'Position',[200 200 200]);
-        light(ax,'Position',[-100 70 0]);
-        lighting(ax, 'gouraud');
-        plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),...
-            allBrainData.leftHemisphere.surf.faces(leftStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',leftColormap_hsv(moduleIndex,:));
+    for moduleIndex=1:maxLeftStructuralModule
+        if(modulesWith1OrMoreFaces(moduleIndex) == 1)
+            ax = nexttile;               % get the current axis
+            hold on;
+            ax.Clipping = 'off';    % turn clipping offcamlight;
+            light(ax,'Position',[0 0 0]);
+            light(ax,'Position',[200 200 200]);
+            light(ax,'Position',[-100 70 0]);
+            lighting(ax, 'gouraud');
+            plotsurf(allBrainData.leftHemisphere.surf.nodes(:,1:3),...
+                allBrainData.leftHemisphere.surf.faces(leftStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',leftColormap_hsv(moduleIndex,:));
+        end
+    end
+
+    figure;
+    hold on;
+    title("Independent view of each structural module from right hemisphere");
+    rightModulesWith1OrMoreFaces = cat(2,rightStrucModuleFacesBiggerThan1Indexes{:});
+    tiledlayout(ceil(sum(rightModulesWith1OrMoreFaces)/3),3,'TileSpacing','None','Padding','None');
+
+    for moduleIndex=1:maxRightStructuralModule
+        if(rightModulesWith1OrMoreFaces(moduleIndex) == 1)
+            ax = nexttile;               % get the current axis
+            hold on;
+            ax.Clipping = 'off';    % turn clipping offcamlight;
+            light(ax,'Position',[0 0 0]);
+            light(ax,'Position',[200 200 200]);
+            light(ax,'Position',[-100 70 0]);
+            lighting(ax, 'gouraud');
+            plotsurf(allBrainData.rightHemisphere.surf.nodes(:,1:3),...
+                allBrainData.rightHemisphere.surf.faces(rightStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',rightColormap_hsv(moduleIndex,:));
+        end
     end
 end
 
-figure;
-hold on;
-title("Independent view of each structural module from right hemisphere");
-rightModulesWith1OrMoreFaces = cat(2,rightStrucModuleFacesBiggerThan1Indexes{:});
-tiledlayout(ceil(sum(rightModulesWith1OrMoreFaces)/3),3,'TileSpacing','None','Padding','None');
-
-for moduleIndex=1:maxRightStructuralModule
-    if(rightModulesWith1OrMoreFaces(moduleIndex) == 1)
-        ax = nexttile;               % get the current axis
-        hold on;
-        ax.Clipping = 'off';    % turn clipping offcamlight;
-        light(ax,'Position',[0 0 0]);
-        light(ax,'Position',[200 200 200]);
-        light(ax,'Position',[-100 70 0]);
-        lighting(ax, 'gouraud');
-        plotsurf(allBrainData.rightHemisphere.surf.nodes(:,1:3),...
-            allBrainData.rightHemisphere.surf.faces(rightStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',rightColormap_hsv(moduleIndex,:));
-    end
-end
 end

@@ -202,11 +202,10 @@ elseif ($global:dataToUse -eq "F") {
 
 }
 elseif ($global:dataToUse -eq "O") {
-  
   step8;
 }
 elseif ($global:dataToUse -eq "Sta") {
-  Write-Host "This hasn't been coded yet!";
+  step9;
 }
 else {
   Write-Host "Error: Please type either A, U, Str, F, O or Sta.";

@@ -141,7 +141,8 @@ try
                 load([pathToParticipants '\' subject '\moduleResults\leftOptimalGamma.mat'], "leftOptimalGamma");
                 allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
             else
-                [leftOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
+                [leftOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.leftHemisphere.adjacencyMatrix, 0.6, 1.4, visualiseData)
+                %[leftOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.leftHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
                 allBrainData.leftHemisphere.optimalGamma = leftOptimalGamma;
                 filename=[pathToParticipants '/' subject '/moduleResults/leftOptimalGamma.mat'];
                 save(filename,'leftOptimalGamma','-v7.3');
@@ -157,7 +158,8 @@ try
                 load([pathToParticipants '\' subject '\moduleResults\rightOptimalGamma.mat'], "rightOptimalGamma");
                 allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
             else
-                [rightOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
+                [rightOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.rightHemisphere.adjacencyMatrix, 0.6, 1.4, visualiseData)
+                %[rightOptimalGamma] = findOptimalGamma(pathToParticipants, subject, roiStructuralData.rightHemisphere.adjacencyMatrix, 0.7, 0.8, visualiseData)
                 allBrainData.rightHemisphere.optimalGamma = rightOptimalGamma;
                 filename=[pathToParticipants '/' subject '/moduleResults/rightOptimalGamma.mat'];
                 save(filename,'rightOptimalGamma','-v7.3');
@@ -416,13 +418,14 @@ else
     allBrainData.rightHemisphere.surfaceNorm = [];
     allBrainData.leftHemisphere.nodesToFaces = [];
     allBrainData.rightHemisphere.nodesToFaces = [];
+    if(size(allFunctionalData.modules,2) == 0)
+        disp("This subject had no fMRI activations!");
+    end
     clearvars -except allBrainData pathToParticipants subject conditionIndex;
     filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
     save(filename,'allBrainData','-v7.3');
     disp("Script finished successfully.");
-    if(size(allFunctionalData.modules,2) == 0)
-        disp("This subject had no fMRI activations!");
-    end
+    
 
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 

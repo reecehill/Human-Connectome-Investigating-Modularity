@@ -310,3 +310,28 @@ function step8() {
   # (END)
   ######
 }
+
+function step9() {
+    ######
+  # (START)
+  ######
+  Write-Host "STEP 8 of 8: Matlab" -ForegroundColor Green -BackgroundColor Black
+
+    foreach ($subjectId in $subjectList) {
+  $jobName = "step9-sub-${subjectId}"
+$pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+$job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+  param($driveAndPathToParticipants, $subjectId, $scriptLocation)
+  Set-Location "$scriptLocation";
+  & matlab -batch "runStatistics_batch $driveAndPathToParticipants sub-$subjectId;"
+};
+Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
+  Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
+  Unregister-Event $EventSubscriber.SourceIdentifier;
+  Remove-Job $EventSubscriber.SourceIdentifier;
+  Remove-Job -Id $EventSubscriber.SourceObject.Id;
+} -MessageData $pso | Out-Null;
+Receive-Job -Job $job -Wait;
+    }
+    
+}

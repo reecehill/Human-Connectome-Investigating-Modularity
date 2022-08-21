@@ -198,7 +198,7 @@ function step5() {
     ) {
       $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
         param($driveAndPathToParticipants, $subjectId, $scriptLocation)
-        Set-Location "$scriptLocation/../";
+        Set-Location "$scriptLocation";
         Write-Host "Creating timing files for subject: sub-$subjectId" -ForegroundColor Green -BackgroundColor Black;
         & matlab -batch "try, createTimingFiles $driveAndPathToParticipants sub-$subjectId; end;";
       }

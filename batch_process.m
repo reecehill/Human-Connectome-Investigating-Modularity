@@ -50,14 +50,16 @@ end
 
 % convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
  
-%  for i=1:length(subjects)
-%      subject = subjects{i}
-%      pathToSubjectData = [pathToFile,num2str(subject)]
-%      [trkEP,trk_len,trk_type]=conversion(pathToSubjectData,type);
-%      filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
-%      save(filename,'trkEP','trk_len','trk_type','-v7.3');
-%      clear trkEP trk_len trk_type
-%  end
+ for i=1:length(subjects)
+     subject = subjects{i}
+     pathToSubjectData = [pathToFile,num2str(subject)]
+     [trkEP,trk_len,trk_type]=conversion(pathToSubjectData,type);
+     filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
+     save(filename,'trkEP','trk_len','trk_type','-v7.3');
+     clear trkEP trk_len trk_type
+ end
+
+ 
  %%  assign freesurfer ROI labels to each face
  
  for i=1:length(subjects)

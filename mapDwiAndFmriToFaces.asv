@@ -207,8 +207,7 @@ else
         plotsurf(allBrainData.leftHemisphere.surf.nodes,allBrainData.leftHemisphere.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
         plotsurf(allBrainData.rightHemisphere.surf.nodes,allBrainData.rightHemisphere.surf.faces,'FaceAlpha',0.1,'FaceColor',[0.2 0.2 0.2],'EdgeColor','none');
     end
-    allFunctionalData.modules = zeros(1,0);
-    
+    allFunctionalData.modules
     for moduleIndex=1:1:max(fmriModules,[],'all')
         % Get nodeIds that belong to current module (starting from 1, not 0).
         allFunctionalData.modules(moduleIndex).nodeIds = find(allFunctionalData.moduleIds == moduleIndex); % the ids of all nodes with a module.
@@ -420,9 +419,7 @@ else
     filename=[pathToParticipants '/' subject '/moduleResults/allBrainData__' num2str(conditionIndex) '.mat'];
     save(filename,'allBrainData','-v7.3');
     disp("Script finished successfully.");
-    if(size(allFunctionalData.modules,2) == 0)
-        disp("This subject had no fMRI activations!");
-    end
+
 
     sound(sin(1:1000)); pause(0.2); sound(sin(1:1000));
 

@@ -123,6 +123,22 @@ rightCollectionOfMetrics = cat(2,rightOverlapMatrix{:});
 
 filename=[pathToParticipants '/' subject '/moduleResults/collectionOfMetrics__' num2str(conditionIndex) '.mat'];
 save(filename,'leftCollectionOfMetrics','rightCollectionOfMetrics','-v7.3');
+
+%% Save data to csv
+    if(~isempty(leftCollectionOfMetrics))
+    [leftCollectionOfMetrics(:).subjectId] = deal(subject);
+    end
+    if(~isempty(rightCollectionOfMetrics))
+    [rightCollectionOfMetrics(:).subjectId] = deal(subject);
+    end
+table = [leftCollectionOfMetrics rightCollectionOfMetrics];
+if(~isempty(table))
+    [table(:).faceIdsOfOverlap]= deal([]);
+    writetable(struct2table(table, "AsArray",true), [pathToParticipants '/' subject '/moduleResults/collectionOfMetrics_' num2str(conditionIndex) '.csv']); 
+    writetable(struct2table(table, "AsArray",true), [pathToParticipants '/allSubjectsCollectionOfMetrics_' num2str(conditionIndex) '.csv'], "WriteMode","append");
+end
+
+
 disp("Script ran successfully.");
 
 

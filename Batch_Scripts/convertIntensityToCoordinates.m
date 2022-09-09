@@ -20,7 +20,7 @@ for conditionIndex=[1:nConditions]
     % Here, a module is found by grouping adjacent active voxels together if their
     % faces, edges, or corners touch with another voxel that is active (>0).
     % For more: https://uk.mathworks.com/help/images/ref/bwlabeln.html
-    fmriModules = bwlabeln(intensitiesPerVoxel, 6);
+    fmriModules = bwlabeln(intensitiesPerVoxel, 18);
     nModules = max(fmriModules, [], 'all');
     filename=[pathToParticipants '/' subject '/1stlevel/fMRIModules_000' num2str(conditionIndex) '.mat'];
     save(filename,'intensitiesPerVoxel','funcXyzCoordinatesmm','fmriModules','nModules','-v7.3');

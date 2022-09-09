@@ -286,39 +286,66 @@ function step7() {
 
 function step8() {
   ######
+  Write-Host "STEP 8 of 10: MATLAB (4)" -ForegroundColor Green -BackgroundColor Black
+  foreach ($subjectId in $subjectList) {
+    Write-Host "Processing Subject $subjectId" -ForegroundColor Green -BackgroundColor Black
+    $jobName = "step8-sub-${subjectId}"
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+      param($driveAndPathToParticipants, $subjectId, $scriptLocation)
+      Set-Location "$scriptLocation";
+      & matlab -batch "RunPreproc_1stLevel_job_results $driveAndPathToParticipants sub-$subjectId;"
+    };
+    Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
+      Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
+      Unregister-Event $EventSubscriber.SourceIdentifier;
+      Remove-Job $EventSubscriber.SourceIdentifier;
+      Remove-Job -Id $EventSubscriber.SourceObject.Id;
+    } -MessageData $pso | Out-Null;
+    Receive-Job -Job $job -Wait;
+  } 
+
+  ######
+  # (END)
+  ######
+}
+
+
+function step9() {
+  ######
   # (START)
   ######
-  Write-Host "STEP 8 of 8: Matlab" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "STEP 9 of 10: Matlab (5)" -ForegroundColor Green -BackgroundColor Black
 
-    foreach ($subjectId in $subjectList) {
-  $jobName = "step8-sub-${subjectId}"
-  $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
-  $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
-    param($driveAndPathToParticipants, $subjectId, $scriptLocation)
-    Set-Location "$scriptLocation";
-    & matlab -batch "mapDwiAndFmriToFaces_batch $driveAndPathToParticipants sub-$subjectId;"
-  };
-  Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
-    Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
-    Unregister-Event $EventSubscriber.SourceIdentifier;
-    Remove-Job $EventSubscriber.SourceIdentifier;
-    Remove-Job -Id $EventSubscriber.SourceObject.Id;
-  } -MessageData $pso | Out-Null;
-  Receive-Job -Job $job -Wait;
+  foreach ($subjectId in $subjectList) {
+    $jobName = "step9-sub-${subjectId}"
+    $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
+    $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
+      param($driveAndPathToParticipants, $subjectId, $scriptLocation)
+      Set-Location "$scriptLocation";
+      & matlab -batch "mapDwiAndFmriToFaces_batch $driveAndPathToParticipants sub-$subjectId;"
+    };
+    Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
+      Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");
+      Unregister-Event $EventSubscriber.SourceIdentifier;
+      Remove-Job $EventSubscriber.SourceIdentifier;
+      Remove-Job -Id $EventSubscriber.SourceObject.Id;
+    } -MessageData $pso | Out-Null;
+    Receive-Job -Job $job -Wait;
   }
   ######
   # (END)
   ######
 }
 
-function step9() {
-    ######
+function step10() {
+  ######
   # (START)
   ######
-  Write-Host "STEP 8 of 8: Matlab" -ForegroundColor Green -BackgroundColor Black
+  Write-Host "STEP 10 of 10: Matlab" -ForegroundColor Green -BackgroundColor Black
 
-    foreach ($subjectId in $subjectList) {
-  $jobName = "step9-sub-${subjectId}"
+  foreach ($subjectId in $subjectList) {
+    $jobName = "step10-sub-${subjectId}"
 $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToParticipants = $driveAndPathToParticipants; jobName = $jobName };
 $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
   param($driveAndPathToParticipants, $subjectId, $scriptLocation)

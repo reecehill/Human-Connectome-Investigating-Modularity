@@ -191,21 +191,22 @@ elseif ($global:dataToUse -eq "Str") {
 elseif ($global:dataToUse -eq "F") {
   $originIsSet = Read-Host("Have you set the origin to the anterior commisure using SPM? [Y/N]");
   if($originIsSet -eq "Y") {
+    Write-Host "Please do not change the origin. Please undo that change.";
+    exit;
+  }
+  else {
     step5;
     step6;
     step7;
-  }
-  else {
-    Write-Host "Please set origin first.";
-    exit;
+    step8;
   }
 
 }
 elseif ($global:dataToUse -eq "O") {
-  step8;
+  step9;
 }
 elseif ($global:dataToUse -eq "Sta") {
-  step9;
+  step10;
 }
 else {
   Write-Host "Error: Please type either A, U, Str, F, O or Sta.";

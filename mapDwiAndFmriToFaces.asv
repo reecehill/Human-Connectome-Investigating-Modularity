@@ -270,14 +270,15 @@ try
         % For each of the fMRI points, find the nearest node in the left
         % and right hemisphere OF THE PRECENTRAL GYRUS. Whichever is closest, project it to that one.
 
-        %Create var of nodes, but move non-ROI nodes to 0,0,0 so they won't
+        %Create var of nodes, but move non-ROI nodes far away so they won't
         %match with the fmri.
-        lNodesNotInROITempPositions = allBrainData.leftHemisphere.surf.nodes(:,:);
-        lNodeIdsInROI = reshape(allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4)==0)),[],1);
-        lNodesNotInROITempPositions(lNodeIdsInROI,:) = deal(0);
-        rNodesNotInROITempPositions = allBrainData.rightHemisphere.surf.nodes;
-        rNodeIdsInROI = reshape(allBrainData.rightHemisphere.surf.faces(find(allBrainData.rightHemisphere.surf.faces(:,4)==0)),[],1);
-        rNodesNotInROITempPositions(rNodeIdsInROI,:) = deal(0);
+        lNodesNotInROITempPositions = allBrainData.leftHemisphere.surf.nodes;
+        lNodeIdsInROI = reshape(allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4)>0)),[],1);
+        lNodesNotInROITempPositions(lNodeIdsInROI,:) = deal(10e20);
+
+        rNodesNotInROITempPositions = allBrainData.leftHemisphere.surf.nodes;
+        rNodeIdsInROI = reshape(allBrainData.leftHemisphere.surf.faces(find(allBrainData.leftHemisphere.surf.faces(:,4)>0)),[],1);
+        rNodesNotInROITempPositions(rNodeIdsInROI,:) = deal(10e20);
 
 
         [distanceToLeftSurface,closestLeftSurfaceNodeIds] = dist2surf(lNodesNotInROITempPositions,allBrainData.leftHemisphere.surfaceNorm,pointCloudVar.Location);

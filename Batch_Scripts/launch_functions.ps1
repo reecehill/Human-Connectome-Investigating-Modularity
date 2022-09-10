@@ -350,6 +350,26 @@ $pso = New-Object psobject -property @{subjectId = $subjectId; driveAndPathToPar
 $job = Start-Job -Name ${jobName} -ArgumentList $driveAndPathToParticipants, $subjectId, $PSScriptRoot -ScriptBlock {
   param($driveAndPathToParticipants, $subjectId, $scriptLocation)
   Set-Location "$scriptLocation";
+      if (Test-Path "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_1.csv") {
+        Write-Host "Cumulative statistics across all/some participants exists..."
+        Remove-Item "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_1.csv" -Force -Recurse -Confirm
+      }
+      if (Test-Path "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_2.csv") {
+        Write-Host "Cumulative statistics across all/some participants exists..."
+        Remove-Item "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_2.csv" -Force -Recurse -Confirm
+      }
+      if (Test-Path "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_3.csv") {
+        Write-Host "Cumulative statistics across all/some participants exists..."
+        Remove-Item "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_3.csv" -Force -Recurse -Confirm
+      }
+      if (Test-Path "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_4.csv") {
+        Write-Host "Cumulative statistics across all/some participants exists..."
+        Remove-Item "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_4.csv" -Force -Recurse -Confirm
+      }
+      if (Test-Path "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_5.csv") {
+        Write-Host "Cumulative statistics across all/some participants exists..."
+        Remove-Item "$driveAndPathToParticipants/allSubjectsCollectionOfMetrics_5.csv" -Force -Recurse -Confirm
+      }
   & matlab -batch "runStatistics_batch $driveAndPathToParticipants sub-$subjectId;"
 };
 Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {

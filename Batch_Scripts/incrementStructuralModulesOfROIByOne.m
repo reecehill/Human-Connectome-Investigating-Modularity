@@ -55,6 +55,7 @@ allBrainData.rightHemisphere.surf.faces(roiStructuralData.rightHemisphere.surf.f
 
 % Save new file
 filename=[pathToParticipants '/' subject '/moduleResults/new_allBrainData__' num2str(conditionIndex) '.mat'];
+%save(filename,'allBrainData');
 save(filename,'allBrainData','-v7.3');
 
 disp(["Condition " num2str(conditionIndex) " has had its structural modules increased by one."]);

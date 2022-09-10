@@ -62,9 +62,6 @@ for funcModuleIndex=leftFuncModuleIndexes
 end
 leftCollectionOfMetrics = cat(2,leftOverlapMatrix{:});
 
-
-
-
 %% RIGHT HEMISPHERE
 rightOverlappingFaces = find(allBrainData.rightHemisphere.surf.faces(:,6) == 1);
 rightOffset = max(allBrainData.rightHemisphere.surf.faces(:,5))+1;
@@ -178,8 +175,6 @@ disp("Script ran successfully.");
     camlight;
     lighting gouraud;
     legend;
-    savefig(gcf,[pathToParticipants '/' subject '/moduleResults/figures/' num2str(conditionIndex) '/left-precentral-gyrus-struc-and-func'],'compact');
-
 
     figure;
     xlabel('Left-Right');
@@ -209,8 +204,6 @@ disp("Script ran successfully.");
     camlight;
     lighting gouraud;
     legend;
-    savefig(gcf,[pathToParticipants '/' subject '/moduleResults/figures/' num2str(conditionIndex) '/right-precentral-gyrus-struc-and-func'],'compact');
-    
 
 
     figure;
@@ -232,8 +225,6 @@ disp("Script ran successfully.");
                 allBrainData.leftHemisphere.surf.faces(leftStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',leftColormap_hsv(moduleIndex,:));
         end
     end
-    savefig(gcf,[pathToParticipants '/' subject '/moduleResults/figures/' num2str(conditionIndex) '/isolated-struc-modules-left'],'compact');
-    
 
     figure;
     hold on;
@@ -254,9 +245,6 @@ disp("Script ran successfully.");
                 allBrainData.rightHemisphere.surf.faces(rightStrucModuleFacesIndexes{moduleIndex},(1:3)),'DisplayName',['Structural Module: ' moduleIndex],'EdgeAlpha',0.3,'FaceColor',rightColormap_hsv(moduleIndex,:));
         end
     end
-    savefig(gcf,[pathToParticipants '/' subject '/moduleResults/figures/' num2str(conditionIndex) '/isolated-struc-modules-right'],'compact');
-    
-
         if(~visualiseData==1)
         close all;
     end

@@ -259,5 +259,6 @@ disp("Script ran successfully.");
 
         if(~visualiseData==1)
         close all;
-    end
+        end
+        disp("Calculate overlap finished...")
 end

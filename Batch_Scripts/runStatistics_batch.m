@@ -9,4 +9,5 @@ for conditionIndex=[1:nConditions]
     
     calculateOverlap(pathToParticipants,subject,conditionIndex,0);
 end
+
 end

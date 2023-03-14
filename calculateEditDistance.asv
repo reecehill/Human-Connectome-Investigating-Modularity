@@ -1,0 +1,77 @@
+function [leftCollectionOfMetrics, rightCollectionOfMetrics] = calculateEditDistance(pathToParticipants, subject, conditionIndex)
+clearvars -except pathToParticipants subject conditionIndex visualiseData;
+addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
+if(~exist([pathToParticipants '\' subject '\moduleResults\allBrainData__' num2str(conditionIndex) '.mat']))
+    return
+end
+load([pathToParticipants '\' subject '\moduleResults\allBrainData__' num2str(conditionIndex) '.mat'], "allBrainData");
+disp(['Calculating edit distance for subject' subject ', condition' conditionIndex]);
+
+    function [string] = convertBrainFacesToString(brainFaces)
+        % We first renumber modules, so that on a line, the first module is
+        % 1,...2, etc.
+        newBrainFaces = brainFaces;
+        highestModuleNumber = max(brainFaces)
+        consideredModuleNumbers = [0];
+        for faceIndex=1:length(brainFaces)
+            if(~ismember(brainFaces(faceIndex), consideredModuleNumbers))
+                % This module has not been seen before.
+                newModuleNumber = max(consideredModuleNumbers) + 1;
+                newBrainFaces(find(brainFaces == brainFaces(faceIndex))) = newModuleNumber;
+                consideredModuleNumbers = [consideredModuleNumbers; newModuleNumber];
+            end
+        end
+        charactersFromNumber = arrayfun(@(num) char(num+100), newBrainFaces);
+        % Then convert module number to a letter (as numbers will take up
+        % >1 character when greater than 9.
+        string = strrep(num2str(charactersFromNumber'),' ','');
+    end
+%% LEFT HEMISPHERE
+stringOfLeftHemisphereStrucModules = convertBrainFacesToString(allBrainData.leftHemisphere.surf.faces(:,4));
+stringOfLeftHemisphereFuncModules = convertBrainFacesToString(allBrainData.leftHemisphere.surf.faces(:,5));
+
+%Temporary exercise- visualise modules on a flat grid, with -1 set for
+%non-existing faces, increase shape to nearest perfect square.
+close all;
+F = sort(padarray(allBrainData.leftHemisphere.surf.faces(:,4), 6,-1,'post')*1000);
+reshapedF = reshape(F, 162, 162);
+figure;
+heatmap(reshapedF, 'ColorScaling','log', 'ColorMethod','none', );
+figure;
+F = sort(padarray(allBrainData.leftHemisphere.surf.faces(:,5), 6,-1,'post')*1000);
+reshapedF = reshape(F, 162, 162);
+heatmap(reshapedF, 'ColorScaling','log');
+
+editDistanceLeftHemisphere.hemisphere = 'left';
+editDistanceLeftHemisphere.subject = subject;
+editDistanceLeftHemisphere.condition = conditionIndex;
+editDistanceLeftHemisphere.numberOfActiveStrucFaces = sum(allBrainData.leftHemisphere.surf.faces(:,4) > 0)
+editDistanceLeftHemisphere.numberOfActiveFuncFaces = sum(allBrainData.leftHemisphere.surf.faces(:,5) > 0)
+editDistanceLeftHemisphere.levenshtein = int16(py.Levenshtein.distance(stringOfLeftHemisphereStrucModules,stringOfLeftHemisphereFuncModules));
+editDistanceLeftHemisphere.indelSimilarity = double(py.Levenshtein.ratio(stringOfLeftHemisphereStrucModules,stringOfLeftHemisphereFuncModules));
+editDistanceLeftHemisphere.hamming = int16(py.Levenshtein.hamming(stringOfLeftHemisphereStrucModules,stringOfLeftHemisphereFuncModules));
+editDistanceLeftHemisphere.jaro = double(py.Levenshtein.jaro(stringOfLeftHemisphereStrucModules,stringOfLeftHemisphereFuncModules));
+editDistanceLeftHemisphere.jaro_winkler = double(py.Levenshtein.jaro_winkler(stringOfLeftHemisphereStrucModules,stringOfLeftHemisphereFuncModules));
+
+leftCollectionOfMetrics = editDistanceLeftHemisphere;
+
+%% RIGHT HEMISPHERE
+stringOfRightHemisphereStrucModules = convertBrainFacesToString(allBrainData.rightHemisphere.surf.faces(:,4));
+stringOfRightHemisphereFuncModules = convertBrainFacesToString(allBrainData.rightHemisphere.surf.faces(:,5));
+editDistanceRightHemisphere.hemisphere = 'right';
+editDistanceRightHemisphere.subject = subject;
+editDistanceRightHemisphere.condition = conditionIndex;
+editDistanceRightHemisphere.numberOfActiveStrucFaces = sum(allBrainData.rightHemisphere.surf.faces(:,4) > 0)
+editDistanceRightHemisphere.numberOfActiveFuncFaces = sum(allBrainData.rightHemisphere.surf.faces(:,5) > 0)
+editDistanceRightHemisphere.levenshtein = int16(py.Levenshtein.distance(stringOfRightHemisphereStrucModules,stringOfRightHemisphereFuncModules));
+editDistanceRightHemisphere.indelSimilarity = double(py.Levenshtein.ratio(stringOfRightHemisphereStrucModules,stringOfRightHemisphereFuncModules));
+editDistanceRightHemisphere.hamming = int16(py.Levenshtein.hamming(stringOfRightHemisphereStrucModules,stringOfRightHemisphereFuncModules));
+editDistanceRightHemisphere.jaro = double(py.Levenshtein.jaro(stringOfRightHemisphereStrucModules,stringOfRightHemisphereFuncModules));
+editDistanceRightHemisphere.jaro_winkler = double(py.Levenshtein.jaro_winkler(stringOfRightHemisphereStrucModules,stringOfRightHemisphereFuncModules));
+
+
+rightCollectionOfMetrics = editDistanceRightHemisphere;
+%% WRITE VALUES TO CSV
+table = [leftCollectionOfMetrics rightCollectionOfMetrics];
+writetable(struct2table(table, "AsArray",true), [pathToParticipants '/collectionOfEditDistanceMetrics.csv'], "WriteMode","append");
+end

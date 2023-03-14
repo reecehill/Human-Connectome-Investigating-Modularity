@@ -371,6 +371,9 @@ function step10() {
       Set-Location "$scriptLocation";
 
   & matlab -batch "runStatistics_batch $driveAndPathToParticipants sub-$subjectId;"
+
+  # NEW - CALCULATE EDIT DISTANCE
+  & 
 };
 Register-ObjectEvent -InputObject $job -EventName StateChanged -Action {
   Write-Host ("Job #" + $Event.MessageData.jobName + " complete.");

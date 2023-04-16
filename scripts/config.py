@@ -1,11 +1,14 @@
 # ----------
 # CONFIGURATION FILE.
 # ----------
+from typing import Optional
 from parameters.automated import *
 
 # ----------
 # [START] SYSTEM PARAMETERS
 # ----------
+
+# EMPTY
 
 # ----------
 # [END] SYSTEM PARAMETERS
@@ -15,6 +18,9 @@ from parameters.automated import *
 # [START] LOGGING PARAMETERS
 # ----------
 logDirectoryPath: str = "/" + "logs" #Must always be preceded by "/", to indicate root of project.
+
+exportFiles: list[Optional[str]] = [] #Additional files to save upon code completion.
+
 # ----------
 # [END] LOGGING PARAMETERS
 # ----------

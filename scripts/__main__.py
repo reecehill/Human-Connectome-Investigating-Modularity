@@ -9,18 +9,25 @@
 # ------------------------------------------------------------
 # [START] main()
 # ------------------------------------------------------------
-def main() -> None:
+from typing import Sequence
+
+
+def main(raw_args: Sequence[str] | None = []) -> None:
     try:
         from modules.logger.logger import LoggerClass
-
+        from modules.saver.saver import SaverClass
+        import argparse
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
         try:
-            pass
+            parser = argparse.ArgumentParser()
+            parser.add_argument("user", type=str)
+            parser.add_argument("host", type=str)
+            parser.add_argument("password", type=str)
+            args = parser.parse_args(raw_args)
         except Exception as e:
-            print(e)
-            exit()
+            raise e
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -34,9 +41,9 @@ def main() -> None:
         # ------------------------------------------------------------
         try:
             logger = LoggerClass()
+            saver = SaverClass(args.user, args.host, args.password)
         except Exception as e:
-            print(e)
-            exit()
+            raise e
 
         # ------------------------------------------------------------
         # [END] Initializing.
@@ -59,12 +66,18 @@ def main() -> None:
             
             try:
               logger.info("Ready to begin accepting steps")
+              
+              # INSERT STEPS.
+
+              # Test Save
+              saver.upload(filesToSave=[logger.root.handlers[0].baseFilename])
+              logger.info("Script end")
             except Exception as e:
               logger.info(e)
+              exit()
 
         except Exception as e:
-            print(e)
-            exit()
+            raise e
         # ------------------------------------------------------------
         # [END] Running pipeline.
         # ------------------------------------------------------------
@@ -75,5 +88,20 @@ def main() -> None:
 # [END] main()
 # ------------------------------------------------------------
 
+# ------------------------------------------------------------
+# [START] save()
+# ------------------------------------------------------------
+
+def save() -> None:
+    
+    import requests
+    filesToUpload = [
+        ""
+    ]
+
+# ------------------------------------------------------------
+# [end] save()
+# ------------------------------------------------------------
+
 if __name__ == "__main__":
-    main()
+    main(["user","user","user"])

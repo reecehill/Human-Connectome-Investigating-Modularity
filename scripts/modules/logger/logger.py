@@ -12,7 +12,7 @@ except Exception as e:
 class LoggerClass:
   def __init__(self) -> None:
       self.folderPathsNeeded: list[Optional[str]] = [config.logDirectoryPath]
-      self.filePathsNeeded: list[Optional[str]] = ["added1"]
+      #self.filePathsNeeded: list[Optional[str]] = []
       deleteDirectories(directoryPaths=self.folderPathsNeeded)
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     

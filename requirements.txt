@@ -1,0 +1,7 @@
+#
+# This file includes all the requirements of the project. You can automatically ensure your environment has these by running:
+# python -r requirements.txt
+#
+
+autopep8==2.0.2
+pycodestyle==2.10.0

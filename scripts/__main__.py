@@ -56,6 +56,11 @@ def main() -> None:
 
             # After this point, the logger is loaded so we can use this for improved logging.
             # From here, logs are shown both in-console and file.
+            
+            try:
+              logger.info("Ready to begin accepting steps")
+            except Exception as e:
+              logger.info(e)
 
         except Exception as e:
             print(e)

@@ -13,7 +13,8 @@ from typing import Optional, Union
 
 def deleteDirectories(directoryPaths: list[Optional[str]] = []):
   for directoryPath in directoryPaths:
-        if(directoryPath):
+    if(directoryPath):
+        if(Path(directoryPath).exists()):
           try:
             rmtree(path=directoryPath, ignore_errors=False)
           except Exception as e: print(e)
@@ -37,9 +38,10 @@ def createDirectories(
     """
     for directoryPath in directoryPaths:
         if(directoryPath):
-          try:
-            Path(directoryPath).mkdir(parents=createParents,exist_ok=not throwErrorIfExists)
-          except Exception as e: print(e)
+          if(not Path(directoryPath).exists()):
+            try:
+              Path(directoryPath).mkdir(parents=createParents,exist_ok=throwErrorIfExists)
+            except Exception as e: print(e)
 
 # ----------
 # [END]

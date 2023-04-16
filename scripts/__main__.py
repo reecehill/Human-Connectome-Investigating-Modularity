@@ -1,0 +1,44 @@
+# This file is the starter file. It's steps include:
+
+# 1) Configuring variables.
+# 2) Confirming the environment.
+# 3) Directing the pipeline.
+# 4) Handling shell output.
+
+def main() -> None:
+  try:  
+    from modules.logger.logger import LoggerClass
+    
+    # ----------
+    # [START] Initializing.
+    # Initialize each step in the pipeline. This includes:
+    # 1) Clearing writeable folders.
+    # 2) Ensuring new filepaths and files are made where necessary.
+    # 3) Check that included modules are available on the system.
+    # ----------
+    logger = LoggerClass()
+
+
+    # --------
+    # [END] Initializing.
+    # --------
+
+    # ----------
+    # [START] Running pipeline.
+    # Run each step in the pipeline. See each class "run" function for what occurs.
+    # ----------
+
+    # Get logger instance
+    logger = logger.run()
+    logger.info("Logger ran successfully.")
+
+
+
+
+
+    # --------
+    # [END] Running pipeline.
+    # --------
+  except Exception as e:
+    print(e)
+    exit()

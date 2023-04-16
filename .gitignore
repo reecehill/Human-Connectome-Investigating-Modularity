@@ -1,6 +1,6 @@
 Participants_Freesurfer_processed
-Participants
-Batch_Scripts
-Job_Scripts
-New_Scripts
+Participants/*
+Batch_Scripts/*
+Job_Scripts/*
+New_Scripts/*
 /*

@@ -17,7 +17,8 @@ def deleteDirectories(directoryPaths: list[Optional[str]] = []):
         if(Path(directoryPath).exists()):
           try:
             rmtree(path=directoryPath, ignore_errors=False)
-          except Exception as e: print(e)
+          except Exception:
+            raise
             
 
 def createDirectories(
@@ -41,7 +42,8 @@ def createDirectories(
           if(not Path(directoryPath).exists()):
             try:
               Path(directoryPath).mkdir(parents=createParents,exist_ok=throwErrorIfExists)
-            except Exception as e: print(e)
+            except Exception:
+              raise
 
 # ----------
 # [END]

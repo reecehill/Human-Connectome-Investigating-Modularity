@@ -5,11 +5,14 @@
 # 3) Directing the pipeline.
 # 4) Handling shell output.
 
+# NOTE: We make logger and saver global (by prefixing g. and importing modules.globals)
 
 # ------------------------------------------------------------
 # [START] main()
 # ------------------------------------------------------------
 
+from typing import Any
+import modules.globals as g
 def main(user: str, host: str, pathToKey: str) -> None:
     try:
         from modules.logger.logger import LoggerClass
@@ -23,53 +26,48 @@ def main(user: str, host: str, pathToKey: str) -> None:
         # ------------------------------------------------------------
 
         # ------------------------------------------------------------
-        # [START] Initializing.
-        # Initialize each step in the pipeline. This includes:
-        # 1) Clearing writeable folders.
-        # 2) Ensuring new filepaths and files are made where necessary.
-        # 3) Check that included modules are available on the system.
+        # [START] Load and run the global logger.
         # ------------------------------------------------------------
         try:
-            logger = LoggerClass()
-            saver = SaverClass(user, host, pathToKey)
-        except Exception as e:
-            raise e
+            g.logger = LoggerClass().run()
+            # From here, logs are shown both in-console and files
 
-        # ------------------------------------------------------------
-        # [END] Initializing.
-        # ------------------------------------------------------------
 
-        # ------------------------------------------------------------
-        # [START] Running pipeline.
-        # Run each step in the pipeline. See each class "run" function for what occurs.
-        # ------------------------------------------------------------
-
-        try:
-            # ********
-            # LOAD THE LOGGER
-            # ********
-            logger = logger.run()
-            logger.info("Logger ran successfully.")
-
-            # After this point, the logger is loaded so we can use this for improved logging.
-            # From here, logs are shown both in-console and file.
-            
+            # ------------------------------------------------------------
+            # [START] Initializing.
+            # Initialize each step in the pipeline. This includes:
+            # 1) Clearing writeable folders.
+            # 2) Ensuring new filepaths and files are made where necessary.
+            # 3) Check that included modules are available on the system.
+            # ------------------------------------------------------------
             try:
-              logger.info("Ready to begin accepting steps")
-              
-              # INSERT STEPS.
+                g.saver = SaverClass(user, host, pathToKey)
+            except Exception:
+                raise
+            # ------------------------------------------------------------
+            # [END] Initializing.
+            # ------------------------------------------------------------
 
-              # Test Save
-              saver.upload(filesToSave=[logger.root.handlers[0].baseFilename]) # type: ignore
-              logger.info("Script end")
-            except Exception as e:
-              logger.info(e)
-              exit()
+            # ------------------------------------------------------------
+            # [START] Running pipeline.
+            # Run each step in the pipeline. See each class "run" function for what occurs.
+            # ------------------------------------------------------------
+            g.logger.info("Ready to begin accepting steps")
 
+            # Test Save
+            archive = g.saver.compress(filePathsToCompress=[g.logger.root.handlers[0].baseFilename])
+            g.saver.upload([archive])
+            
+
+            g.logger.info("Script end") # type: ignore
+            # ------------------------------------------------------------
+            # [END] Running pipeline.
+            # ------------------------------------------------------------
+            
         except Exception as e:
-            raise e
+            g.logger.exception(e, stack_info=True) # type: ignore
         # ------------------------------------------------------------
-        # [END] Running pipeline.
+            # [END] Initialize and run the logger.
         # ------------------------------------------------------------
     except Exception as e:
         print(e)
@@ -91,12 +89,30 @@ def save() -> None:
 
 if __name__ == "__main__":
     try:
-        import argparse
-        parser = argparse.ArgumentParser()
-        parser.add_argument("user", type=str)
-        parser.add_argument("host", type=str)
-        parser.add_argument("pathToKey", type=str)
-        args = parser.parse_args()
+        import sys
+        if len( sys.argv ) > 1:
+            import argparse
+            parser = argparse.ArgumentParser()
+            parser.add_argument("-U", "--user", type=str, default="CLI_ARGUMENT_ERROR")
+            parser.add_argument("-H", "--host", type=str, default="CLI_ARGUMENT_ERROR")
+            parser.add_argument("-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR")
+            args = parser.parse_args()
+            user = args.user
+            host = args.host
+            pathToKey = args.pathToKey
+        else:
+            import os
+            from dotenv import load_dotenv
+            k = load_dotenv(os.getcwd()+"/../.env")
+            user = os.getenv('DEFAULT_USER') or "ENV_ERROR"
+            host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
+            pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
+
+        print("Launching main using: ")
+        print("User: "+user)
+        print("Host: "+host)
+        print("pathToKey: "+pathToKey)
+        main(user, host, pathToKey)
     except Exception as e:
-        raise e
-    main(args.user, args.host, args.pathToKey)
+        raise
+    

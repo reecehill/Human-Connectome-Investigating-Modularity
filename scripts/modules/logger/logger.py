@@ -1,3 +1,4 @@
+from typing import Any
 try:
   import logging.config
   from logging import Logger 
@@ -16,15 +17,16 @@ class LoggerClass:
       deleteDirectories(directoryPaths=self.folderPathsNeeded)
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     
-  def run(self) -> Logger:
+  def run(self) -> Logger | Any:
     # Set up a handler for both standard output stream and to output file.
     #targets = logging.StreamHandler(sys.stdout), logging.FileHandler(config.logFilePath)
 
     # Configure logging package to output only the message without the log level.
     #logging.basicConfig(format='%(message)s', level=logging.INFO, handlers=targets)
     logging.config.dictConfig(logging_schema)
-    self.logger  = logging.getLogger(__name__)
+    self.logger: Logger  = logging.getLogger(__name__)
+
     self.logger.info("Logger is instantiated.")
     self.logger.info("Logs are saved to: " + self.logger.root.handlers[0].baseFilename) # type: ignore
-
+    
     return self.logger

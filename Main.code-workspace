@@ -11,6 +11,9 @@
 		"python.analysis.addImport.exactMatchOnly": true,
 		"python.analysis.autoImportCompletions": true,
 		"python.analysis.typeCheckingMode": "strict",
-		"python.analysis.importFormat": "relative"
+		"python.analysis.importFormat": "relative",
+		"cSpell.words": [
+			"dotenv"
+		]
 	}
 }

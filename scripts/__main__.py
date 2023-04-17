@@ -9,25 +9,15 @@
 # ------------------------------------------------------------
 # [START] main()
 # ------------------------------------------------------------
-from typing import Sequence
 
-
-def main(raw_args: Sequence[str] | None = []) -> None:
+def main(user: str, host: str, pathToKey: str) -> None:
     try:
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
-        import argparse
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
-        try:
-            parser = argparse.ArgumentParser()
-            parser.add_argument("user", type=str)
-            parser.add_argument("host", type=str)
-            parser.add_argument("password", type=str)
-            args = parser.parse_args(raw_args)
-        except Exception as e:
-            raise e
+
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -41,7 +31,7 @@ def main(raw_args: Sequence[str] | None = []) -> None:
         # ------------------------------------------------------------
         try:
             logger = LoggerClass()
-            saver = SaverClass(args.user, args.host, args.password)
+            saver = SaverClass(user, host, pathToKey)
         except Exception as e:
             raise e
 
@@ -70,7 +60,7 @@ def main(raw_args: Sequence[str] | None = []) -> None:
               # INSERT STEPS.
 
               # Test Save
-              saver.upload(filesToSave=[logger.root.handlers[0].baseFilename])
+              saver.upload(filesToSave=[logger.root.handlers[0].baseFilename]) # type: ignore
               logger.info("Script end")
             except Exception as e:
               logger.info(e)
@@ -93,15 +83,20 @@ def main(raw_args: Sequence[str] | None = []) -> None:
 # ------------------------------------------------------------
 
 def save() -> None:
-    
-    import requests
-    filesToUpload = [
-        ""
-    ]
+    pass
 
 # ------------------------------------------------------------
 # [end] save()
 # ------------------------------------------------------------
 
 if __name__ == "__main__":
-    main(["user","user","user"])
+    try:
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("user", type=str)
+        parser.add_argument("host", type=str)
+        parser.add_argument("pathToKey", type=str)
+        args = parser.parse_args()
+    except Exception as e:
+        raise e
+    main(args.user, args.host, args.pathToKey)

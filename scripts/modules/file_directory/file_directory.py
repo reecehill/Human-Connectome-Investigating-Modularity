@@ -5,16 +5,16 @@
 
 from pathlib import Path
 from shutil import rmtree
-from typing import Optional, Union
+from typing import Union
 
 # ----------
 # [START]
 # ----------
 
-def deleteDirectories(directoryPaths: list[Optional[str]] = []):
+def deleteDirectories(directoryPaths: list[Path] = []) -> None:
   for directoryPath in directoryPaths:
     if(directoryPath):
-        if(Path(directoryPath).exists()):
+        if(directoryPath.exists()):
           try:
             rmtree(path=directoryPath, ignore_errors=False)
           except Exception:
@@ -22,7 +22,7 @@ def deleteDirectories(directoryPaths: list[Optional[str]] = []):
             
 
 def createDirectories(
-  directoryPaths: list[Optional[str]] = [],
+  directoryPaths: list[Path] = [],
   createParents: bool = False,
   throwErrorIfExists: bool = True) -> Union[FileNotFoundError, FileExistsError, None]:
     """
@@ -39,9 +39,9 @@ def createDirectories(
     """
     for directoryPath in directoryPaths:
         if(directoryPath):
-          if(not Path(directoryPath).exists()):
+          if(not directoryPath.exists()):
             try:
-              Path(directoryPath).mkdir(parents=createParents,exist_ok=throwErrorIfExists)
+              directoryPath.mkdir(parents=createParents,exist_ok=throwErrorIfExists)
             except Exception:
               raise
 

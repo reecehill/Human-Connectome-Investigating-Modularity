@@ -2,8 +2,7 @@
 # [START] Logging schema, taken from:
 # https://stackoverflow.com/questions/7507825/where-is-a-complete-example-of-logging-config-dictconfig
 # ----------
-from config import logDirectoryPath
-from os.path import join
+from config import LOGS_DIR
 
 logging_schema = {
     # Always 1. Schema versioning may be added in a future release of logging
@@ -39,7 +38,7 @@ logging_schema = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "standard",
             "level": "INFO",
-            "filename": join(logDirectoryPath + "/log.txt"),
+            "filename": LOGS_DIR / "log.txt",
             "mode": "w",
             "encoding": "utf-8",
             "maxBytes": 500000,

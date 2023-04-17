@@ -17,9 +17,9 @@ from parameters.automated import *
 # ----------
 # [START] LOGGING PARAMETERS
 # ----------
-logDirectoryPath: str = "/" + "logs" #Must always be preceded by "/", to indicate root of project.
+logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 
-exportFiles: list[Optional[str]] = [] #Additional files to save upon code completion.
+EXPORT_FILES: list[Optional[str]] = [] #Additional files to save upon code completion.
 
 # ----------
 # [END] LOGGING PARAMETERS
@@ -27,4 +27,4 @@ exportFiles: list[Optional[str]] = [] #Additional files to save upon code comple
 
 
 # DO NOT EDIT BELOW THIS LINE
-logDirectoryPath: str = getLogDirectoryPath(logDirectoryPath)
+LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)

@@ -5,14 +5,17 @@
 # 3) Therefore, automatically assigned.
 # ----------
 try:
-  from os.path import abspath, dirname, join
+  from pathlib import Path
 except Exception as e:
   print(e)
   exit()
+
 # ----------
 # [START] DIRECTORY STRUCTURE PARAMETERS
 # ----------
-base_dir: str = abspath(dirname(__file__))
+SCRIPTS_DIR: Path = Path(__file__).parent.parent.resolve(strict=True)
+UPLOADS_DIR: Path = SCRIPTS_DIR.parent / "uploaded"
+#base_dir: str = abspath(join(dirname(__file__) + "/../"))
 
 # ----------
 # [END] DIRECTORY STRUCTURE PARAMETERS
@@ -22,9 +25,11 @@ base_dir: str = abspath(dirname(__file__))
 # ----------
 # [START] LOGGING PARAMETERS
 # ----------
-def getLogDirectoryPath(userSubmitted: str) -> str:
-  logDirectoryPath = join(base_dir + "../.." + userSubmitted)
-  return logDirectoryPath
+
+
+def getLogDirectoryPath(userSubmitted: str) -> Path:
+  LOGS_DIR: Path = (UPLOADS_DIR / userSubmitted).resolve(strict=False)
+  return LOGS_DIR
 
 # ----------
 # [END] LOGGING PARAMETERS

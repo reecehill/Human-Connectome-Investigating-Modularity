@@ -11,8 +11,10 @@
 # [START] main()
 # ------------------------------------------------------------
 
-from typing import Any
+from pathlib import Path
+import traceback
 import modules.globals as g
+
 def main(user: str, host: str, pathToKey: str) -> None:
     try:
         from modules.logger.logger import LoggerClass
@@ -29,7 +31,8 @@ def main(user: str, host: str, pathToKey: str) -> None:
         # [START] Load and run the global logger.
         # ------------------------------------------------------------
         try:
-            g.logger = LoggerClass().run()
+            g.logger = LoggerClass()
+            g.logger = g.logger.run()
             # From here, logs are shown both in-console and files
 
 
@@ -52,11 +55,12 @@ def main(user: str, host: str, pathToKey: str) -> None:
             # [START] Running pipeline.
             # Run each step in the pipeline. See each class "run" function for what occurs.
             # ------------------------------------------------------------
-            g.logger.info("Ready to begin accepting steps")
+            g.logger.info("Ready to begin accepting steps") # type: ignore
 
             # Test Save
-            archive = g.saver.compress(filePathsToCompress=[g.logger.root.handlers[0].baseFilename])
-            g.saver.upload([archive])
+            archive: Path = g.saver.compress(filePathsToCompress=[g.logger.root.handlers[0].baseFilename]) # type: ignore
+            archive: Path = Path(archive).resolve(strict=True)
+            g.saver.rsync(archive)
             
 
             g.logger.info("Script end") # type: ignore
@@ -65,12 +69,16 @@ def main(user: str, host: str, pathToKey: str) -> None:
             # ------------------------------------------------------------
             
         except Exception as e:
-            g.logger.exception(e, stack_info=True) # type: ignore
+            if hasattr(g.logger, 'exception'):
+                g.logger.exception(e, stack_info=True) # type: ignore
+            else:
+                print(traceback.format_exc())
+                exit()
         # ------------------------------------------------------------
             # [END] Initialize and run the logger.
         # ------------------------------------------------------------
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         exit()
 # ------------------------------------------------------------
 # [END] main()

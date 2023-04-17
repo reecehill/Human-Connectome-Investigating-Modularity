@@ -1,8 +1,8 @@
+from pathlib import Path
 from typing import Any
 try:
   import logging.config
   from logging import Logger 
-  from typing import Optional
   import config
   from parameters.logging_schema import logging_schema
   from ..file_directory.file_directory import deleteDirectories, createDirectories
@@ -12,7 +12,7 @@ except Exception as e:
 
 class LoggerClass:
   def __init__(self) -> None:
-      self.folderPathsNeeded: list[Optional[str]] = [config.logDirectoryPath]
+      self.folderPathsNeeded: list[Path] = [config.LOGS_DIR]
       #self.filePathsNeeded: list[Optional[str]] = []
       deleteDirectories(directoryPaths=self.folderPathsNeeded)
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)

@@ -126,7 +126,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -563,3 +562,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.env

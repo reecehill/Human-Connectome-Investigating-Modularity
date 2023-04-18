@@ -10,7 +10,6 @@
 # ------------------------------------------------------------
 # [START] main()
 # ------------------------------------------------------------
-
 from pathlib import Path
 import traceback
 import modules.globals as g

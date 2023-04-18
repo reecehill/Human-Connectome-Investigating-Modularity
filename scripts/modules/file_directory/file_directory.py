@@ -11,7 +11,7 @@ from typing import Union
 # [START]
 # ----------
 
-def deleteDirectories(directoryPaths: list[Path] = []) -> None:
+def deleteDirectories(directoryPaths: "list[Path]" = []) -> None:
   for directoryPath in directoryPaths:
     if(directoryPath):
         if(directoryPath.exists()):
@@ -22,7 +22,7 @@ def deleteDirectories(directoryPaths: list[Path] = []) -> None:
             
 
 def createDirectories(
-  directoryPaths: list[Path] = [],
+  directoryPaths: "list[Path]" = [],
   createParents: bool = False,
   throwErrorIfExists: bool = True) -> Union[FileNotFoundError, FileExistsError, None]:
     """

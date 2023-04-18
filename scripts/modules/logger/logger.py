@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any
+import typing
 try:
   import logging.config
   from logging import Logger 
@@ -12,12 +13,12 @@ except Exception as e:
 
 class LoggerClass:
   def __init__(self) -> None:
-      self.folderPathsNeeded: list[Path] = [config.LOGS_DIR]
+      self.folderPathsNeeded: "list[Path]" = [config.LOGS_DIR]
       #self.filePathsNeeded: list[Optional[str]] = []
       deleteDirectories(directoryPaths=self.folderPathsNeeded)
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     
-  def run(self) -> Logger | Any:
+  def run(self) -> typing.Union[Logger, Any]:
     # Set up a handler for both standard output stream and to output file.
     #targets = logging.StreamHandler(sys.stdout), logging.FileHandler(config.logFilePath)
 

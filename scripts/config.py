@@ -19,7 +19,7 @@ from parameters.automated import *
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 
-EXPORT_FILES: list[Optional[str]] = [] #Additional files to save upon code completion.
+EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
 # ----------
 # [END] LOGGING PARAMETERS

@@ -563,3 +563,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .env
+*.zip
+uploaded

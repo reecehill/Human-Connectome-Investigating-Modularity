@@ -10,7 +10,7 @@ import config
 
 class SaverClass:
     def __init__(self, user: str, host: str, pathToKey: str) -> None:
-        self.connection: Optional[object] = None
+        self.connection: "Optional[object]" = None
         self.user: str = user
         self.host: str = host
         self.userHost = f"{self.user}@{self.host}" 
@@ -40,7 +40,7 @@ class SaverClass:
         ]
         self.initiateSSHConnection()
 
-    def compress(self, filePathsToCompress: list[Optional[str]] = []) -> Optional[str]:
+    def compress(self, filePathsToCompress: "list[Optional[str]]" = []) -> Optional[str]:
         archivePath = None
         for filePathToCompress in filePathsToCompress:
             if (filePathToCompress):
@@ -110,7 +110,7 @@ class SaverClass:
             raise
         
         
-    def upload(self, filesToSave: list[Optional[str]] = [], directoriesToSave: list[Optional[str]] = []) -> None:
+    def upload(self, filesToSave: "list[Optional[str]]" = [], directoriesToSave: "list[Optional[str]]" = []) -> None:
         try:
             self.initiateSSHConnection(terminateUponConnection=False)
             #self.rsync(local=self.uploadsDir.__str__(), dst="/")

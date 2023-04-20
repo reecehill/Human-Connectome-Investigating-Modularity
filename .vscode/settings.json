@@ -1,5 +1,0 @@
-{
-  "python.analysis.extraPaths": [
-    "./public_analysis_code"
-  ]
-}

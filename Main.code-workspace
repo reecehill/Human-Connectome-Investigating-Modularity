@@ -14,6 +14,10 @@
 		"python.analysis.importFormat": "relative",
 		"cSpell.words": [
 			"dotenv"
-		]
+		],
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.autopep8"
+		},
+		"python.formatting.provider": "none"
 	}
 }

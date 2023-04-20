@@ -21,8 +21,9 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
         from modules.file_directory.file_directory import deleteDirectories, createDirectories
-        from ibc_public import utils_data
-
+        from src.public_analysis_code.scripts import pipeline
+        
+        pipeline.clean_subject()
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------

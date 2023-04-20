@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
 from time import strftime
-from typing import Optional
+from typing import Any, Optional
 import subprocess
 from modules.saver.streamToLogger import StreamToLogger
 
@@ -10,7 +10,7 @@ import config
 
 class SaverClass:
     def __init__(self, user: str, host: str, pathToKey: str) -> None:
-        self.connection: "Optional[object]" = None
+        self.connection: subprocess.Popen[Any]
         self.user: str = user
         self.host: str = host
         self.userHost = f"{self.user}@{self.host}" 
@@ -40,40 +40,42 @@ class SaverClass:
         ]
         self.initiateSSHConnection()
 
-    def compress(self, filePathsToCompress: "list[Optional[str]]" = []) -> Optional[str]:
+    def compress(self, filePathsToCompress: "list[Optional[Path]]" = []) -> str:
         archivePath = None
         for filePathToCompress in filePathsToCompress:
             if (filePathToCompress):
                 path = Path(filePathToCompress)
 
                 if(path.is_file()):
-                    g.logger.info(f"Copying file '{str(path)}' to {str(self.uploadsDir)}'") # type: ignore
+                    g.logger.info(f"Copying file '{str(path)}' to {str(self.uploadsDir)}'")
                     shutil.copy2(src=str(path), dst=str(self.uploadsDir), follow_symlinks=True)
                 elif(path.is_dir()):
-                    g.logger.info(f"Copying directory '{str(path)}' to {str(self.uploadsDir)}'") # type: ignore
+                    g.logger.info(f"Copying directory '{str(path)}' to {str(self.uploadsDir)}'")
                     shutil.copytree(src=filePathToCompress, dst=self.uploadsDir) 
                 else:
-                    g.logger.error('Specified path is neither file nor directory: ' + str(path)) # type: ignore
+                    g.logger.error('Specified path is neither file nor directory: ' + str(path))
 
         archivePath = shutil.make_archive(
             base_name=f'{strftime("%d%m%Y-%H%M%S")}',
             format="zip",
             root_dir=self.uploadsDir.resolve(strict=True),
             base_dir=self.uploadsDir.resolve(strict=True),
-            logger=g.logger, # type: ignore
+            logger=g.logger,
             )
         
         return archivePath
 
     def closeSSH(self) -> None:
-        self.connection.stdin.write(b'exit\n') # type: ignore
-        self.connection.stdin.flush() # type: ignore
+        assert self.connection is object
+        assert self.connection.stdin is not None
+        self.connection.stdin.write(b'exit\n')
+        self.connection.stdin.flush()
 
     def initiateSSHConnection(self, terminateUponConnection: bool = True) -> Optional[bool]:
         try:
             self.connection = subprocess.Popen(self.sshCmd,stdin=subprocess.PIPE,
                                                stdout=StreamToLogger(g.logger, 20), # type: ignore
-                                               stderr=StreamToLogger(g.logger, 50)) # type: ignore
+                                               stderr=StreamToLogger(g.logger, 50))  # type: ignore
             if (terminateUponConnection):
                 self.closeSSH()
         except Exception:

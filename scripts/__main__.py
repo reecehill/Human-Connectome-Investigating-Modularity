@@ -13,6 +13,7 @@
 from pathlib import Path
 import traceback
 import modules.globals as g
+from scripts import config
 
 def main(user: str, host: str, pathToKey: str) -> None:
     try:
@@ -32,51 +33,57 @@ def main(user: str, host: str, pathToKey: str) -> None:
         try:
             g.logger = LoggerClass()
             g.logger = g.logger.run()
-            # From here, logs are shown both in-console and files
 
-
-            # ------------------------------------------------------------
-            # [START] Initializing.
-            # Initialize each step in the pipeline. This includes:
-            # 1) Clearing writeable folders.
-            # 2) Ensuring new filepaths and files are made where necessary.
-            # 3) Check that included modules are available on the system.
-            # ------------------------------------------------------------
+            # -- [START] LOGGER AVAILABLE 
             try:
-                g.saver = SaverClass(user, host, pathToKey)
-            except Exception:
-                raise
-            # ------------------------------------------------------------
-            # [END] Initializing.
-            # ------------------------------------------------------------
+                # ------------------------------------------------------------
+                # [START] Initializing.
+                # Initialize each step in the pipeline. This includes:
+                # 1) Clearing writeable folders.
+                # 2) Ensuring new filepaths and files are made where necessary.
+                # 3) Check that included modules are available on the system.
+                # ------------------------------------------------------------
+                try:
+                    g.saver = SaverClass(user, host, pathToKey)
+                except Exception:
+                    raise
+                # ------------------------------------------------------------
+                # [END] Initializing.
+                # ------------------------------------------------------------
 
-            # ------------------------------------------------------------
-            # [START] Running pipeline.
-            # Run each step in the pipeline. See each class "run" function for what occurs.
-            # ------------------------------------------------------------
-            g.logger.info("Ready to begin accepting steps") # type: ignore
+                # ------------------------------------------------------------
+                # [START] Running pipeline.
+                # Run each step in the pipeline. See each class "run" function for what occurs.
+                # ------------------------------------------------------------
+                try:
+                    g.logger.info("Ready to begin accepting steps")
 
-            # Test Save
-            archive: Path = g.saver.compress(filePathsToCompress=[g.logger.root.handlers[0].baseFilename]) # type: ignore
-            archive: Path = Path(archive).resolve(strict=True)
-            g.saver.rsync(archive)
-            
+                    # Test Save
+                    archive: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
+                    archivePath: Path = Path(archive).resolve(strict=True)
+                    g.saver.rsync(archivePath) 
+                    
 
-            g.logger.info("Script end") # type: ignore
-            # ------------------------------------------------------------
-            # [END] Running pipeline.
-            # ------------------------------------------------------------
+                    g.logger.info("Script end")
+                except:
+                    raise
+                # ------------------------------------------------------------
+                # [END] Running pipeline.
+                # ------------------------------------------------------------
+            except Exception as e:
+                g.logger.error("An error occurred", exc_info=e)
+                exit()
+            # -- [END] LOGGER AVAILABLE
             
         except Exception as e:
-            if hasattr(g.logger, 'exception'):
-                g.logger.exception(e, stack_info=True) # type: ignore
-            else:
-                print(traceback.format_exc())
-                exit()
+            print("There was an error instantiating the logger.")
+            print(traceback.format_exc())
+            exit()
         # ------------------------------------------------------------
             # [END] Initialize and run the logger.
         # ------------------------------------------------------------
     except Exception as e:
+        print("Failed to import necessary modules.")
         print(traceback.format_exc())
         exit()
 # ------------------------------------------------------------

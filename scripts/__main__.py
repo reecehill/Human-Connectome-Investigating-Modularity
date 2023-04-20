@@ -44,8 +44,8 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Wipe data from any previous runs.
                 # ------------------------------------------------------------
                 if (startAFresh):
-                    deleteDirectories([config.DATA_DIR.parent, config.UPLOADS_DIR.parent])
-                    createDirectories([config.DATA_DIR, config.UPLOADS_DIR])
+                    deleteDirectories([config.UPLOADS_DIR.parent])
+                    createDirectories([config.UPLOADS_DIR])
             except Exception as e:
                 raise
             

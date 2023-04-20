@@ -1,6 +1,6 @@
 Participants_Freesurfer_processed
 Participants
-uploads/*
+uploads
 logs
 UoN_project_key
 data
@@ -565,4 +565,3 @@ FodyWeavers.xsd
 *.sln.iml
 .env
 *.zip
-uploaded

@@ -4,7 +4,7 @@ try:
   import logging.config
   from logging import Logger 
   import config
-  from parameters.logging_schema import logging_schema
+  from includes.logging_schema import logging_schema
   from ..file_directory.file_directory import deleteDirectories, createDirectories
 except Exception as e:
   print(e)

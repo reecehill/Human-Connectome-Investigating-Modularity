@@ -2,7 +2,7 @@
 # CONFIGURATION FILE.
 # ----------
 from typing import Optional
-from parameters.automated import *
+from includes.automated import *
 
 # ----------
 # [START] SYSTEM PARAMETERS

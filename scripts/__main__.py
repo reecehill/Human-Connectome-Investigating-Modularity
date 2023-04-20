@@ -25,7 +25,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
-        
+            # EMPTY
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -63,26 +63,12 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     raise
 
                 # ------------------------------------------------------------
-                # [END] Load the global saver.
-                # ------------------------------------------------------------
-                
-                # [START] Initializing.
-                # Initialize each step in the pipeline. This includes:
-                # 1) Clearing writeable folders.
-                # 2) Ensuring new filepaths and files are made where necessary.
-                # 3) Check that included modules are available on the system.
-                # ------------------------------------------------------------
-
-                # ------------------------------------------------------------
-                # [END] Initializing.
-                # ------------------------------------------------------------
-
-
-                # ------------------------------------------------------------
                 # [START] Running pipeline.
                 # Run each step in the pipeline. See each class "run" function for what occurs.
                 # ------------------------------------------------------------
                 try:
+                    # getData()
+                    # confirmData()
                     g.logger.info("Ready to begin accepting steps")
 
                     # Test Save #1
@@ -164,5 +150,6 @@ if __name__ == "__main__":
         print("startAFresh: " + str(startAFresh))
         main(user, host, pathToKey, startAFresh)
     except Exception as e:
+        print(e)
         raise
     

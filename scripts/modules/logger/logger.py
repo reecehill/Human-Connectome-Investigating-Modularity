@@ -15,7 +15,7 @@ class LoggerClass:
       self.logger: Logger
       self.folderPathsNeeded: "list[Path]" = [config.LOGS_DIR]
       #self.filePathsNeeded: list[Optional[str]] = []
-      deleteDirectories(directoryPaths=self.folderPathsNeeded)
+      deleteDirectories(directoryPaths=[self.folderPathsNeeded[0].parent])
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     
   def run(self) -> Logger:

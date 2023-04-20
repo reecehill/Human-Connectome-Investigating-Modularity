@@ -1,3 +1,5 @@
+# pyright: basic
+
 """
 :Synopsis: script for distortion correction, preproc + stats
 on IBC datasets

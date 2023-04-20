@@ -15,19 +15,17 @@ import traceback
 import modules.globals as g
 import config
 
-def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
+def main(user: str, host: str, pathToKey: str, startAFresh: bool = False, awsConfigFile: str = "~/.aws/config") -> None:
     config.START_A_FRESH = startAFresh
     try:
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
         from modules.file_directory.file_directory import deleteDirectories, createDirectories
-        from src.public_analysis_code.scripts import pipeline
-        
-        pipeline.clean_subject()
+        import modules.downloader.downloader as downloader
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
-            # EMPTY
+        os.environ["AWS_CONFIG_FILE"] = awsConfigFile
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -46,8 +44,8 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Clear writeable folders from previous runs. (Optional)
                 # ------------------------------------------------------------
                 if (startAFresh):
-                    deleteDirectories([config.UPLOADS_DIR.parent], ignoreErrors=True)
-                    createDirectories(directoryPaths=[config.UPLOADS_DIR], createParents=True)
+                    deleteDirectories([config.UPLOADS_DIR.parent, config.DATA_DIR], ignoreErrors=False)
+                    createDirectories(directoryPaths=[config.UPLOADS_DIR, config.DATA_DIR], createParents=True)
             except Exception as e:
                 raise
             
@@ -69,7 +67,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Run each step in the pipeline. See each class "run" function for what occurs.
                 # ------------------------------------------------------------
                 try:
-                    # getData()
+                    downloader.getData()
                     # confirmData()
                     g.logger.info("Ready to begin accepting steps")
 
@@ -131,11 +129,13 @@ if __name__ == "__main__":
             parser.add_argument("-H", "--host", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-S", "--startAFresh", type=bool, default=False)
+            parser.add_argument("-A", "--awsConfigFile", type=bool, default="CLI_ARGUMENT_ERROR")
             args = parser.parse_args()
             user = args.user
             host = args.host
             pathToKey = args.pathToKey
             startAFresh = args.startAFresh
+            awsConfigFile = args.awsConfigFile
         else:
             import os
             from dotenv import load_dotenv
@@ -144,13 +144,14 @@ if __name__ == "__main__":
             host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
             startAFresh = os.getenv('DEFAULT_START_A_FRESH') == 'True' or False
+            awsConfigFile = os.getenv('DEFAULT_AWS_CONFIG_FILE') or "ENV_ERROR"
 
         print("Launching main using: ")
         print("User: "+user)
         print("Host: "+host)
         print("pathToKey: "+pathToKey)
         print("startAFresh: " + str(startAFresh))
-        main(user, host, pathToKey, startAFresh)
+        main(user, host, pathToKey, startAFresh, awsConfigFile)
     except Exception as e:
         print(e)
         raise

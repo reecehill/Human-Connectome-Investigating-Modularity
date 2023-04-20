@@ -31,17 +31,20 @@ class SaverClass:
 
     def compress(self, filePathsToCompress: "list[Path]" = []) -> str:
         self.uploadRunCount = self.uploadRunCount + 1 
+        filesToIgnore: "list[str]" = [".git", ".vscode", "__pycache__", "modules", "data", "uploads", "src", "typings", "project.egg-info"]
         archivePath = None
         rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
 
         def ignoreAllFiles(dir: str, files: "list[str]") -> "list[str]":
-            filesToIgnore: "list[str]" = [".git", ".vscode", "__pycache__", "modules", "data", "uploads"]
             for f in files:
                 filePath = (Path(dir) / f)
                 if(filePath.is_file() or (not filePath.exists()) or (filePath.is_dir() and f == config.TIMESTAMP_OF_SCRIPT)):
                     filesToIgnore.append(f)
             return filesToIgnore
         
+        def ignoreDefaultFiles(dir: str, files: "list[str]") -> "list[str]":
+            return [f for f in files if f not in filesToIgnore]
+                    
         # Copy project directory tree
         shutil.copytree(src=str(config.BASE_DIR), dst=rawPath, dirs_exist_ok=False, symlinks=False, ignore=ignoreAllFiles) 
         
@@ -55,7 +58,7 @@ class SaverClass:
                     shutil.copy2(src=str(filePathToCompress), dst=destPath, follow_symlinks=True)
                 elif(filePathToCompress.is_dir()):
                     g.logger.info(f"Copying directory '{str(filePathToCompress)}' to {destPath}'")
-                    shutil.copytree(src=filePathToCompress, dst=destPath, dirs_exist_ok=True) 
+                    shutil.copytree(src=filePathToCompress, dst=destPath, dirs_exist_ok=True, ignore=ignoreDefaultFiles) 
                 else:
                     g.logger.error('Specified path is neither file nor directory: ' + str(filePathToCompress))
         

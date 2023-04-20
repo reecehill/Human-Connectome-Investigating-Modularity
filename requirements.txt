@@ -16,4 +16,6 @@ scipy==1.10.1
 setuptools==56.0.0
 tqdm==4.65.0
 wordcloud==1.8.2.2
-preprocess==2.0.0
+
+# pip install datalad-installer
+# datalad-installer datalad

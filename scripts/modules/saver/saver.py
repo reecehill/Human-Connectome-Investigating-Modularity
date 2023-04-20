@@ -65,7 +65,6 @@ class SaverClass:
         return archivePath
 
     def closeSSH(self) -> None:
-        assert self.connection is object
         assert self.connection.stdin is not None
         self.connection.stdin.write(b'exit\n')
         self.connection.stdin.flush()

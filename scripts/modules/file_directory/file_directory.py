@@ -11,12 +11,12 @@ from typing import Union
 # [START]
 # ----------
 
-def deleteDirectories(directoryPaths: "list[Path]" = []) -> None:
+def deleteDirectories(directoryPaths: "list[Path]" = [], ignoreErrors: bool = False) -> None:
   for directoryPath in directoryPaths:
     if(directoryPath):
         if(directoryPath.exists()):
           try:
-            rmtree(path=directoryPath, ignore_errors=False)
+            rmtree(path=directoryPath, ignore_errors=ignoreErrors)
           except Exception:
             raise
             

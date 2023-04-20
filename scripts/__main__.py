@@ -44,8 +44,8 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Wipe data from any previous runs.
                 # ------------------------------------------------------------
                 if (startAFresh):
-                    deleteDirectories([config.UPLOADS_DIR.parent])
-                    createDirectories([config.UPLOADS_DIR])
+                    deleteDirectories([config.UPLOADS_DIR.parent], ignoreErrors=True)
+                    createDirectories(directoryPaths=[config.UPLOADS_DIR], createParents=True)
             except Exception as e:
                 raise
             
@@ -138,7 +138,7 @@ if __name__ == "__main__":
             user = os.getenv('DEFAULT_USER') or "ENV_ERROR"
             host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
-            startAFresh = bool(os.getenv('DEFAULT_START_A_FRESH')) or False
+            startAFresh = os.getenv('DEFAULT_START_A_FRESH') == 'True' or False
 
         print("Launching main using: ")
         print("User: "+user)

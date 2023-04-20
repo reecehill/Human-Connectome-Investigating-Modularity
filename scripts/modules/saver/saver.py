@@ -34,7 +34,7 @@ class SaverClass:
         rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
 
         def ignoreAllFiles(dir: str, files: "list[str]") -> "list[str]":
-            filesToIgnore: "list[str]" = []
+            filesToIgnore: "list[str]" = [".git", ".vscode", "_pycache_", "modules", "data", "uploads"]
             for f in files:
                 filePath = (Path(dir) / f)
                 if(filePath.is_file() or (not filePath.exists()) or (filePath.is_dir() and f == config.TIMESTAMP_OF_SCRIPT)):

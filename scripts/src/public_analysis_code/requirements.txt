@@ -10,7 +10,6 @@ nipype==1.8.6
 nistats==0.0.1rc0
 numpy==1.24.2
 pandas==2.0.0
-python-dotenv==1.0.0
 scikit_learn==1.2.2
 scipy==1.10.1
 setuptools==56.0.0

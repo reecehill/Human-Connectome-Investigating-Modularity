@@ -8,8 +8,6 @@ from parameters.automated import *
 # [START] SYSTEM PARAMETERS
 # ----------
 
-# EMPTY
-
 # ----------
 # [END] SYSTEM PARAMETERS
 # ----------

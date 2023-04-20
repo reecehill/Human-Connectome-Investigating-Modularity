@@ -1,6 +1,5 @@
 from pathlib import Path
 import shutil
-from time import strftime
 from typing import Any, Optional
 import subprocess
 from modules.saver.streamToLogger import StreamToLogger
@@ -56,7 +55,7 @@ class SaverClass:
                     g.logger.error('Specified path is neither file nor directory: ' + str(path))
 
         archivePath = shutil.make_archive(
-            base_name=f'{strftime("%d%m%Y-%H%M%S")}',
+            base_name=f'{config.TIMESTAMP_OF_SCRIPT}',
             format="zip",
             root_dir=self.uploadsDir.resolve(strict=True),
             base_dir=self.uploadsDir.resolve(strict=True),

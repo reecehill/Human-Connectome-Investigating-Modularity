@@ -13,16 +13,19 @@
 from pathlib import Path
 import traceback
 import modules.globals as g
-from scripts import config
+import config
 
-def main(user: str, host: str, pathToKey: str) -> None:
+def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
+    config.START_A_FRESH = startAFresh
     try:
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
+        from modules.file_directory.file_directory import deleteDirectories, createDirectories
+
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
-
+        
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -35,6 +38,17 @@ def main(user: str, host: str, pathToKey: str) -> None:
             g.logger = g.logger.run()
 
             # -- [START] LOGGER AVAILABLE 
+
+            try:
+                # ------------------------------------------------------------
+                # Wipe data from any previous runs.
+                # ------------------------------------------------------------
+                if (startAFresh):
+                    deleteDirectories([config.DATA_DIR.parent, config.UPLOADS_DIR.parent])
+                    createDirectories([config.DATA_DIR, config.UPLOADS_DIR])
+            except Exception as e:
+                raise
+            
             try:
                 # ------------------------------------------------------------
                 # [START] Initializing.
@@ -45,6 +59,7 @@ def main(user: str, host: str, pathToKey: str) -> None:
                 # ------------------------------------------------------------
                 try:
                     g.saver = SaverClass(user, host, pathToKey)
+                    
                 except Exception:
                     raise
                 # ------------------------------------------------------------
@@ -110,10 +125,12 @@ if __name__ == "__main__":
             parser.add_argument("-U", "--user", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-H", "--host", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR")
+            parser.add_argument("-S", "--startAFresh", type=bool, default=False)
             args = parser.parse_args()
             user = args.user
             host = args.host
             pathToKey = args.pathToKey
+            startAFresh = args.startAFresh
         else:
             import os
             from dotenv import load_dotenv
@@ -121,12 +138,14 @@ if __name__ == "__main__":
             user = os.getenv('DEFAULT_USER') or "ENV_ERROR"
             host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
+            startAFresh = bool(os.getenv('DEFAULT_START_A_FRESH')) or False
 
         print("Launching main using: ")
         print("User: "+user)
         print("Host: "+host)
         print("pathToKey: "+pathToKey)
-        main(user, host, pathToKey)
+        print("startAFresh: " + str(startAFresh))
+        main(user, host, pathToKey, startAFresh)
     except Exception as e:
         raise
     

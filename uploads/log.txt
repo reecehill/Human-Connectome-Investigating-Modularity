@@ -1,0 +1,4 @@
+19 Apr 23 10:55:19	INFO	logger.py	Logger is instantiated.
+19 Apr 23 10:55:19	INFO	logger.py	Logs are saved to: C:\Users\Reece\Documents\Dissertation\Main\uploaded\logs\log.txt
+19 Apr 23 10:55:41	INFO	__main__.py	Ready to begin accepting steps
+19 Apr 23 10:55:41	INFO	saver.py	Copying file 'C:\Users\Reece\Documents\Dissertation\Main\uploaded\logs\log.txt' to C:\Users\Reece\Documents\Dissertation\Main\uploaded'

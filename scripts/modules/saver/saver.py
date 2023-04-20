@@ -13,6 +13,7 @@ class SaverClass:
         self.user: str = user
         self.host: str = host
         self.uploadRunCount = 0
+        self.uploadName = ""
         self.userHost = f"{self.user}@{self.host}" 
         try:
             self.pathToKey: str = Path(
@@ -34,7 +35,7 @@ class SaverClass:
         rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
 
         def ignoreAllFiles(dir: str, files: "list[str]") -> "list[str]":
-            filesToIgnore: "list[str]" = [".git", ".vscode", "_pycache_", "modules", "data", "uploads"]
+            filesToIgnore: "list[str]" = [".git", ".vscode", "__pycache__", "modules", "data", "uploads"]
             for f in files:
                 filePath = (Path(dir) / f)
                 if(filePath.is_file() or (not filePath.exists()) or (filePath.is_dir() and f == config.TIMESTAMP_OF_SCRIPT)):

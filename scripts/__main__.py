@@ -41,7 +41,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
 
             try:
                 # ------------------------------------------------------------
-                # Wipe data from any previous runs.
+                # Clear writeable folders from previous runs. (Optional)
                 # ------------------------------------------------------------
                 if (startAFresh):
                     deleteDirectories([config.UPLOADS_DIR.parent], ignoreErrors=True)
@@ -49,22 +49,34 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
             except Exception as e:
                 raise
             
+           
             try:
                 # ------------------------------------------------------------
+                # [START] Load the global saver and upload current configuration.
+                # ------------------------------------------------------------
+                try:
+                    g.saver = SaverClass(user, host, pathToKey)
+                    compressedFiles: str = g.saver.compress(filePathsToCompress=[config.SCRIPTS_DIR / 'config.py', config.INCLUDES_DIR]) 
+                    archivePath: Path = Path(compressedFiles).resolve(strict=True)
+                    g.saver.saveToServer(archivePath) 
+                except Exception:
+                    raise
+
+                # ------------------------------------------------------------
+                # [END] Load the global saver.
+                # ------------------------------------------------------------
+                
                 # [START] Initializing.
                 # Initialize each step in the pipeline. This includes:
                 # 1) Clearing writeable folders.
                 # 2) Ensuring new filepaths and files are made where necessary.
                 # 3) Check that included modules are available on the system.
                 # ------------------------------------------------------------
-                try:
-                    g.saver = SaverClass(user, host, pathToKey)
-                    
-                except Exception:
-                    raise
+
                 # ------------------------------------------------------------
                 # [END] Initializing.
                 # ------------------------------------------------------------
+
 
                 # ------------------------------------------------------------
                 # [START] Running pipeline.
@@ -73,10 +85,15 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 try:
                     g.logger.info("Ready to begin accepting steps")
 
-                    # Test Save
+                    # Test Save #1
                     archive: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
                     archivePath: Path = Path(archive).resolve(strict=True)
-                    g.saver.rsync(archivePath) 
+                    g.saver.saveToServer(archivePath) 
+
+                    # Test Save #2
+                    archive: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
+                    archivePath: Path = Path(archive).resolve(strict=True)
+                    g.saver.saveToServer(archivePath) 
                     
 
                     g.logger.info("Script end")

@@ -12,6 +12,7 @@ class SaverClass:
         self.connection: subprocess.Popen[Any]
         self.user: str = user
         self.host: str = host
+        self.uploadRunCount = 0
         self.userHost = f"{self.user}@{self.host}" 
         try:
             self.pathToKey: str = Path(
@@ -23,39 +24,35 @@ class SaverClass:
                 "-T",
                 self.userHost,
                 "-i",
-                self.pathToKey]
-        self.rsyncCmd = [
-            "rsync",
-            "-avz",
-            "-e",
-            "ssh",
-            "-i",
-            self.pathToKey,
-            "-r",
-            config.UPLOADS_DIR,
-            "/",
-            #self.userHost,
-        ]
+                self.pathToKey,
+                "mkdir -p $HOME/PROJECT_TRANSFERS/"+config.TIMESTAMP_OF_SCRIPT]
         self.initiateSSHConnection()
 
     def compress(self, filePathsToCompress: "list[Path]" = []) -> str:
+        self.uploadRunCount = self.uploadRunCount + 1 
         archivePath = None
+        rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
+
+        # Copy project directory tree
+        shutil.copytree(src=str(config.BASE_DIR), dst=rawPath, dirs_exist_ok=True) 
+        
+
         for filePathToCompress in filePathsToCompress:
             if (filePathToCompress):
                 if(filePathToCompress.is_file()):
-                    g.logger.info(f"Copying file '{str(filePathToCompress)}' to {str(config.UPLOADS_DIR)}'")
+                    g.logger.info(f"Copying file '{str(filePathToCompress)}' to {rawPath}'")
                     shutil.copy2(src=str(filePathToCompress), dst=str(config.UPLOADS_DIR), follow_symlinks=True)
                 elif(filePathToCompress.is_dir()):
-                    g.logger.info(f"Copying directory '{str(filePathToCompress)}' to {str(config.UPLOADS_DIR)}'")
-                    shutil.copytree(src=filePathToCompress, dst=config.UPLOADS_DIR, dirs_exist_ok=True) 
+                    g.logger.info(f"Copying directory '{str(filePathToCompress)}' to {rawPath}'")
+                    shutil.copytree(src=filePathToCompress, dst=(Path(rawPath)), dirs_exist_ok=True) 
                 else:
                     g.logger.error('Specified path is neither file nor directory: ' + str(filePathToCompress))
-
+        
         archivePath = shutil.make_archive(
-            base_name=f'{config.TIMESTAMP_OF_SCRIPT}',
+            base_name=f"{(config.UPLOADS_DIR / 'compressed' / str(self.uploadRunCount)).resolve(strict=False)}",
             format="zip",
-            root_dir=config.UPLOADS_DIR.resolve(strict=True),
-            base_dir=config.UPLOADS_DIR.resolve(strict=True),
+            root_dir=str(rawPath),
+            base_dir='./',
             logger=g.logger,
             )
         
@@ -87,7 +84,7 @@ class SaverClass:
         except Exception:
             raise
 
-    def rsync(self, fileToUploadPath : Path) -> None:
+    def saveToServer(self, fileToUploadPath : Path) -> None:
         try:
             self.rsyncCmd = [
             "scp",
@@ -97,19 +94,9 @@ class SaverClass:
             "-r",
             "-v",
             fileToUploadPath.resolve() or config.UPLOADS_DIR.__str__(),
-            f'{self.userHost}:$HOME/PROJECT_TRANSFERS/',
+            f'{self.userHost}:$HOME/PROJECT_TRANSFERS/{config.TIMESTAMP_OF_SCRIPT}',
         ]
-            #cmd = " ".join(map(str,self.rsyncCmd)) + "\n"
-            #self.initiateSSHConnection(terminateUponConnection=False)
             self.initiateSCPConnection()
             self.connection.communicate()
-        except Exception:
-            raise
-        
-        
-    def upload(self, filesToSave: "list[Optional[str]]" = [], directoriesToSave: "list[Optional[str]]" = []) -> None:
-        try:
-            self.initiateSSHConnection(terminateUponConnection=False)
-            #self.rsync(local=config.UPLOADS_DIR.__str__(), dst="/")
         except Exception:
             raise

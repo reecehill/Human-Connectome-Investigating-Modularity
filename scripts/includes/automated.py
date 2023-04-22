@@ -23,7 +23,7 @@ START_A_FRESH = False
 BASE_DIR: Path = Path(__file__).parent.parent.parent.resolve(strict=True)
 SCRIPTS_DIR: Path = (BASE_DIR / "scripts").resolve(strict=True)
 INCLUDES_DIR: Path = (SCRIPTS_DIR / "includes").resolve(strict=True)
-DATA_DIR: Path = (SCRIPTS_DIR / "data").resolve(strict=True)
+DATA_DIR: Path = (BASE_DIR / "data").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
 def getLogDirectoryPath(userSubmitted: str) -> Path:
   LOGS_DIR: Path = (BASE_DIR / userSubmitted / TIMESTAMP_OF_SCRIPT).resolve(strict=False)

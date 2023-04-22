@@ -67,10 +67,14 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False, awsCon
                 # Run each step in the pipeline. See each class "run" function for what occurs.
                 # ------------------------------------------------------------
                 try:
-                    downloader.getData()
+                    downloader.buildDataDirectory()
+                    #for i in ['sub-01', 'sub-02', 'sub-04', 'sub-05', 'sub-06', 'sub-07', 'sub-08', 'sub-09', 'sub-11', 'sub-12', 'sub-13', 'sub-14', 'sub-15']:
+                    for i in ['sub-01']:
+                        file = (config.DATA_DIR / i / 'ses-00' / 'anat' / f"{i}_ses-00_FLAIR.nii.gz").__str__()
+                        downloader.downloadFile(file)
                     # confirmData()
                     g.logger.info("Ready to begin accepting steps")
-
+                    downloader.clean() 
                     # Test Save #1
                     archive: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
                     archivePath: Path = Path(archive).resolve(strict=True)

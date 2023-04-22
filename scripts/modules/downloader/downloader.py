@@ -1,16 +1,16 @@
-import config
-from .ProgressPercentage import ProgressPercentageClass
+from typing import Any
 import modules.globals as g
 import datalad.api as dl
 
-def getData():
+def buildDataDirectory() -> "list[Any]":
   g.logger.info("Building dataset")
-  def resultFilter(ok):
-    print("ok")
-    print("ok")
-    pass
-  def resultXfm(ok):
-    print("ok")
-    print("ok")
-    pass
-  dataset = dl.install(source="https://github.com/OpenNeuroDatasets/ds002685.git", path=config.DATA_DIR,result_filter=resultFilter, result_xfm=resultXfm)
+  #return dl.install(source="https://github.com/OpenNeuroDatasets/ds002685", path=config.DATA_DIR, return_type="list")
+
+def downloadFile(filePath: str) -> "list[Any]":
+  g.logger.info("Downloading "+filePath)
+  file = dl.get(filePath, return_type="list", get_data=True, recursive=True)  
+  ok= dl.unlock(path=filePath)
+  return file
+
+def clean():
+  dl.clean()

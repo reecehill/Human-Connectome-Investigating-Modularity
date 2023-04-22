@@ -1,7 +1,7 @@
 cortex>=0.42.1
 datalad>=0.12.4
 dipy>=1.6.0
-librosa>=0.10.0.post2
+#librosa>=0.10.0.post2
 matplotlib>=3.7.1
 mayavi>=4.8.1
 nibabel>=5.1.0

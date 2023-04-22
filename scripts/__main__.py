@@ -15,7 +15,8 @@ import traceback
 import modules.globals as g
 import config
 
-def main(user: str, host: str, pathToKey: str, startAFresh: bool = False, awsConfigFile: str = "~/.aws/config") -> None:
+def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
+    import config
     config.START_A_FRESH = startAFresh
     try:
         from modules.logger.logger import LoggerClass
@@ -25,7 +26,6 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False, awsCon
         # ------------------------------------------------------------
         # [START] Check environment.
         # ------------------------------------------------------------
-        os.environ["AWS_CONFIG_FILE"] = awsConfigFile
         # ------------------------------------------------------------
             # [END] Check environment.
         # ------------------------------------------------------------
@@ -148,14 +148,13 @@ if __name__ == "__main__":
             host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
             startAFresh = os.getenv('DEFAULT_START_A_FRESH') == 'True' or False
-            awsConfigFile = os.getenv('DEFAULT_AWS_CONFIG_FILE') or "ENV_ERROR"
 
         print("Launching main using: ")
         print("User: "+user)
         print("Host: "+host)
         print("pathToKey: "+pathToKey)
         print("startAFresh: " + str(startAFresh))
-        main(user, host, pathToKey, startAFresh, awsConfigFile)
+        main(user, host, pathToKey, startAFresh)
     except Exception as e:
         print(e)
         raise

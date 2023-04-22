@@ -1,5 +1,5 @@
 {
-  "include": ["scripts/modules/**/*"],
+  "include": ["scripts/*","scripts/**/*"],
 
   "exclude": [
     "**/node_modules",
@@ -16,7 +16,7 @@
   },
 
   "stubPath": "typings/stubs",
-  "venv": "env367",
+  //"venv": "env367",
 
   "reportMissingImports": true,
   "reportMissingTypeStubs": true,
@@ -26,22 +26,8 @@
 
   "executionEnvironments": [
     {
-      "root": "src/web",
+      "root": "scripts",
       "pythonVersion": "3.8",
-      "pythonPlatform": "Windows",
-      "extraPaths": ["src/service_libs"]
-    },
-    {
-      "root": "src/sdk",
-      "pythonVersion": "3.8",
-      "extraPaths": ["src/backend"]
-    },
-    {
-      "root": "src/tests",
-      "extraPaths": ["src/tests/e2e", "src/sdk"]
-    },
-    {
-      "root": "src"
     }
   ]
 }

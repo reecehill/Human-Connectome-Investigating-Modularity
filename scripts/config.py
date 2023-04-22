@@ -1,8 +1,8 @@
+from includes.automated import *
+from typing import Optional
 # ----------
 # CONFIGURATION FILE.
 # ----------
-from typing import Optional
-from includes.automated import *
 
 # ----------
 # [START] SYSTEM PARAMETERS

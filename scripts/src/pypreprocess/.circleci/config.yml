@@ -1,0 +1,89 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/buildpack-deps:16.04
+    parallelism: 1
+    environment:
+      DISTRIB: "conda"
+      PYTHON_VERSION: "*"
+      NUMPY_VERSION: "*"
+      SCIPY_VERSION: "*"
+      SCIKIT_LEARN_VERSION: "*"
+      MATPLOTLIB_VERSION: "*"
+      NIPYPE_VERSION: "*"
+
+    steps:
+      - checkout
+      # Get rid of existing virtualenvs on circle ci as they conflict with conda.
+      # Trick found here:
+      # https://discuss.circleci.com/t/disable-autodetection-of-project-or-application-of-python-venv/235/10
+      - run: cd && rm -rf ~/.pyenv && rm -rf ~/virtualenvs
+      # We need to remove conflicting texlive packages.
+      - run: sudo -E apt-get -yq remove texlive-binaries --purge
+      - restore_cache:
+          key: spm12+datasets+pypi-{{ .Branch }}
+
+      - run:
+          name: Download & install conda if absent
+          command: |
+            if
+              ls $HOME/miniconda3/bin | grep conda -q
+            then
+              echo "(Mini)Conda already present from the cache."
+            else
+              wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O ~/miniconda.sh
+              chmod +x ~/miniconda.sh && ~/miniconda.sh -b
+            fi
+      - run:
+          name: Setup conda path in env variables
+          command: |
+            echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
+      - run:
+          name: Create new conda env
+          command: |
+            if
+              conda env list | grep testenv
+            then
+              echo "Conda env testenv already exists courtesy of the cache."
+            else
+              conda create -n testenv -yq
+            fi
+
+      - run:
+          name: Installing SPM & exporting its paths + other path
+          command: |
+            source activate testenv
+            sudo apt-get update
+            sudo apt-get install bc
+            source continuous_integration/setup_spm.sh
+            echo 'export SPM_ROOT_DIR="$HOME/opt/spm12"' >> $BASH_ENV
+            echo 'export SPM_DIR="$SPM_ROOT_DIR/spm12/"' >> $BASH_ENV
+            echo 'export SPM_MCR="$SPM_ROOT_DIR/spm12.sh"' >> $BASH_ENV
+            echo 'export PATH="/home/circleci/.local/bin:$PATH"' >> $BASH_ENV
+            pip install --upgrade pip
+            pip install scipy sklearn nibabel nilearn configobj coverage pytest -q
+            pip install matplotlib pandas nipype --ignore-installed -q
+            python setup.py install --user
+            python -c "from pypreprocess import datasets; datasets.fetch_spm_auditory(); datasets.fetch_spm_multimodal_fmri(); datasets.fetch_fsl_feeds()"
+            sudo chown -R $USER:$USER /home/circleci/
+            sudo chmod 755 /home/circleci/opt/spm12/spm12/spm12
+            sudo chmod 777 /home/circleci/.matlab/mcr_v97/
+            python examples/easy_start/nipype_preproc_spm_auditory.py
+            python examples/pipelining/nistats_glm_fsl_feeds_fmri.py
+            python examples/pipelining/nipype_preproc_spm_multimodal_faces.py
+            sh continuous_integration/clean_output.sh
+      - save_cache:
+          key: spm12+datasets+pypi-{{ .Branch }}
+          paths:
+            - $SPM_ROOT_DIR
+            - $HOME/nilearn_data
+            - $HOME/.local/bin
+
+      - store_artifacts:
+         path: $HOME/nilearn_data/spm_auditory/pypreprocess_output/
+      - store_artifacts:
+         path: $HOME/nilearn_data/spm_multimodal_fmri/pypreprocess_output/
+      - store_artifacts:
+         path: $HOME/nilearn_data/fsl_feeds/pypreprocess_output/

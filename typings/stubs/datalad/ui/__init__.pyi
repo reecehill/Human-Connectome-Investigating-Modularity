@@ -23,7 +23,7 @@ class _UI_Switcher:
         ...
     
     @property
-    def backend(self): # -> str | None:
+    def backend(self): # -> None:
         ...
     
     @property

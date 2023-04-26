@@ -11,9 +11,11 @@
 # [START] main()
 # ------------------------------------------------------------
 from pathlib import Path
+import subprocess
 import traceback
+from typing import Any
 import modules.globals as g
-import config
+from .modules.saver.streamToLogger import StreamToLogger
 
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config
@@ -22,13 +24,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
         from modules.file_directory.file_directory import deleteDirectories, createDirectories
-        import modules.downloader.downloader as downloader
-        # ------------------------------------------------------------
-        # [START] Check environment.
-        # ------------------------------------------------------------
-        # ------------------------------------------------------------
-            # [END] Check environment.
-        # ------------------------------------------------------------
+        import modules.pipeline.pipeline as pipeline
 
         # ------------------------------------------------------------
         # [START] Load and run the global logger.
@@ -39,6 +35,34 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
 
             # -- [START] LOGGER AVAILABLE 
 
+            # ------------------------------------------------------------
+            # [START] Check environment.
+            # ------------------------------------------------------------
+            try:
+                # Check pyprocess works.
+                cmd1 = f"cd {(config.SCRIPTS_DIR / 'src' / 'pypreprocess' / 'examples' / 'easy_start').resolve(strict=True).__str__()}"
+                cmd1 = 'python -c "import nipype; print(nipype.__version__)"'
+                cmd2 = 'python -c "import nipype; nipype.test()"'
+                cmd3 = "python nipype_preproc_spm_auditory.py"
+                check: subprocess.Popen[Any] = subprocess.Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
+                                         shell=True,
+                                         stdin=subprocess.PIPE, # type: ignore
+                                         stdout=StreamToLogger(g.logger, 20), # type: ignore
+                                         stderr=StreamToLogger(g.logger, 50), # type: ignore
+                                         close_fds=True)
+                
+                if(check is not 0):
+                    g.logger.info("There was a problem finding the SPM12 installation.")
+                    subprocess.Popen([". continuous_integration/install_spm12.sh"])
+            except Exception as e:
+                raise
+            # Ensure pyprocess has its SPM12 pre-compiled version of the programme installed.
+            # subprocess.popen([". continuous_integration/install_spm12.sh"])
+            
+            # ------------------------------------------------------------
+                # [END] Check environment.
+            # ------------------------------------------------------------
+        
             try:
                 # ------------------------------------------------------------
                 # Clear writeable folders from previous runs. (Optional)
@@ -67,14 +91,21 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Run each step in the pipeline. See each class "run" function for what occurs.
                 # ------------------------------------------------------------
                 try:
-                    downloader.buildDataDirectory()
+                    # (1) RETRIEVE BRAIN SCAN TREE DIRECTORY.
+                    pipeline.getData()
+
+                    # (2) PREPROCESSING DATA
+                    pipeline.preprocessData()
+                    
+                    
                     #for i in ['sub-01', 'sub-02', 'sub-04', 'sub-05', 'sub-06', 'sub-07', 'sub-08', 'sub-09', 'sub-11', 'sub-12', 'sub-13', 'sub-14', 'sub-15']:
                     for i in ['sub-01']:
-                        file = (config.DATA_DIR / i / 'ses-00' / 'anat' / f"{i}_ses-00_FLAIR.nii.gz").__str__()
+                        file = (config.DATA_DIR / 'ds002685' / i / 'ses-00' / 'anat' / f"{i}_ses-00_" "acq-tse_T2w" ".nii.gz").__str__()
                         downloader.downloadFile(file)
+                        
                     # confirmData()
                     g.logger.info("Ready to begin accepting steps")
-                    downloader.clean() 
+
                     # Test Save #1
                     archive: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
                     archivePath: Path = Path(archive).resolve(strict=True)
@@ -139,7 +170,6 @@ if __name__ == "__main__":
             host = args.host
             pathToKey = args.pathToKey
             startAFresh = args.startAFresh
-            awsConfigFile = args.awsConfigFile
         else:
             import os
             from dotenv import load_dotenv

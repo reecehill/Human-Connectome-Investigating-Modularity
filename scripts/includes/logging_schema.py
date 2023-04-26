@@ -2,7 +2,7 @@
 # [START] Logging schema, taken from:
 # https://stackoverflow.com/questions/7507825/where-is-a-complete-example-of-logging-config-dictconfig
 # ----------
-from ..config import LOGS_DIR
+from config import LOGS_DIR
 
 logging_schema = {
     # Always 1. Schema versioning may be added in a future release of logging

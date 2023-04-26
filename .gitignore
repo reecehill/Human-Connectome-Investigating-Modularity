@@ -1,15 +1,11 @@
 Participants_Freesurfer_processed
 Participants
-uploads/*
-!uploads/.gitkeep
-logs/*
-!logs/.gitkeep
-data/*
-!data/.gitkeep
+uploads
+logs
 UoN_project_key
-
-
+data
 # Byte-compiled / optimized / DLL files
+__pycache__/*
 *.py[cod]
 *$py.class
 

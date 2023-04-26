@@ -24,10 +24,10 @@ import numpy as np
 from nilearn.image import smooth_img
 
 
-work_dir = '/neurospin/ibc/derivatives'
+work_dir = '/mnt/c/Users/Reece/Documents/Dissertation/Main/data'
 subjects = ['sub-%02d' % i for i in [1, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]]
 subjects = ['sub-%02d' % i for i in [2]]
-mem = Memory(base_dir='/neurospin/tmp/ibc')
+mem = Memory(base_dir='/mnt/c/Users/Reece/Documents/Dissertation/Main/tmp')
 
 # Step 1: Perform recon-all
 os.environ['SUBJECTS_DIR'] = ''

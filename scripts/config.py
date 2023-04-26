@@ -4,19 +4,40 @@
 
 from typing import Optional
 from includes.automated import *
+import includes.all_subjects
 
 # ----------
-# [START] SYSTEM PARAMETERS
+# [START] PIPELINE PARAMETERS
+# ----------
+PREPROCESS = False # Not implemented
+EAGER_LOAD_DATA = False # Not implemented
+RUN_DSI_STUDIO = True
+USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
+RUN_MATLAB_DIFFUSION = True
+RUN_MATLAB_FUNCTIONAL = True
+RUN_MATLAB_MAPPING = True
+MATLAB_CALCULATE_STATS = True
+# ----------
+# [END] PIPELINE PARAMETERS
 # ----------
 
 # ----------
-# [END] SYSTEM PARAMETERS
+# [START] PROCESSING PARAMETERS
 # ----------
+NUMBER_OF_TRACTS = 10000000
+PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
+DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
+# ----------
+# [END] PROCESSING PARAMETERS
+# ----------
+
 
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-PARTICIPANTS = ['sub-01', 'sub-02', 'sub-04', 'sub-05', 'sub-06', 'sub-07', 'sub-08', 'sub-09', 'sub-11', 'sub-12', 'sub-13', 'sub-14', 'sub-15']
+#ALL_SUBJECTS: "list[str]" = includes.all_subjects.all_subjects
+ALL_SUBJECTS: "list[str]" = ["100610"]
 
 # ----------
 # [END] PARTICIPANT PARAMETERS
@@ -39,3 +60,4 @@ EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code com
 # DO NOT EDIT BELOW THIS LINE
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
+DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)

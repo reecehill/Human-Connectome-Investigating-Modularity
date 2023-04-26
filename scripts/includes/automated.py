@@ -10,6 +10,7 @@ try:
 except Exception as e:
   print(e)
   exit()
+from subprocess import run, PIPE
 
 def getLogDirectoryPath(userSubmitted: str) -> Path:
   LOGS_DIR: Path = (BASE_DIR / userSubmitted / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
@@ -28,6 +29,15 @@ def getSpmDir(userSubmitted: str = "") -> Path:
       print("The SPM12 installation directory provided could not be found. Try again, providing an absolute path from root.")
       raise
 
+def getDiffusionFolder(use7TDiffusion: bool = False):
+  append = ""
+  if(use7TDiffusion): append = "_7T"
+  return f'Diffusion{append}' 
+
+def getPathOfExecutable(executable: str) -> str:
+  pathToExecutable =  run(['which', executable], stdout=PIPE).stdout.decode('utf-8')
+  return pathToExecutable
+
 TIMESTAMP_OF_SCRIPT = strftime("%d%m%Y-%H%M%S")
 START_A_FRESH = False
 
@@ -40,18 +50,17 @@ INCLUDES_DIR: Path = (SCRIPTS_DIR / "includes").resolve(strict=True)
 DATA_DIR: Path = (BASE_DIR / "data").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
 
-
 # ----------
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
 
 
 # ----------
-# [START] LOGGING PARAMETERS
+# [START] EXECUTABLE PATHS
 # ----------
-
-
+DSI_STUDIO = getPathOfExecutable('dsistudio')
+MATLAB = getPathOfExecutable('spm')
 
 # ----------
-# [END] LOGGING PARAMETERS
+# [END] EXECUTABLE PATHS
 # ----------

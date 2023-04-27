@@ -14,7 +14,7 @@ logging_schema = {
             # class is always "logging.Formatter"
             "class": "logging.Formatter",
             # Optional: logging output format
-            "format": " '%(asctime)s [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(levelname)-8s %(message)s'",
+            "format": "'%(asctime)s [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(levelname)-8s %(message)s'",
             # Optional: asctime format
             "datefmt": "%d %b %y %H:%M:%S"
         }
@@ -71,7 +71,7 @@ logging_schema = {
     },
     # Just a standalone kwarg for the root logger
     "root": {
-        "level": "DEBUG",
+        "level": "INFO",
         "handlers": ["file", "console"]
     }
 }

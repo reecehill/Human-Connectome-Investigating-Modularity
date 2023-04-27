@@ -1,7 +1,4 @@
-from io import TextIOWrapper
 from pathlib import Path
-import subprocess
-from typing import Any
 import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile

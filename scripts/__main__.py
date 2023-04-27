@@ -15,8 +15,6 @@ import subprocess
 import traceback
 from typing import Any
 import modules.globals as g
-#from scripts.modules.ibc_data_manager import downloader
-from modules.hcp_data_manager import downloader
 from modules.saver.streamToLogger import StreamToLogger
 
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
@@ -71,8 +69,15 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # Clear writeable folders from previous runs. (Optional)
                 # ------------------------------------------------------------
                 if (startAFresh):
-                    deleteDirectories([config.UPLOADS_DIR.parent, config.DATA_DIR], ignoreErrors=False)
-                    createDirectories(directoryPaths=[config.UPLOADS_DIR, config.DATA_DIR], createParents=True)
+                    g.logger.info("Deleting uploads ?and data folder? from previous runs.")
+                    deleteDirectories([config.UPLOADS_DIR.parent,
+                                       #config.DATA_DIR
+                                       ], ignoreErrors=False)
+
+                    g.logger.info("Creating uploads ?and data? folder.")
+                    createDirectories(directoryPaths=[config.UPLOADS_DIR,
+                                                      #config.DATA_DIR
+                                                      ], createParents=True)
             except Exception as e:
                 raise
             
@@ -82,6 +87,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # [START] Load the global saver and upload current configuration.
                 # ------------------------------------------------------------
                 try:
+                    g.logger.info("Instantiating saver class...")
                     g.saver = SaverClass(user, host, pathToKey)
                     compressedFiles: str = g.saver.compress(filePathsToCompress=[config.SCRIPTS_DIR / 'config.py', config.INCLUDES_DIR]) 
                     archivePath: Path = Path(compressedFiles).resolve(strict=True)

@@ -28,7 +28,7 @@ logging_schema = {
             "class": "logging.StreamHandler",
             # This is the formatter name declared above
             "formatter": "standard",
-            "level": "INFO",
+            "level": "DEBUG",
             # The default is stderr
             "stream": "ext://sys.stdout"
         },
@@ -52,11 +52,26 @@ logging_schema = {
             "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": True
+        },
+        "boto3": {
+            "level": "INFO",
+            "handlers": ["console", "file"],
+            "propagate": True,
+        },
+        "botocore": {
+            "level": "INFO",
+            "handlers": ["console", "file"],
+            "propagate": True,
+        },
+        "nose": {
+            "level": "INFO",
+            "handlers": ["console", "file"],
+            "propagate": True,
         }
     },
     # Just a standalone kwarg for the root logger
     "root": {
-        "level": "INFO",
+        "level": "DEBUG",
         "handlers": ["file", "console"]
     }
 }

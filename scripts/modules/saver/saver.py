@@ -30,8 +30,10 @@ class SaverClass:
         self.initiateSSHConnection()
 
     def compress(self, filePathsToCompress: "list[Path]" = []) -> str:
+        g.logger.info("Compressing files for saving.")
         self.uploadRunCount = self.uploadRunCount + 1 
-        filesToIgnore: "list[str]" = [".git", ".vscode", "__pycache__", "modules", "data", "uploads", "src", "typings", "project.egg-info"]
+        g.logger.info(f"Upload run count: {self.uploadRunCount}")
+        filesToIgnore: "list[str]" = ["Participants", "tmp", ".git", ".vscode", "__pycache__", "modules", "data", "uploads", "src", "typings", "project.egg-info"]
         archivePath = None
         rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
 

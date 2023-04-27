@@ -2,9 +2,46 @@
 # CONFIGURATION FILE.
 # ----------
 
+import multiprocessing
 from typing import Optional
 from includes.automated import *
 import includes.all_subjects
+
+
+CPU_THREADS = multiprocessing.cpu_count()
+#CPU_THREADS = 5
+
+# ----------
+# [START] DSI STUDIO PARAMETERS
+# ----------
+"""
+0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
+"""
+DSI_STUDIO_RECONSTRUCTION_METHOD = 4
+
+"""
+0:streamline (default), 1:rk4 
+"""
+DSI_STUDIO_TRACKING_METHOD = 1
+
+DSI_STUDIO_FIBRE_COUNT = 1000
+DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
+DSI_STUDIO_FA_THRESH = 0
+DSI_STUDIO_OTSU_THRESH = 0.6
+DSI_STUDIO_INITIAL_DIREC = 0 # initial propagation direction 0:primary fiber, 1:random, 2:all fiber orientations
+DSI_STUDIO_SEED_PLAN = 0 # specify the seeding strategy 0:subvoxel random, 1:voxelwise center
+DSI_STUDIO_INTERPOLATION = 0 #interpolation methods (0:trilinear, 1:gaussian radial, 2:nearest neighbor)
+DSI_STUDIO_RANDOM_SEED = 0 # specify whether a timer is used for generating seed points. Setting it on (--random_seed=1) will make tracking random. The default is off. 
+DSI_STUDIO_STEP_SIZE = 0.625
+DSI_STUDIO_TURNING_ANGLE = 60
+DSI_STUDIO_SMOOTHING =0
+DSI_STUDIO_MIN_LENGTH = 10
+DSI_STUDIO_MAX_LENGTH = 300
+DSI_STUDIO_REF_IMG = "" # was aparc+aseg.nii.gz image.
+
+# ----------
+# [END] DSI STUDIO PARAMETERS
+# ----------
 
 # ----------
 # [START] PIPELINE PARAMETERS
@@ -48,7 +85,7 @@ ALL_SUBJECTS: "list[str]" = ["100610"]
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "" # From root, resolvable by Path.resolve(). If empty, a default is used.
-
+dsiStudioPath: str = "/home/reece/dsistudio/dsi_studio" # From root, resolvable by Path.resolve(). REQUIRED.
 
 EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
@@ -61,3 +98,4 @@ EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code com
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
+DSI_STUDIO = getPathOfExecutable(executable="dsistudio", userSubmitted=dsiStudioPath)

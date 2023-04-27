@@ -5,7 +5,6 @@ import os
 import config
 import modules.globals as g
 from modules.file_directory.file_directory import createDirectories
-from modules.saver.streamToLogger import StreamToLogger
 import sys
 
 def getRemotePathOf(localPath: Path) -> str:

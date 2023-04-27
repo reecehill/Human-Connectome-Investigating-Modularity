@@ -1,12 +1,10 @@
 from pathlib import Path
 import subprocess
 from typing import Any
-from modules.saver.streamToLogger import StreamToLogger
 import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
-import multiprocessing
 
 def generateSrcFile(subjectId: str) -> bool:
   sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )

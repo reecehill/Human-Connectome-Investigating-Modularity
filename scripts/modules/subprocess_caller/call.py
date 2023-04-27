@@ -15,6 +15,6 @@ def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]"
   assert process.stdout is not None
   with TextIOWrapper(process.stdout):
     for line in iter(process.stdout.readline, b''): # b'\n'-separated lines
-        g.logger.info(msg=f"{cmdLabel}: "+line.decode())
+        g.logger.info(msg=f"{cmdLabel}: "+line.decode().rstrip())
     
   return process.returncode == 0

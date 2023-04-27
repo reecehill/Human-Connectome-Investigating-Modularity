@@ -64,7 +64,7 @@ end
  %%  assign freesurfer ROI labels to each face
  
  for i=1:length(subjects)
-     [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i}],type,downsample,rate);
+     [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels([pathToFile,subjects{i}],subjects{i},type,downsample,rate);
  %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
      % save data
      filename=[pathToFile,subjects{i},'/labelSRF.mat'];

@@ -1,5 +1,5 @@
-function [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels(pathToFile,type,downsample,rate)
-addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
+function [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels(pathToFile,subjectId,type,downsample,rate)
+addpath(genpath('toolboxes/SurfStat'));
 %% load label info
 display('step2: load surface node coordinates and their denoted label')
 
@@ -16,15 +16,15 @@ atlas=ft_read_mri([pathToFile,'/T1w/aparc+aseg.nii.gz']);% load aparc+aseg.nii t
 if type==1
     for i=1:nbROI
         ROIfacevert(i,1).id=filenames(i);
-        ROIfacevert(i,1).faces=importfile([pathToFile,'/data/bert/label/label_type1/',filenames{i}]);    
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/T1w/',subjectId,'/label/label_type1/',filenames{i}]);    
     end
     % load hi-res surface - pial.surf.gii
     display('load lh(rh).pial.surf.gii as surface')
     
-    giftilh=gifti([pathToFile,'/data/bert/surf/lh.pial.surf.gii']);
+    giftilh=gifti([pathToFile,'/T1w/',subjectId,'/surf/lh.pial.surf.gii']);
     glpfaces      = giftilh.faces;
     glpvertex     = giftilh.vertices;
-    giftirh=gifti([pathToFile,'/data/bert/surf/rh.pial.surf.gii']);
+    giftirh=gifti([pathToFile,'/T1w/',subjectId,'/surf/rh.pial.surf.gii']);
     grpfaces      = giftirh.faces;
     grpvertex     = giftirh.vertices;
     clear giftilh giftirh 
@@ -33,13 +33,13 @@ if type==1
 elseif type==2
     for i=1:nbROI
         ROIfacevert(i,1).id=filenames(i);
-        ROIfacevert(i,1).faces=importfile([pathToFile,'/data/bert/label/label_type2/',filenames{i}]);    
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/T1w/',subjectId,'/label/label_type2/',filenames{i}]);    
     end
     % load hi-res surface - pial
     display('load lh(rh).pial as surface')
     
-    l=SurfStatReadSurf([pathToFile,'/data/bert/surf/lh.pial.windowsSymlink']);
-    r=SurfStatReadSurf([pathToFile,'/data/bert/surf/rh.pial.windowsSymlink']);
+    l=SurfStatReadSurf([pathToFile,'/T1w/',subjectId,'/surf/lh.pial']);
+    r=SurfStatReadSurf([pathToFile,'/T1w/',subjectId,'/surf/rh.pial']);
     glpfaces = l.tri;
     glpvertex = l.coord';
     grpfaces = r.tri;

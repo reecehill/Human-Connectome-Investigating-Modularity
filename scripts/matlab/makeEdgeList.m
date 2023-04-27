@@ -1,12 +1,12 @@
 function [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList(pathToFile,downsample)
 clear ft_hastoolbox;
 restoredefaultpath;
-addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\AlongTractStats');
-addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Gifti');
-addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\Iso2Mesh');
-addpath(genpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\SurfStat'));
-addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
-addpath('C:\Users\Reece\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip');
+addpath('toolboxes/AlongTractStats');
+addpath('toolboxes/Gifti');
+addpath('toolboxes/Iso2Mesh');
+addpath(genpath('toolboxes/SurfStat'));
+addpath(genpath('toolboxes/spm12'));
+addpath('toolboxes/FieldTrip');
 ft_defaults;
 
 display('step3: check if there are fibres connected between node pairs')

@@ -5,7 +5,6 @@ import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
-import matlab.engine
 
 def generateSrcFile(subjectId: str) -> bool:
   sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )
@@ -114,10 +113,6 @@ def runDsiStudio(subjectId: str) -> bool:
 
 
 def matlabProcessDiffusion(subjectId: str) -> bool:
-
-  g.logger.info("test")
-  eng = matlab.engine.start_matlab()
-  eng.myMatlabFile(nargout=0) # Expects a file named myMatlabFile.m in the same directory
   g.logger.info("Running MATLAB: converting tracked fibres into endpoints and adjacency matrices.")
   driveAndPathToSubjects = (config.DATA_DIR / 'subjects').resolve(strict=True).__str__()+"/"
   scriptFolder = (config.SCRIPTS_DIR / "matlab" ).resolve(strict=True).__str__()

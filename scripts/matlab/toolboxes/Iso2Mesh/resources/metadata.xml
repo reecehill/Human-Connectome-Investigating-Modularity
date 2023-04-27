@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addOn>
+  <identifier>81e3ea78-e62e-4335-b5e6-b7c49f4dfccf</identifier>
+  <displayType>Collection</displayType>
+  <translatedDisplayType>
+    <en_US>Collection</en_US>
+    <ja_JP>コレクション</ja_JP>
+    <ko_KR>컬렉션</ko_KR>
+    <zh_CN>集合</zh_CN>
+  </translatedDisplayType>
+  <name>Iso2Mesh</name>
+  <author>Qianqian Fang</author>
+  <version>1.9.0</version>
+  <downloadUrl>https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/81e3ea78-e62e-4335-b5e6-b7c49f4dfccf/53d24276-b4e3-4f8f-ae03-5538bedc5d60/packages/zip?src=addons_ml_desktop_install&amp;profile_id=24180612&amp;license=646274&amp;release_family=R2021b</downloadUrl>
+  <licenseUrl>https://addons.mathworks.com/registry/v1/81e3ea78-e62e-4335-b5e6-b7c49f4dfccf/1.9.0.0/-/license</licenseUrl>
+  <previewImageUrl>https://www.mathworks.com/responsive_image/160/120/0/0/0/cache/matlabcentral/mlc-downloads/downloads/81e3ea78-e62e-4335-b5e6-b7c49f4dfccf/53d24276-b4e3-4f8f-ae03-5538bedc5d60/images/screenshot.png</previewImageUrl>
+  <releaseNotesUrl>https://www.mathworks.com/add-ons/81e3ea78-e62e-4335-b5e6-b7c49f4dfccf/53d24276-b4e3-4f8f-ae03-5538bedc5d60/releaseNotes</releaseNotesUrl>
+  <installationFolder>Collections</installationFolder>
+</addOn>

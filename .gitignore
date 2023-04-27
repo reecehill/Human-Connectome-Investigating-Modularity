@@ -1,10 +1,10 @@
-Participants_Freesurfer_processed
-Participants
-uploads
-logs
-UoN_project_key
-data
-awsconfig 
+/Participants_Freesurfer_processed
+/Participants
+/uploads
+/logs
+/UoN_project_key
+/data
+/awsconfig 
 # Byte-compiled / optimized / DLL files
 __pycache__/*
 *.py[cod]

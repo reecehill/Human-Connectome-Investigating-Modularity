@@ -17,7 +17,7 @@ class SaverClass:
         self.userHost = f"{self.user}@{self.host}" 
         try:
             self.pathToKey: str = Path(
-                pathToKey).resolve(strict=True).__str__()
+                config.BASE_DIR / pathToKey).resolve(strict=True).__str__()
         except FileNotFoundError:
             raise
         self.sshCmd = [

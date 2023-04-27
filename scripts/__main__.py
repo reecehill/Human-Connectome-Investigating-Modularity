@@ -11,12 +11,12 @@
 # [START] main()
 # ------------------------------------------------------------
 from pathlib import Path
-import subprocess
-import traceback
+from subprocess import Popen, PIPE
+from traceback import format_exc
 from typing import Any
 import modules.globals as g
 from modules.saver.streamToLogger import StreamToLogger
-
+from config import BASE_DIR
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config
     config.START_A_FRESH = startAFresh
@@ -45,20 +45,20 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     cmd1 = 'python -c "import nipype; print(nipype.__version__)"'
                     cmd2 = 'python -c "import nipype; nipype.test()"'
                     cmd3 = "python nipype_preproc_spm_auditory.py"
-                    check: subprocess.Popen[Any] = subprocess.Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
+                    check: Popen[Any] = Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
                                             shell=True,
-                                            stdin=subprocess.PIPE, # type: ignore
+                                            stdin=PIPE, # type: ignore
                                             stdout=StreamToLogger(g.logger, 20), # type: ignore
                                             stderr=StreamToLogger(g.logger, 50), # type: ignore
                                             close_fds=True)
                     
                     if(check is not 0):
                         g.logger.info("There was a problem finding the SPM12 installation.")
-                        subprocess.Popen([". continuous_integration/install_spm12.sh"])
+                        Popen([". continuous_integration/install_spm12.sh"])
                 except Exception as e:
                     raise
             # Ensure pyprocess has its SPM12 pre-compiled version of the programme installed.
-            # subprocess.popen([". continuous_integration/install_spm12.sh"])
+            # Popen([". continuous_integration/install_spm12.sh"])
             
             # ------------------------------------------------------------
                 # [END] Check environment.
@@ -115,14 +115,14 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
             
         except Exception as e:
             print("There was an error instantiating the logger.")
-            print(traceback.format_exc())
+            print(format_exc())
             exit()
         # ------------------------------------------------------------
             # [END] Initialize and run the logger.
         # ------------------------------------------------------------
     except Exception as e:
         print("Failed to import necessary modules.")
-        print(traceback.format_exc())
+        print(format_exc())
         exit()
 # ------------------------------------------------------------
 # [END] main()
@@ -143,8 +143,8 @@ if __name__ == "__main__":
     try:
         import sys
         if len( sys.argv ) > 1:
-            import argparse
-            parser = argparse.ArgumentParser()
+            from argparse import ArgumentParser
+            parser = ArgumentParser()
             parser.add_argument("-U", "--user", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-H", "--host", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR")
@@ -156,13 +156,13 @@ if __name__ == "__main__":
             pathToKey = args.pathToKey
             startAFresh = args.startAFresh
         else:
-            import os
+            from os import getenv
             from dotenv import load_dotenv
-            k = load_dotenv(os.getcwd()+"/../.env")
-            user = os.getenv('DEFAULT_USER') or "ENV_ERROR"
-            host = os.getenv('DEFAULT_HOST') or "ENV_ERROR"
-            pathToKey = os.getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
-            startAFresh = os.getenv('DEFAULT_START_A_FRESH') == 'True' or False
+            k = load_dotenv(str(BASE_DIR / '.env'))
+            user = getenv('DEFAULT_USER') or "ENV_ERROR"
+            host = getenv('DEFAULT_HOST') or "ENV_ERROR"
+            pathToKey = getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
+            startAFresh = getenv('DEFAULT_START_A_FRESH') == 'True' or False
 
         print("Launching main using: ")
         print("User: "+user)

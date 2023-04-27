@@ -42,7 +42,7 @@ def reconstructImage(subjectId: str) -> bool:
   method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
   
   # The destination file need not exist locally already, but its folders must.
-  destinationFolder = config.UPLOADS_DIR / subjectId / 'T1w' / config.DIFFUSION_FOLDER
+  destinationFolder = config.UPLOADS_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
   createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
   
   destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')

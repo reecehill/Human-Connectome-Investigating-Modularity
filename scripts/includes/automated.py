@@ -10,7 +10,7 @@ try:
 except Exception as e:
   print(e)
   exit()
-from subprocess import run, PIPE
+from subprocess import getoutput, PIPE
 from sys import path
 from typing import Optional
 
@@ -45,8 +45,8 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 # [START] EXECUTABLE PATHS
 # ----------
 def getPathOfExecutable(executable: str, userSubmitted: Optional[str] = None) -> Path:
-  if(userSubmitted is None):
-    pathToExecutable =  run(['which', executable], stdout=PIPE).stdout.decode('utf-8')
+  if(userSubmitted is None or userSubmitted is ""):
+    pathToExecutable =  getoutput(f"which {executable}")
     if (pathToExecutable == ""):
       message = f"Cannot find the executable: {executable}. Please manually specify its location in config.py"
       raise BaseException(message)

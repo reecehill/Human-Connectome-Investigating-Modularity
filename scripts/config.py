@@ -24,7 +24,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4
 """
 DSI_STUDIO_TRACKING_METHOD = 1
 
-DSI_STUDIO_FIBRE_COUNT = 1000
+DSI_STUDIO_FIBRE_COUNT = 10000000
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
 DSI_STUDIO_FA_THRESH = 0
 DSI_STUDIO_OTSU_THRESH = 0.6
@@ -86,6 +86,7 @@ ALL_SUBJECTS: "list[str]" = ["100610"]
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "/home/reece/dsistudio/dsi_studio" # From root, resolvable by Path.resolve(). REQUIRED.
+matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 
 EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
@@ -97,5 +98,7 @@ EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code com
 # DO NOT EDIT BELOW THIS LINE
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
+
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsistudio", userSubmitted=dsiStudioPath)
+MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)

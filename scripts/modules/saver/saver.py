@@ -33,7 +33,7 @@ class SaverClass:
         g.logger.info("Compressing files for saving.")
         self.uploadRunCount = self.uploadRunCount + 1 
         g.logger.info(f"Upload run count: {self.uploadRunCount}")
-        filesToIgnore: "list[str]" = ["Participants", "tmp", ".git", ".vscode", "__pycache__", "modules", "data", "uploads", "src", "typings", "project.egg-info"]
+        filesToIgnore: "list[str]" = ["Participants", "tmp", ".git", ".vscode", "__pycache__", "modules", "matlab", "data", "uploads", "src", "typings", "project.egg-info"]
         archivePath = None
         rawPath = str(config.UPLOADS_DIR / 'raw' / str(self.uploadRunCount))
 

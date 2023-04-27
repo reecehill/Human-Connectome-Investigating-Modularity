@@ -9,7 +9,7 @@ def runPipeline() -> None:
   if (config.PREPROCESS): data.preprocessData()
 
   # (3) RUN DSI STUDIO
-  if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
+  # if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
 
   # (4) RUN MATLAB: Process diffusion tracks
   if(config.RUN_MATLAB_DIFFUSION): [diffusion.matlabProcessDiffusion(subjectId) for subjectId in config.ALL_SUBJECTS]

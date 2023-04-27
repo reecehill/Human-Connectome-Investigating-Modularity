@@ -10,6 +10,7 @@ import sys
 def getRemotePathOf(localPath: Path) -> str:
   # Remove local path prefix.
   localPathWithoutDataDir = str(localPath).replace(str(config.DATA_DIR / 'subjects'), "")
+  if not localPathWithoutDataDir.startswith("/"): localPathWithoutDataDir = "/"+localPathWithoutDataDir
   remotePath = f'HCP_1200{localPathWithoutDataDir}'
   return remotePath
 

@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 from pathlib import Path
 import subprocess
 from typing import Any
@@ -5,6 +6,7 @@ import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
+from modules.subprocess_caller.call import *
 
 def generateSrcFile(subjectId: str) -> bool:
   sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )
@@ -17,22 +19,16 @@ def generateSrcFile(subjectId: str) -> bool:
   
   destinationFile: str = str(destinationFolder / 'data.src.gz')
   g.logger.info("Running DSI Studio: generate Src file.")
-  process: subprocess.Popen[Any] = subprocess.Popen([config.DSI_STUDIO,
+
+  return call(cmdLabel="DSI Studio",
+              cmd=[
+                      config.DSI_STUDIO.__str__(),
                       '--action=src',
                       f'--source={sourceFile}',
                       f'--bval={bval}',
                       f'--bvec={bvec}',
                       f'--output={destinationFile}',
-                      ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-                    )
-
-  out, _ = process.communicate()
-  if out:
-    g.logger.info(out.decode())
-
-  return process.returncode == 0
+                      ])
 
 def reconstructImage(subjectId: str) -> bool:
   sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz' ).resolve(strict=True)
@@ -45,7 +41,9 @@ def reconstructImage(subjectId: str) -> bool:
   
   destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
   g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
-  process: subprocess.Popen[Any] = subprocess.Popen([config.DSI_STUDIO,
+  return call(cmdLabel="DSIStudio",
+              cmd=[
+                      config.DSI_STUDIO,
                       '--action=rec',
                       f'--source={sourceFile}',
                       f'--method={method}',
@@ -53,15 +51,7 @@ def reconstructImage(subjectId: str) -> bool:
                       f'--output={destinationFile}',
                       f'--param0=1.25',
                       f'--check_btable=1',
-                      ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-                    )
-
-  out, _ = process.communicate()
-  if out:
-    g.logger.info(out.decode())
-  return process.returncode == 0
+                      ])
 
 def trackFibres(subjectId: str) -> bool:
   sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz.gqi.1.25.fib.gz' ).resolve(strict=True)
@@ -78,7 +68,8 @@ def trackFibres(subjectId: str) -> bool:
   refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
   
   g.logger.info("Running DSI Studio: tracking fibres.")
-  process: subprocess.Popen[Any] = subprocess.Popen([config.DSI_STUDIO,
+  return call(cmdLabel="DSIStudio",
+              cmd=[config.DSI_STUDIO,
                       '--action=trk',
                       f'--source={sourceFile}',
                       f'--method={method}',
@@ -93,15 +84,7 @@ def trackFibres(subjectId: str) -> bool:
                       f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
                       f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                       #f'--ref={refFile}',
-                      ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-                    )
-
-  out, _ = process.communicate()
-  if out:
-    g.logger.info(out.decode())
-  return process.returncode == 0
+                      ])
 
 
 
@@ -117,15 +100,9 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   driveAndPathToSubjects = (config.DATA_DIR / 'subjects').resolve(strict=True).__str__()+"/"
   scriptFolder = (config.SCRIPTS_DIR / "matlab" ).resolve(strict=True).__str__()
 
-  process: subprocess.Popen[Any] = subprocess.Popen([
+  return call(cmdLabel="MATLAB",
+              cmd=[
                       config.MATLAB,
                       f'-batch "batch_process {driveAndPathToSubjects} {subjectId} {config.PIAL_SURFACE_TYPE} {config.DOWNSAMPLE_SURFACE} {config.DOWNSAMPLE_RATE}"',
-                      ], cwd=scriptFolder,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-                    )
-
-  out, _ = process.communicate()
-  if out:
-    g.logger.info(out.decode())
-  return process.returncode == 0
+                      ],
+              cwd=scriptFolder)

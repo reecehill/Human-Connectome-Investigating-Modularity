@@ -1,5 +1,5 @@
 import config
-from modules.pipeline import data, diffusion, functional, mapper, statistics
+from modules.pipeline import data, structural, diffusion, functional, mapper, statistics
 
 def runPipeline() -> None:
   # (1) RETRIEVE BRAIN SCAN TREE DIRECTORY.
@@ -8,6 +8,9 @@ def runPipeline() -> None:
   # (2) PREPROCESSING DATA
   if (config.PREPROCESS): data.preprocessData()
 
+  # (2B) RUN FREESURFER: Annotate pial surface with labels
+  if(config.GENERATE_LABELS): [structural.generateLabels(subjectId) for subjectId in config.ALL_SUBJECTS]
+  
   # (3) RUN DSI STUDIO
   # if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
 

@@ -45,6 +45,11 @@ def createDirectories(
             except Exception:
               raise
 
+          try:
+            directoryPath.resolve(strict=True)
+          except Exception:
+            raise
+
 # ----------
 # [END]
 # ----------

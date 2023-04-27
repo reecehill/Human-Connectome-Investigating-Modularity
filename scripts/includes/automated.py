@@ -10,6 +10,7 @@ try:
 except Exception as e:
   print(e)
   exit()
+import os
 from subprocess import getoutput, PIPE
 from sys import path
 from typing import Optional
@@ -34,8 +35,8 @@ BASE_DIR: Path = Path(__file__).parent.parent.parent.resolve(strict=True)
 SCRIPTS_DIR: Path = (BASE_DIR / "scripts").resolve(strict=True)
 INCLUDES_DIR: Path = (SCRIPTS_DIR / "includes").resolve(strict=True)
 DATA_DIR: Path = (BASE_DIR / "data").resolve(strict=True)
+SUBJECTS_DIR: Path = (DATA_DIR / "subjects").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
-
 # ----------
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
@@ -76,3 +77,13 @@ def getSpmDir(userSubmitted: str = "") -> Path:
 # ----------
 # [END] EXECUTABLE PATHS
 # ----------
+
+# ----------
+# [START] SETTING ENVIRONMENT VARIABLES
+# ----------
+os.environ["SUBJECTS_DIR"] = SUBJECTS_DIR.__str__()
+# ----------
+# [END] SETTING ENVIRONMENT VARIABLES
+# ----------
+
+

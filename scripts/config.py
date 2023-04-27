@@ -48,6 +48,7 @@ DSI_STUDIO_REF_IMG = "" # was aparc+aseg.nii.gz image.
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
+GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
 RUN_MATLAB_DIFFUSION = True
@@ -75,7 +76,6 @@ DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float).
 # ----------
 #ALL_SUBJECTS: "list[str]" = includes.all_subjects.all_subjects
 ALL_SUBJECTS: "list[str]" = ["100610"]
-
 # ----------
 # [END] PARTICIPANT PARAMETERS
 # ----------
@@ -87,6 +87,7 @@ logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, 
 spmDirectoryPath: str = "" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "/home/reece/dsistudio/dsi_studio" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
+freesurferPath: str = "" # NOT IMPLEMENTED.
 
 EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
@@ -102,3 +103,4 @@ SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsistudio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
+FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

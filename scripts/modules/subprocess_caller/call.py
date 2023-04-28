@@ -22,4 +22,4 @@ def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]"
         else:
           g.logger.debug(msg="Output omitted (does not contain alpha characters)")
     
-  return process.returncode == 0
+  return process.returncode == None

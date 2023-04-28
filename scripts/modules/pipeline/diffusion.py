@@ -62,7 +62,7 @@ def trackFibres(subjectId: str) -> bool:
   createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
   destinationFile: str = str(destinationFolder / '1m0.trk')
 
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
+  #refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
   
   g.logger.info("Running DSI Studio: tracking fibres.")
   return call(cmdLabel="DSIStudio",
@@ -86,10 +86,7 @@ def trackFibres(subjectId: str) -> bool:
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  return \
-    generateSrcFile(subjectId) and \
-    reconstructImage(subjectId) and \
-    trackFibres(subjectId)
+  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
 
 
 def matlabProcessDiffusion(subjectId: str) -> bool:

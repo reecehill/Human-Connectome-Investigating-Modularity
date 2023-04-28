@@ -3,7 +3,7 @@
 /uploads
 /logs
 /UoN_project_key
-/data/*
+/data/subjects/*
 !*/.gitkeep
 /awsconfig 
 /tmp

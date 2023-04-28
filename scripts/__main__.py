@@ -71,12 +71,12 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 if (startAFresh):
                     g.logger.info("Deleting uploads ?and data folder? from previous runs.")
                     deleteDirectories([config.UPLOADS_DIR.parent,
-                                       config.DATA_DIR
-                                       ], ignoreErrors=True)
+                                       config.SUBJECTS_DIR
+                                       ], ignoreErrors=False)
 
                     g.logger.info("Creating uploads ?and data? folder.")
                     createDirectories(directoryPaths=[config.UPLOADS_DIR,
-                                                      config.DATA_DIR
+                                                      config.SUBJECTS_DIR
                                                       ], createParents=True)
             except Exception as e:
                 raise

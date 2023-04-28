@@ -85,7 +85,7 @@ ALL_SUBJECTS: "list[str]" = ["100610"]
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "" # From root, resolvable by Path.resolve(). If empty, a default is used.
-dsiStudioPath: str = "/home/reece/dsistudio/dsi_studio" # From root, resolvable by Path.resolve(). REQUIRED.
+dsiStudioPath: str = "" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 freesurferPath: str = "" # NOT IMPLEMENTED.
 
@@ -101,6 +101,6 @@ LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
-DSI_STUDIO = getPathOfExecutable(executable="dsistudio", userSubmitted=dsiStudioPath)
+DSI_STUDIO = getPathOfExecutable(executable="dsistudio", executableAlias="dsi_studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
 FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

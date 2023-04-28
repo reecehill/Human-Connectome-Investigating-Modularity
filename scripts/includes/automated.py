@@ -45,9 +45,11 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 # ----------
 # [START] EXECUTABLE PATHS
 # ----------
-def getPathOfExecutable(executable: str, userSubmitted: Optional[str] = None) -> Path:
+def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
   if(userSubmitted is None or userSubmitted is ""):
-    pathToExecutable =  getoutput(f"which {executable}")
+    pathToExecutable =  getoutput(f"which {executable}") or \
+      getoutput(f"find $HOME -wholename '*{executable}*' -name '{executable}' -type f -executable") or \
+      getoutput(f"find $HOME -wholename '*{executable}*' -name '{executableAlias}' -type f -executable")
     if (pathToExecutable == ""):
       message = f"Cannot find the executable: {executable}. Please manually specify its location in config.py"
       raise BaseException(message)

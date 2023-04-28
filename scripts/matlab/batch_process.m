@@ -22,11 +22,12 @@ subjects={subjects};
 clear ft_hastoolbox;
 restoredefaultpath;
 addpath('toolboxes/AlongTractStats');
-addpath('toolboxes/Gifti');
-addpath('/home/reece/MATLAB Add-Ons/Collections/Iso2Mesh');
+%addpath('toolboxes/Gifti');
+%addpath('/home/reece/MATLAB Add-Ons/Collections/Iso2Mesh');
 addpath(genpath('toolboxes/SurfStat'));
 addpath(genpath('toolboxes/spm12'));
-addpath(genpath('toolboxes/FieldTrip'));
+addpath('toolboxes/FieldTrip');
+addpath('toolboxes/FieldTrip/external/iso2mesh/')
 ft_defaults;
 
 
@@ -96,7 +97,7 @@ for i=1:length(subjects)
 end
 
 display(["Finished using structural data in MATLAB."]);
-quit;
+%quit;
 end
 
 

@@ -4,7 +4,7 @@
 /logs
 /UoN_project_key
 /data/subjects/*
-!*/.gitkeep
+!**/.gitkeep
 /awsconfig 
 /tmp
 **/*Zone.Identifier

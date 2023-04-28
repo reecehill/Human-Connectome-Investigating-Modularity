@@ -72,7 +72,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     g.logger.info("Deleting uploads ?and data folder? from previous runs.")
                     deleteDirectories([config.UPLOADS_DIR.parent,
                                        config.DATA_DIR
-                                       ], ignoreErrors=False)
+                                       ], ignoreErrors=True)
 
                     g.logger.info("Creating uploads ?and data? folder.")
                     createDirectories(directoryPaths=[config.UPLOADS_DIR,

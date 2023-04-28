@@ -102,6 +102,11 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 try:
                     g.logger.info("Ready to begin accepting steps")
                     pipeline.runPipeline()
+                    
+                    compressedFiles: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
+                    archivePath: Path = Path(compressedFiles).resolve(strict=True)
+                    g.saver.saveToServer(archivePath) 
+                    
                     g.logger.info("Pipeline scripts finished.")
                 except:
                     raise

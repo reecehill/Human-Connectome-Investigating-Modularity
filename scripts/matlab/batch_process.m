@@ -23,10 +23,10 @@ clear ft_hastoolbox;
 restoredefaultpath;
 addpath('toolboxes/AlongTractStats');
 addpath('toolboxes/Gifti');
-addpath('toolboxes/Iso2Mesh');
+addpath('/home/reece/MATLAB Add-Ons/Collections/Iso2Mesh');
 addpath(genpath('toolboxes/SurfStat'));
 addpath(genpath('toolboxes/spm12'));
-addpath('toolboxes/FieldTrip');
+addpath(genpath('toolboxes/FieldTrip'));
 ft_defaults;
 
 
@@ -89,7 +89,7 @@ end
 
 %% map coordinates into MNI space
 for i=1:length(subjects)
-    [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i}],[lpcentroids;rpcentroids;subCoor],type);
+    [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i}],subjects{i},[lpcentroids;rpcentroids;subCoor],type);
     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
     clear lpcentroids,rpcentroids,subCoor;

@@ -1,7 +1,7 @@
-function [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords(pathToFile,Coor,type)
+function [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords(pathToFile,subjectId,Coor,type)
 addpath('toolboxes/AlongTractStats');
 addpath('toolboxes/Gifti');
-addpath('toolboxes/Iso2Mesh');
+%addpath('toolboxes/Iso2Mesh');
 addpath(genpath('toolboxes/SurfStat'));
 addpath(genpath('toolboxes/spm12'));
 addpath('toolboxes/FieldTrip');
@@ -18,7 +18,7 @@ nlen = size(Coor,1);
 
 
 %% load linear transformation matrix
-[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'/data/bert/mri/transforms/talairach.xfm']);
+[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'/T1w/',subjectId,'/mri/transforms/talairach.xfm']);
 
 %ft_defaults
 mri=ft_read_mri([pathToFile,'/T1w/aparc+aseg.nii.gz']);

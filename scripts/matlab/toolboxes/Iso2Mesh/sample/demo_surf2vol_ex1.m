@@ -4,8 +4,8 @@
 
 %% preparation
 % user must add the path of iso2mesh to matlab path list
-% addpath('../');
-
+ addpath('../');
+%addpath('/home/reece/Documents/Main/scripts/matlab/toolboxes/Iso2Mesh/')
 %% load the sample data
 load rat_head.mat
 

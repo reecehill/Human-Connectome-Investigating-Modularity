@@ -1,5 +1,6 @@
 from io import TextIOWrapper
 from pathlib import Path
+import re
 import subprocess
 from typing import Any, Optional, Union
 import modules.globals as g
@@ -15,6 +16,10 @@ def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]"
   assert process.stdout is not None
   with TextIOWrapper(process.stdout):
     for line in iter(process.stdout.readline, b''): # b'\n'-separated lines
-        g.logger.info(msg=f"{cmdLabel}: "+line.decode().rstrip())
+        line = line.decode().strip()
+        if(re.search('[a-zA-Z]', line)):
+          g.logger.info(msg=f"{cmdLabel}: "+line)
+        else:
+          g.logger.debug(msg="Output omitted (does not contain alpha characters)")
     
   return process.returncode == 0

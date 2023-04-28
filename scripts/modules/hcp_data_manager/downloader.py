@@ -14,15 +14,18 @@ def getRemotePathOf(localPath: Path) -> str:
   remotePath = f'HCP_1200{localPathWithoutDataDir}'
   return remotePath
 
-def getFile(localPath: Path, forceDownload: bool = False) -> str:
+def getFile(localPath: Path, forceDownload: bool = False, localOnly: bool = False) -> str:
   """
   Downloads a file from remote storage if it doesnt exist on the system, and returns a string to its path on local storage.
+  localPath: path to the file on local storage that should exist
+  forceDownload: download the file, overwriting the version stored locally.
+  localOnly: skip downloading the file (useful when the file is generated locally only). This just ensures it exists.
   """
     
   if(localPath.exists() and forceDownload == False):
     return localPath.__str__()
-  else:
-    g.logger.info("File not found in local storage, prompting download.")
+  elif(localOnly == False):
+    g.logger.info(f"File ({localPath}) not found in local storage, prompting download.")
     os.environ["AWS_CONFIG_FILE"] = (config.BASE_DIR / "awsconfig").resolve(strict=True).__str__()
     createDirectories(directoryPaths=[localPath.parent], createParents=True, throwErrorIfExists=False)
 
@@ -42,7 +45,7 @@ def getFile(localPath: Path, forceDownload: bool = False) -> str:
     s3.download_file('hcp-openaccess', getRemotePathOf(localPath), localPath, Callback=progress)
     g.logger.info(f"Downloaded: {localPath}).")
     
-    try:
-      return localPath.resolve(strict=True).__str__()
-    except Exception:
-      raise
+  try:
+    return localPath.resolve(strict=True).__str__()
+  except Exception:
+    raise

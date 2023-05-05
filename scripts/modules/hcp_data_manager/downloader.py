@@ -42,7 +42,8 @@ def getFile(localPath: Path, forceDownload: bool = False, localOnly: bool = Fals
       sys.stdout.flush()
 
     g.logger.info(f"Downloading: {localPath}...")
-    s3.download_file('hcp-openaccess', getRemotePathOf(localPath), localPath, Callback=progress)
+    remotePath = getRemotePathOf(localPath)
+    s3.download_file('hcp-openaccess', remotePath, str(localPath), Callback=progress)
     g.logger.info(f"Downloaded: {localPath}).")
     
   try:

@@ -29,5 +29,9 @@ class StreamToLogger(object):
 
         self.pipeReader.close()
         
-    def flush(self) -> None:
-        pass
+    # def flush(self) -> None:
+    #     pass
+    def flush(self):
+        if self.linebuf != '':
+            self.logger.log(self.log_level, self.linebuf.rstrip())
+        self.linebuf = ''

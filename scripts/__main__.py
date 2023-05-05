@@ -14,7 +14,8 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from traceback import format_exc
 from typing import Any
-import modules.globals as g
+#import modules.globals as g
+from modules import globals as g
 from modules.saver.streamToLogger import StreamToLogger
 from config import BASE_DIR
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
@@ -162,7 +163,7 @@ if __name__ == "__main__":
             startAFresh = args.startAFresh
         else:
             from os import getenv
-            from dotenv import load_dotenv
+            from dotenv import load_dotenv # type: ignore
             k = load_dotenv(str(BASE_DIR / '.env'))
             user = getenv('DEFAULT_USER') or "ENV_ERROR"
             host = getenv('DEFAULT_HOST') or "ENV_ERROR"

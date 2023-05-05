@@ -5,7 +5,7 @@
 import multiprocessing
 from typing import Optional
 from includes.automated import *
-import includes.all_subjects
+# import includes.all_subjects
 
 
 CPU_THREADS = multiprocessing.cpu_count()
@@ -62,7 +62,8 @@ MATLAB_CALCULATE_STATS = True
 # ----------
 # [START] PROCESSING PARAMETERS
 # ----------
-NUMBER_OF_TRACTS = 10000000
+#NUMBER_OF_TRACTS = 10000000
+NUMBER_OF_TRACTS = 1000
 PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
 DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
@@ -101,6 +102,6 @@ LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
-DSI_STUDIO = getPathOfExecutable(executable="dsistudio", executableAlias="dsi_studio", userSubmitted=dsiStudioPath)
+DSI_STUDIO = getPathOfExecutable(executable="dsi-studio", executableAlias="dsi_studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
 FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

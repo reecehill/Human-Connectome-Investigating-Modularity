@@ -1,10 +1,13 @@
+# pyright: reportMissingTypeStubs=true
+
 from pathlib import Path
-import shutil
+#import shutil
+#import scripts.modules.file_directory.shutil_ported as shutil
+from ..file_directory import shutil_ported as shutil
 from typing import Any, Optional
 import subprocess
 from modules.saver.streamToLogger import StreamToLogger
-
-import modules.globals as g
+from .. import globals as g
 import config
 
 class SaverClass:
@@ -45,10 +48,10 @@ class SaverClass:
             return filesToIgnore
         
         def ignoreDefaultFiles(dir: str, files: "list[str]") -> "list[str]":
-            return [f for f in files if f not in filesToIgnore]
+            return [f for f in files if f in filesToIgnore]
                     
         # Copy project directory tree
-        shutil.copytree(src=str(config.BASE_DIR), dst=rawPath, dirs_exist_ok=False, symlinks=False, ignore=ignoreAllFiles) 
+        shutil.copytree(src=str(config.BASE_DIR), dirs_exist_ok=False, dst=rawPath, symlinks=False, ignore=ignoreAllFiles) 
         
 
         for filePathToCompress in filePathsToCompress:
@@ -61,6 +64,7 @@ class SaverClass:
                 elif(filePathToCompress.is_dir()):
                     g.logger.info(f"Copying directory '{str(filePathToCompress)}' to {destPath}'")
                     shutil.copytree(src=filePathToCompress, dst=destPath, dirs_exist_ok=True, ignore=ignoreDefaultFiles) 
+                    #shutil.copytree(src=filePathToCompress, dst=destPath, ignore=ignoreDefaultFiles) 
                 else:
                     g.logger.error('Specified path is neither file nor directory: ' + str(filePathToCompress))
         
@@ -108,7 +112,7 @@ class SaverClass:
             self.pathToKey,
             "-C",
             "-r",
-            "-v",
+            # "-v",
             fileToUploadPath.resolve() or config.UPLOADS_DIR.__str__(),
             f'{self.userHost}:$HOME/PROJECT_TRANSFERS/{config.TIMESTAMP_OF_SCRIPT}',
         ]

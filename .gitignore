@@ -2,7 +2,6 @@
 /Participants
 /uploads
 /logs
-/scripts/config.py
 /UoN_project_key
 /data/subjects/*
 !**/.gitkeep

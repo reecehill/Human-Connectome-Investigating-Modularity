@@ -4,7 +4,7 @@ import config
 from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
-
+import includes.anatomicalLabels as anatomicalLabels
 def generateSrcFile(subjectId: str) -> bool:
   sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )
   bval = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'bvals' )
@@ -91,11 +91,9 @@ def runDsiStudio(subjectId: str) -> bool:
 
 def matlabProcessDiffusion(subjectId: str) -> bool:
   g.logger.info("Running MATLAB: converting tracked fibres into endpoints and adjacency matrices.")
-  driveAndPathToSubjects = (config.DATA_DIR / 'subjects').resolve(strict=True).__str__()+"/"
-  matlabFolder = (config.SCRIPTS_DIR / "matlab" ).resolve(strict=True).__str__()
 
   # Ensure neccessary files exist from previous steps.
-  anatomicalLabelsToExist: list[str] = ['lh.bankssts.label','lh.caudalanteriorcingulate.label','lh.caudalmiddlefrontal.label','lh.cuneus.label','lh.entorhinal.label','lh.frontalpole.label','lh.fusiform.label','lh.inferiorparietal.label','lh.inferiortemporal.label','lh.insula.label','lh.isthmuscingulate.label','lh.lateraloccipital.label','lh.lateralorbitofrontal.label','lh.lingual.label','lh.medialorbitofrontal.label','lh.middletemporal.label','lh.paracentral.label','lh.parahippocampal.label','lh.parsopercularis.label','lh.parsorbitalis.label','lh.parstriangularis.label','lh.pericalcarine.label','lh.postcentral.label','lh.posteriorcingulate.label','lh.precentral.label','lh.precuneus.label','lh.rostralanteriorcingulate.label','lh.rostralmiddlefrontal.label','lh.superiorfrontal.label','lh.superiorparietal.label','lh.superiortemporal.label','lh.supramarginal.label','lh.temporalpole.label','lh.transversetemporal.label','rh.bankssts.label','rh.caudalanteriorcingulate.label','rh.caudalmiddlefrontal.label','rh.cuneus.label','rh.entorhinal.label','rh.frontalpole.label','rh.fusiform.label','rh.inferiorparietal.label','rh.inferiortemporal.label','rh.insula.label','rh.isthmuscingulate.label','rh.lateraloccipital.label','rh.lateralorbitofrontal.label','rh.lingual.label','rh.medialorbitofrontal.label','rh.middletemporal.label','rh.paracentral.label','rh.parahippocampal.label','rh.parsopercularis.label','rh.parsorbitalis.label','rh.parstriangularis.label','rh.pericalcarine.label','rh.postcentral.label','rh.posteriorcingulate.label','rh.precentral.label','rh.precuneus.label','rh.rostralanteriorcingulate.label','rh.rostralmiddlefrontal.label','rh.superiorfrontal.label','rh.superiorparietal.label','rh.superiortemporal.label','rh.supramarginal.label','rh.temporalpole.label','rh.transversetemporal.label']
+  anatomicalLabelsToExist: list[str] = anatomicalLabels.anatomicalLabelsToExist
   remoteFilesToExist: "list[Path]" = [
                   (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz'),
                   (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'mri' / 'transforms' / 'talairach.xfm'),
@@ -113,6 +111,6 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,
-                      f'-batch "batch_process {driveAndPathToSubjects} {subjectId} {config.PIAL_SURFACE_TYPE} {config.DOWNSAMPLE_SURFACE} {config.DOWNSAMPLE_RATE}"',
+                      f'-batch "batch_process {config.matLabDriveAndPathToSubjects} {subjectId} {config.PIAL_SURFACE_TYPE} {config.DOWNSAMPLE_SURFACE} {config.DOWNSAMPLE_RATE}"',
                       ],
-              cwd=matlabFolder)
+              cwd=config.matlabScriptsFolder)

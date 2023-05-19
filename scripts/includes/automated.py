@@ -88,4 +88,5 @@ os.environ["SUBJECTS_DIR"] = SUBJECTS_DIR.__str__()
 # [END] SETTING ENVIRONMENT VARIABLES
 # ----------
 
-
+matLabDriveAndPathToSubjects = (DATA_DIR / 'subjects').resolve(strict=True).__str__()+"/"
+matlabScriptsFolder = (SCRIPTS_DIR / "matlab" ).resolve(strict=True).__str__()

@@ -1,5 +1,6 @@
 # ----------
-# CONFIGURATION FILE.
+# CONFIGURATION FILE (SAMPLE).
+# Please copy this file to <project-root>/scripts/config.py
 # ----------
 
 import multiprocessing
@@ -77,6 +78,8 @@ DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float).
 # ----------
 #ALL_SUBJECTS: "list[str]" = includes.all_subjects.all_subjects
 ALL_SUBJECTS: "list[str]" = ["100610"]
+# ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
+ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------
 # [END] PARTICIPANT PARAMETERS
 # ----------
@@ -85,7 +88,7 @@ ALL_SUBJECTS: "list[str]" = ["100610"]
 # [START] LOGGING PARAMETERS
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
-spmDirectoryPath: str = "" # From root, resolvable by Path.resolve(). If empty, a default is used.
+spmDirectoryPath: str = "/gpfs01/software/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 freesurferPath: str = "" # NOT IMPLEMENTED.

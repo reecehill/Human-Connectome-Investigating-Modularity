@@ -87,7 +87,7 @@ ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right
 # [START] LOGGING PARAMETERS
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
-spmDirectoryPath: str = "/gpfs01/software/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
+spmDirectoryPath: str = "/gpfs01/software/spm12" if Path.exists(Path("/gpfs01/software/spm12")) else "" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 freesurferPath: str = "" # NOT IMPLEMENTED.

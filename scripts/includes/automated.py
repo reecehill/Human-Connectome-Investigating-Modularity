@@ -53,10 +53,11 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
       which(executable)
-    if (pathToExecutable == ""):
+    if (pathToExecutable):
+      return Path(pathToExecutable).resolve(strict=True)
+    else:
       message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"
       raise BaseException(message)
-    return Path(pathToExecutable).resolve(strict=True)
   else:
     if(Path(userSubmitted).exists()):
       return Path(userSubmitted).resolve(strict=True)

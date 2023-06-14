@@ -5,15 +5,15 @@
 # 3) Therefore, automatically assigned.
 # ----------
 try:
-  from time import strftime
   from pathlib import Path
+  from time import strftime
 except Exception as e:
   print(e)
   exit()
 import os
-from subprocess import getoutput, PIPE
-from sys import path
+from subprocess import getoutput
 from typing import Optional
+
 
 def getLogDirectoryPath(userSubmitted: str) -> Path:
   LOGS_DIR: Path = (BASE_DIR / userSubmitted / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
@@ -48,8 +48,8 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
   if(userSubmitted is None or userSubmitted is ""):
     pathToExecutable =  getoutput(f"which {executable}") or \
-      getoutput(f"find $HOME -wholename '*{executable}*' -name '{executable}' -type f -executable") or \
-      getoutput(f"find $HOME -wholename '*{executable}*' -name '{executableAlias}' -type f -executable")
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable")
     if (pathToExecutable == ""):
       message = f"Cannot find the executable: {executable}. Please manually specify its location in config.py"
       raise BaseException(message)
@@ -57,7 +57,7 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
   else:
     try:
       return Path(userSubmitted).resolve(strict=True)
-    except Exception as e:
+    except Exception:
       print(f"The location you specified for {executable} (at: {userSubmitted}) could not be found.")
       raise
       
@@ -66,13 +66,13 @@ def getSpmDir(userSubmitted: str = "") -> Path:
   if (userSubmitted is ""):
     try:
       return (Path.home() / "spm12").resolve(strict=True)
-    except Exception as e:
+    except Exception:
       print("The installation to SPM is not where it is expected. Please specify the folder in which SPM was installed.")
       raise
   else:
     try:
       return Path(userSubmitted).resolve(strict=True)
-    except Exception as e:
+    except Exception:
       print("The SPM12 installation directory provided could not be found. Try again, providing an absolute path from root.")
       raise
 

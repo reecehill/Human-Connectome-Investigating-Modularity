@@ -88,7 +88,7 @@ ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right
 # ----------
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "/gpfs01/software/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
-dsiStudioPath: str = "/dsistudio-uon/binary/20230522" # From root, resolvable by Path.resolve(). REQUIRED.
+dsiStudioPath: str = "/gpfs01/software/dsistudio-20230522" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 freesurferPath: str = "" # NOT IMPLEMENTED.
 

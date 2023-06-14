@@ -58,7 +58,9 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
     try:
       return Path(userSubmitted).resolve(strict=True)
     except Exception:
-      print(f"The location you specified for {executable} (at: {userSubmitted}) could not be found.")
+      print(f"The location you specified for {executable} (at: {userSubmitted}) could not be found.");
+      print(f"Contents ({userSubmitted}) [ls -la {userSubmitted}]:");
+      print(getoutput(f"ls -la {userSubmitted}"));
       raise
       
 

@@ -14,6 +14,8 @@ import os
 from subprocess import getoutput
 from typing import Optional
 
+from modules.file_directory.shutil_ported import which
+
 
 def getLogDirectoryPath(userSubmitted: str) -> Path:
   LOGS_DIR: Path = (BASE_DIR / userSubmitted / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
@@ -49,8 +51,8 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
   if(userSubmitted is None or userSubmitted is ""):
     pathToExecutable =  \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
-      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") \
-      # getoutput(f"which {executable}") or \
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
+      which(executable)
     if (pathToExecutable == ""):
       message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"
       raise BaseException(message)

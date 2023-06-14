@@ -39,7 +39,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
             # ------------------------------------------------------------
             # [START] Check environment.
             # ------------------------------------------------------------
-            if(True == False):
+            if(True == False): # type: ignore
                 try:
                     # Check pyprocess works.
                     cmd1 = f"cd {(config.SCRIPTS_DIR / 'src' / 'pypreprocess' / 'examples' / 'easy_start').resolve(strict=True).__str__()}"

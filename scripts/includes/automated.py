@@ -47,9 +47,10 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 # ----------
 def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
   if(userSubmitted is None or userSubmitted is ""):
-    pathToExecutable =  getoutput(f"which {executable}") or \
+    pathToExecutable =  \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
-      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable")
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") \
+      # getoutput(f"which {executable}") or \
     if (pathToExecutable == ""):
       message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"
       raise BaseException(message)
@@ -59,8 +60,8 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
       return Path(userSubmitted).resolve(strict=True)
     else:
       print(f"The location you specified for {executable} (at: {userSubmitted}) could not be found.");
-      print(f"Parent contents ({userSubmitted}../) [ls -la {userSubmitted}../]:");
-      print(getoutput(f"ls -la {userSubmitted}../"));
+      print(f"Parent contents ({userSubmitted}/../) [ls -la {userSubmitted}/../]:");
+      print(getoutput(f"ls -la {userSubmitted}/../"));
       print(f"Attempting to find {executable} using default settings...");
       return getPathOfExecutable(executable=executable, executableAlias=executableAlias, userSubmitted="")
 

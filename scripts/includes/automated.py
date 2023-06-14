@@ -51,29 +51,31 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable")
     if (pathToExecutable == ""):
-      message = f"Cannot find the executable: {executable}. Please manually specify its location in config.py"
+      message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"
       raise BaseException(message)
     return Path(pathToExecutable).resolve(strict=True)
   else:
-    try:
+    if(Path(userSubmitted).exists()):
       return Path(userSubmitted).resolve(strict=True)
-    except Exception:
+    else:
       print(f"The location you specified for {executable} (at: {userSubmitted}) could not be found.");
-      print(f"Contents ({userSubmitted}) [ls -la {userSubmitted}]:");
-      print(getoutput(f"ls -la {userSubmitted}"));
-      raise
-      
+      print(f"Parent contents ({userSubmitted}../) [ls -la {userSubmitted}../]:");
+      print(getoutput(f"ls -la {userSubmitted}../"));
+      print(f"Attempting to find {executable} using default settings...");
+      return getPathOfExecutable(executable=executable, executableAlias=executableAlias, userSubmitted="")
+
 
 def getSpmDir(userSubmitted: str = "") -> Path:
   if (userSubmitted is ""):
     try:
       return (Path.home() / "spm12").resolve(strict=True)
     except Exception:
-      print("The installation to SPM is not where it is expected. Please specify the folder in which SPM was installed.")
+      print("The installation to SPM is not where it is expected. Please specify or re-check the folder in which SPM was installed.")
       raise
   else:
     try:
-      return Path(userSubmitted).resolve(strict=True)
+      #  Retry using default settings ("") if not user specified path doesn't exist. 
+      return Path(userSubmitted).resolve(strict=True) if Path(userSubmitted).exists() else getSpmDir(userSubmitted="")
     except Exception:
       print("The SPM12 installation directory provided could not be found. Try again, providing an absolute path from root.")
       raise

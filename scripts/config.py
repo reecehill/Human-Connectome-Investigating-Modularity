@@ -90,7 +90,7 @@ logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, 
 spmDirectoryPath: str = "/gpfs01/software/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "/gpfs01/software/dsistudio-20230522" # From root, resolvable by Path.resolve(). REQUIRED.
 matlabPath: str = "/gpfs01/software/matlab_r2022a" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-freesurferPath: str = "" # NOT IMPLEMENTED.
+# freesurferPath: str = "/gpfs01/software/freesurfer-v6.0.0" # NOT IMPLEMENTED.
 
 EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
@@ -106,4 +106,4 @@ SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsi-studio", executableAlias="dsi_studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
-FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)
+# FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

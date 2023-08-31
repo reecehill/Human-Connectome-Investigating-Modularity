@@ -6,52 +6,63 @@ from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
 import includes.anatomicalLabels as anatomicalLabels
 def generateSrcFile(subjectId: str) -> bool:
-  sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )
-  bval = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'bvals' )
-  bvec = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'bvecs' )
+  if(config.DSI_STUDIO_USE_RECONST):
+    sourceFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.nii.gz' )
+    bval = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'bvals' )
+    bvec = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'bvecs' )
 
-  # The destination file need not exist locally already, but its folders must.
-  destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
-  createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
-  
-  destinationFile: str = str(destinationFolder / 'data.src.gz')
-  g.logger.info("Running DSI Studio: generate Src file.")
+    # The destination file need not exist locally already, but its folders must.
+    destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
+    createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
+    
+    destinationFile: str = str(destinationFolder / 'data.src.gz')
+    g.logger.info("Running DSI Studio: generate Src file.")
 
-  return call(cmdLabel="DSI Studio",
-              cmd=[
-                      config.DSI_STUDIO.__str__(),
-                      '--action=src',
-                      f'--source={sourceFile}',
-                      f'--bval={bval}',
-                      f'--bvec={bvec}',
-                      f'--output={destinationFile}',
-                      ])
-
+    return call(cmdLabel="DSI Studio",
+                cmd=[
+                        config.DSI_STUDIO.__str__(),
+                        '--action=src',
+                        f'--source={sourceFile}',
+                        f'--bval={bval}',
+                        f'--bvec={bvec}',
+                        f'--output={destinationFile}',
+                        ])
+  else:
+    return True; # If we use BedpostX data, we do not need to generate a .src file. 
+    
 def reconstructImage(subjectId: str) -> bool:
-  sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz' ).resolve(strict=True)
-  threadCount = config.CPU_THREADS # Default: CPU number.
-  method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
-  
-  # The destination file need not exist locally already, but its folders must.
-  destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
-  createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
-  
-  destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
-  g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
-  return call(cmdLabel="DSIStudio",
+  if(config.DSI_STUDIO_USE_RECONST):
+    sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz' ).resolve(strict=True)
+    threadCount = config.CPU_THREADS # Default: CPU number.
+    method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
+    
+    # The destination file need not exist locally already, but its folders must.
+    destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
+    createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
+    
+    destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
+    g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
+    return call(cmdLabel="DSIStudio",
+                cmd=[
+                        config.DSI_STUDIO,
+                        '--action=rec',
+                        f'--source={sourceFile}',
+                        f'--method={method}',
+                        f'--thread_count={threadCount}',
+                        f'--output={destinationFile}',
+                        f'--param0=1.25',
+                        f'--check_btable=1',
+                        ])
+  else:
+    return call(cmdLabel="MATLAB",
               cmd=[
-                      config.DSI_STUDIO,
-                      '--action=rec',
-                      f'--source={sourceFile}',
-                      f'--method={method}',
-                      f'--thread_count={threadCount}',
-                      f'--output={destinationFile}',
-                      f'--param0=1.25',
-                      f'--check_btable=1',
-                      ])
+                      config.MATLAB,
+                      f'-batch "bedpostXtoDsiStudio {config.matLabDriveAndPathToSubjects} {subjectId}"',
+                      ],
+              cwd=config.matlabScriptsFolder)
 
 def trackFibres(subjectId: str) -> bool:
-  sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz.gqi.1.25.fib.gz' ).resolve(strict=True)
+  sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.gqi.1.25.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
   threadCount = config.CPU_THREADS # Default: CPU number.
   method = config.DSI_STUDIO_TRACKING_METHOD
   nFibres = config.DSI_STUDIO_FIBRE_COUNT
@@ -60,9 +71,11 @@ def trackFibres(subjectId: str) -> bool:
   # The destination file need not exist locally already, but its folders must.
   destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
   createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
-  destinationFile: str = str(destinationFolder / '1m0.trk')
+  destinationFile: str = str(destinationFolder / '1m0.tt.nii.gz')
 
+  # If it is in the T1w space, then it is aparc+aseg space.
   #refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
+  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DSI_STUDIO_REF_IMG )
   
   g.logger.info("Running DSI Studio: tracking fibres.")
   return call(cmdLabel="DSIStudio",
@@ -80,10 +93,8 @@ def trackFibres(subjectId: str) -> bool:
                       f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
                       f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
                       f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
-                      #f'--ref={refFile}',
+                      f'--ref={refFile}',
                       ])
-
-
 
 def runDsiStudio(subjectId: str) -> bool:
   return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)

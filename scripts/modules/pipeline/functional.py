@@ -21,7 +21,8 @@ def runSpm(subjectId: str) -> bool:
 
 def matlabProcessFunctional(subjectId: str):
   createTimingFiles(subjectId=subjectId)
-  runSpm(subjectId=subjectId)
+  # runSpm() is not needed if we intend to use the processed data.
+  # runSpm(subjectId=subjectId)
   
 
 

@@ -27,7 +27,7 @@ addpath('toolboxes/AlongTractStats');
 addpath(genpath('toolboxes/SurfStat'));
 addpath(genpath('toolboxes/spm12'));
 addpath('toolboxes/FieldTrip');
-addpath('toolboxes/FieldTrip/external/iso2mesh/')
+addpath('toolboxes/Iso2Mesh/iso2mesh')
 ft_defaults;
 
 

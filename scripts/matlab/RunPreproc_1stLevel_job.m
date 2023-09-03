@@ -1,7 +1,5 @@
 function RunPreproc_1stLevel_job(pathToParticipants, subject)
-addpath 'C:\Users\Reece\Documents\Dissertation\Main\Batch_Scripts';
-addpath 'C:\Users\Reece\Documents\Dissertation\Main';
-addpath(genpath('C:\Program Files\MATLAB\R2021b\spm12'));
+addpath(genpath('toolboxes/spm12'));
 close all;
 clearvars -except pathToParticipants subject;
 try

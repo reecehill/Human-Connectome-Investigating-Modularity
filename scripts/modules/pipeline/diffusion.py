@@ -54,6 +54,21 @@ def reconstructImage(subjectId: str) -> bool:
                         f'--check_btable=1',
                         ])
   else:
+    # Ensure Bedpost files exist.
+    subjectDir = config.SUBJECTS_DIR / subjectId / "T1w"
+    filesToExist = [
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_f1samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_f2samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_f3samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_ph1samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_ph2samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_ph3samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_th1samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_th2samples.nii.gz'),
+                    (subjectDir / 'Diffusion.bedpostX' / 'mean_th3samples.nii.gz'),
+                    ]
+    _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+      
     return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,

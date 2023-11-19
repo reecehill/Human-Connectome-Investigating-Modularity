@@ -127,8 +127,8 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/discussions/install-requires-vs-requirements/
     install_requires=[
-        f"ibc_public @ file:///localbuilds/{(here / 'scripts' / 'src' / 'public_analysis_code').resolve(strict=True).as_posix()}",
-        f"pypreprocess @ file:///localbuilds/{(here / 'scripts' / 'src' / 'pypreprocess').resolve(strict=True).as_posix()}",
+        # f"ibc_public @ file:///localbuilds/{(here / 'scripts' / 'src' / 'public_analysis_code').resolve(strict=True).as_posix()}",
+        # f"pypreprocess @ file:///localbuilds/{(here / 'scripts' / 'src' / 'pypreprocess').resolve(strict=True).as_posix()}",
         ], 
     # Optional
     # List additional groups of dependencies here (e.g. development

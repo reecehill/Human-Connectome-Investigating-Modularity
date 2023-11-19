@@ -53,3 +53,96 @@ def generateLabels(subjectId: str) -> bool:
                 ])
   
   return (lhLabelsSuccess and rhLabelsSuccess)
+
+def generateMni152Labels(subjectId: str) -> bool:
+  g.logger.info("Running Freesurfer: generating label files in MNI152 space by annotating the pial surfaces.")
+  g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
+  subjectDir = config.SUBJECTS_DIR / subjectId / "MNINonLinear"
+  outputDir = subjectDir / subjectId / 'label' / 'label_type2'
+  surfDir = subjectDir / subjectId / 'surf'
+  createDirectories(directoryPaths=[outputDir, surfDir], createParents=True, throwErrorIfExists=False)
+  outputPath = (outputDir).resolve(strict=True).__str__()
+
+  # Ensure pial and annot files (both (gifti format) exist.
+  filesToExist = [
+                  # TODO: Do not hard code this file name?
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
+                  ]
+  surfaceAndAnnotFiles = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+
+  rhGiftiSurfaceToFreesurferSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mris_convert",
+                surfaceAndAnnotFiles[0],
+                subjectDir / subjectId / 'surf' / 'rh.pial'
+                ])
+  lhGiftiSurfaceToFreesurferSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mris_convert",
+                surfaceAndAnnotFiles[1],
+                subjectDir / subjectId / 'surf' / 'lh.pial'
+                ])
+
+  rhGiftiLabelToFreesurferSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mris_convert",
+                "--annot",
+                surfaceAndAnnotFiles[2],
+                surfaceAndAnnotFiles[0],
+                subjectDir / subjectId / 'surf' / 'rh.aparc.annot'
+                ])
+
+  lhGiftiLabelToFreesurferSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mris_convert",
+                "--annot",
+                surfaceAndAnnotFiles[3],
+                surfaceAndAnnotFiles[1],
+                subjectDir / subjectId / 'surf' / 'lh.aparc.annot'
+                ])
+  
+  rhLabelsSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_annotation2label",
+                "--subject",
+                subjectId,
+                "--hemi",
+                "rh",
+                "--surf",
+                "pial",
+                "--annotation",
+                subjectDir / subjectId / 'surf' / 'rh.aparc.annot',
+                "--sd",
+                subjectDir,
+                "--outdir",
+                outputPath
+                ])
+  
+  lhLabelsSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_annotation2label",
+                "--subject",
+                subjectId,
+                "--hemi",
+                "lh",
+                "--surf",
+                "pial",
+                "--annotation",
+                subjectDir / subjectId / 'surf' / 'lh.aparc.annot',
+                "--sd",
+                subjectDir,
+                "--outdir",
+                outputPath
+                ])
+  
+  
+  return (
+    rhGiftiSurfaceToFreesurferSuccess and
+    lhGiftiSurfaceToFreesurferSuccess and
+    rhGiftiLabelToFreesurferSuccess and
+    lhGiftiLabelToFreesurferSuccess and
+    rhLabelsSuccess and
+    lhLabelsSuccess)

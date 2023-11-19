@@ -16,14 +16,38 @@ atlas=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii']);% load aparc+aseg
 
 leftLabels = gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.aparc.32k_fs_LR.label.gii']);
 rightLabels = gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.aparc.32k_fs_LR.label.gii']);
-labelNames = [ leftLabels.labels.name; rightLabels.labels.name];
-labelIds = [ leftLabels.labels.key; rightLabels.labels.key + length(leftLabels.labels.key)];
-nbROI=size(labelNames, 1);
+
+for labelName=string(leftLabels.labels.name)
+    labelId = find(leftLabels.labels.name == labelName) -1; %minus1 due to MATLAB indexing starting from 1
+    
+    %If labelId is zero, this is equivalent to -1 (i.e., missing label).
+    if(labelId == 0)
+        labelId = -1;
+    end
+    leftLabelsCdataByLabelName(leftLabels.cdata == labelId,:) = labelName;
+end
+
+for labelName=string(rightLabels.labels.name)
+    labelId = find(rightLabels.labels.name == labelName) -1; %minus1 due to MATLAB indexing starting from 1
+    
+    %If labelId is zero, this is equivalent to -1 (i.e., missing label).
+    if(labelId == 0)
+        labelId = -1;
+    end
+    rightLabelsCdataByLabelName(rightLabels.cdata == labelId,:) = labelName;
+end
+
+
+labels.names= [ leftLabels.labels.name, rightLabels.labels.name];
+labels.ids = [ leftLabels.labels.key, rightLabels.labels.key + length(leftLabels.labels.key)];
+% 64k, 
+labels.facesByLabelName = [ leftLabelsCdataByLabelName; rightLabelsCdataByLabelName];
+labels.facesByLabelId = [ leftLabels.cdata; rightLabels.cdata + length(rightLabels.labels.key)];
+
+nbROI=size(labels.names, 2);
 nbInROI=zeros(nbROI,1);
 
 if type==1
-    ROIfacevert(:,1).id=labelIds(:);
-    ROIfacevert(:,1).faces = [gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.pial.32k_fs_LR.surf.gii']).faces; gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.pial.32k_fs_LR.surf.gii']).faces];
 
     % load hi-res surface - pial.surf.gii
     display('load lh(rh).pial.surf.gii as surface')
@@ -35,6 +59,14 @@ if type==1
     grpfaces      = giftirh.faces;
     grpvertex     = giftirh.vertices;
     clear giftilh giftirh 
+
+    % Variables that store the position of each label.
+    for i=1:nbROI
+        ROIfacevert(i,1).id = labels.names(i);
+        ROIfacevert(i,1).faces = find(labels.facesByLabelId == i);
+    end
+%     ROIfacevert(:,1).id=labelIds(:);
+%     ROIfacevert(:,1).faces = [gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.pial.32k_fs_LR.surf.gii']).faces; gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.pial.32k_fs_LR.surf.gii']).faces];
     
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates (that is lh/rh.pial.surf.gii)
 elseif type==2
@@ -45,8 +77,8 @@ elseif type==2
     % load hi-res surface - pial
     display('load lh(rh).pial as surface')
     
-    l=SurfStatReadSurf([pathToFile,'/T1w/',subjectId,'/surf/lh.pial']);
-    r=SurfStatReadSurf([pathToFile,'/T1w/',subjectId,'/surf/rh.pial']);
+    l=SurfStatReadSurf([pathToFile,'/MNINonLinear/',subjectId,'/surf/lh.pial']);
+    r=SurfStatReadSurf([pathToFile,'/MNINonLinear/',subjectId,'/surf/rh.pial']);
     glpfaces = l.tri;
     glpvertex = l.coord';
     grpfaces = r.tri;
@@ -59,18 +91,24 @@ end
 
 %% assign labels to LH hi-res
 facesLH={};
-parfor roi=1:nbROI/2
+for roi=1:nbROI/2
     x=sum(ismember(glpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0); %by Peter
+
+    % Find faces that have 2 or more nodes by the name of this roi.
     ROIfacevert(roi).ffaces=find(x>1); %by Xue
     nbffaces=length(ROIfacevert(roi).ffaces);
+
+    % Store a dict of these faces alongside 
     %facesLH(roi,1)=glpfaces(ROIfacevert(roi).ffaces,:);
     facesLH{roi} = [glpfaces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
 end
 facesLH = cat(1,facesLH{:});
 %% assign labels to RH hi-res
 facesRH={};
-parfor roi=(nbROI/2)+1:nbROI
+
+for roi=(nbROI/2)+1:nbROI
+    grpfaces = grpfaces + max(glpfaces)
     x=sum(ismember(grpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0);% by Peter
     ROIfacevert(roi).ffaces=find(x>1);% by Xue

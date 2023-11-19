@@ -33,14 +33,14 @@ def generateSrcFile(subjectId: str) -> bool:
     return True; # If we use BedpostX data, we do not need to generate a .src file. 
     
 def reconstructImage(subjectId: str) -> bool:
+  # The destination file need not exist locally already, but its folders must.
+  destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
+  createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
+  
   if(config.DSI_STUDIO_USE_RECONST):
     sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz' ).resolve(strict=True)
     threadCount = config.CPU_THREADS # Default: CPU number.
     method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
-    
-    # The destination file need not exist locally already, but its folders must.
-    destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
-    createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
     
     destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")

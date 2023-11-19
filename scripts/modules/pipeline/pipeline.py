@@ -10,6 +10,7 @@ def runPipeline() -> None:
 
   # (2B) RUN FREESURFER: Annotate pial surface with labels
   if(config.GENERATE_LABELS): [structural.generateLabels(subjectId) for subjectId in config.ALL_SUBJECTS]
+  if(config.GENERATE_LABELS): [structural.generateMni152Labels(subjectId) for subjectId in config.ALL_SUBJECTS]
   
   # (3) RUN DSI STUDIO
   if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]

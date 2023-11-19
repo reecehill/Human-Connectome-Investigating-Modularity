@@ -8,7 +8,7 @@ display('step1: performing conversion from .trk to surface and atlas')
 display(['Type: ' num2str(type) ' (' class(type) ')'])
 %ft_defaults 
 %atlas=ft_read_mri([pathToFile,'/mri/aparc+aseg.nii']);
-atlas=ft_read_mri([pathToFile '/T1w/aparc+aseg.nii.gz']);
+atlas=ft_read_mri([pathToFile '/MNINonLinear/aparc+aseg.nii']);
 
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates
@@ -33,7 +33,7 @@ trk_len_full=[];
 trk_type_full=[];
 trkEP_full=[];
 for i=1:1
-filename=[pathToFile,'/T1w/Diffusion/1m',num2str(0+i-1),'.trk']
+filename=[pathToFile,'/T1w/Diffusion/1m',num2str(0+i-1),'_mni152.trk']
 
 [rawTrkMeta,rawTrk]=eval('trk_read(filename)');
 

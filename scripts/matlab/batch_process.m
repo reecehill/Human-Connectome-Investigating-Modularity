@@ -50,6 +50,10 @@ elseif strcmp(downsample,'no')
     sprintf('downsample=%s',downsample) 
 end
 
+for i=1:length(subjects)
+    gunzip([pathToFile num2str(subjects{i}) '/MNINonLinear/aparc+aseg.nii.gz']);
+end
+
 % convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
  
  for i=1:length(subjects)

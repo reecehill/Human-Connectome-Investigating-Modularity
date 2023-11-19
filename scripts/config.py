@@ -39,8 +39,10 @@ DSI_STUDIO_TURNING_ANGLE = 60
 DSI_STUDIO_SMOOTHING =0
 DSI_STUDIO_MIN_LENGTH = 10
 DSI_STUDIO_MAX_LENGTH = 300
-DSI_STUDIO_REF_IMG = "T1w.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
-
+# DSI_STUDIO_REF_IMG = "T1w.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
+DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
+DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
+DSI_STUDIO_USE_ROI = True
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -66,7 +68,7 @@ MATLAB_CALCULATE_STATS = True
 # ----------
 #NUMBER_OF_TRACTS = 10000000
 NUMBER_OF_TRACTS = 1000 # Not implemented.
-PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
+PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 2 (int) is unsupported.
 DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
 # ----------

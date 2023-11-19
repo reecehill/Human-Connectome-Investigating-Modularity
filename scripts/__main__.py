@@ -97,6 +97,15 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     raise
 
                 # ------------------------------------------------------------
+                # [START] Confirm the executable paths.
+                # ------------------------------------------------------------
+                try:
+                    g.logger.info("MATLAB Executable: " + config.MATLAB.resolve().__str__())
+                    g.logger.info("DSIStudio Executable: " + config.DSI_STUDIO.resolve().__str__())
+                except Exception:
+                    raise
+
+                # ------------------------------------------------------------
                 # [START] Running pipeline.
                 # Run each step in the pipeline. See each class "run" function for what occurs.
                 # ------------------------------------------------------------

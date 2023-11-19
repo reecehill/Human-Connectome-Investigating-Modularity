@@ -68,9 +68,11 @@ MATLAB_CALCULATE_STATS = True
 # ----------
 #NUMBER_OF_TRACTS = 10000000
 NUMBER_OF_TRACTS = 1000 # Not implemented.
-PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
+DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
+FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 
+
 # ----------
 # [END] PROCESSING PARAMETERS
 # ----------

@@ -1,78 +1,39 @@
 function [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels(pathToFile,subjectId,type,downsample,rate)
 addpath(genpath('toolboxes/SurfStat'));
-
-%% TODO: Note that this file uses labels from the subject space. This method is likely redundant.
-
 %% load label info
 display('step2: load surface node coordinates and their denoted label')
 
 clear ROIfacevert
-%filenames={'lh.bankssts.label';'lh.caudalanteriorcingulate.label';'lh.caudalmiddlefrontal.label';'lh.cuneus.label';'lh.entorhinal.label';'lh.frontalpole.label';'lh.fusiform.label';'lh.inferiorparietal.label';'lh.inferiortemporal.label';'lh.insula.label';'lh.isthmuscingulate.label';'lh.lateraloccipital.label';'lh.lateralorbitofrontal.label';'lh.lingual.label';'lh.medialorbitofrontal.label';'lh.middletemporal.label';'lh.paracentral.label';'lh.parahippocampal.label';'lh.parsopercularis.label';'lh.parsorbitalis.label';'lh.parstriangularis.label';'lh.pericalcarine.label';'lh.postcentral.label';'lh.posteriorcingulate.label';'lh.precentral.label';'lh.precuneus.label';'lh.rostralanteriorcingulate.label';'lh.rostralmiddlefrontal.label';'lh.superiorfrontal.label';'lh.superiorparietal.label';'lh.superiortemporal.label';'lh.supramarginal.label';'lh.temporalpole.label';'lh.transversetemporal.label';'rh.bankssts.label';'rh.caudalanteriorcingulate.label';'rh.caudalmiddlefrontal.label';'rh.cuneus.label';'rh.entorhinal.label';'rh.frontalpole.label';'rh.fusiform.label';'rh.inferiorparietal.label';'rh.inferiortemporal.label';'rh.insula.label';'rh.isthmuscingulate.label';'rh.lateraloccipital.label';'rh.lateralorbitofrontal.label';'rh.lingual.label';'rh.medialorbitofrontal.label';'rh.middletemporal.label';'rh.paracentral.label';'rh.parahippocampal.label';'rh.parsopercularis.label';'rh.parsorbitalis.label';'rh.parstriangularis.label';'rh.pericalcarine.label';'rh.postcentral.label';'rh.posteriorcingulate.label';'rh.precentral.label';'rh.precuneus.label';'rh.rostralanteriorcingulate.label';'rh.rostralmiddlefrontal.label';'rh.superiorfrontal.label';'rh.superiorparietal.label';'rh.superiortemporal.label';'rh.supramarginal.label';'rh.temporalpole.label';'rh.transversetemporal.label'};
-%subfilenames={'lh.thalamus','lh.caudate','lh.putamen','lh.pallidum','lh.amygdala','lh.hippocampus','lh.accumbens','lh.cerebellum','rh.thalamus','rh.caudate','rh.putamen','rh.pallidum','rh.amygdala','rh.hippocampus','rh.accumbens','rh.cerebellum','Brain-stem'};
+filenames={'lh.L_bankssts.label';'lh.L_caudalanteriorcingulate.label';'lh.L_caudalmiddlefrontal.label';'lh.L_cuneus.label';'lh.L_entorhinal.label';'lh.L_frontalpole.label';'lh.L_fusiform.label';'lh.L_inferiorparietal.label';'lh.L_inferiortemporal.label';'lh.L_insula.label';'lh.L_isthmuscingulate.label';'lh.L_lateraloccipital.label';'lh.L_lateralorbitofrontal.label';'lh.L_lingual.label';'lh.L_medialorbitofrontal.label';'lh.L_middletemporal.label';'lh.L_paracentral.label';'lh.L_parahippocampal.label';'lh.L_parsopercularis.label';'lh.L_parsorbitalis.label';'lh.L_parstriangularis.label';'lh.L_pericalcarine.label';'lh.L_postcentral.label';'lh.L_posteriorcingulate.label';'lh.L_precentral.label';'lh.L_precuneus.label';'lh.L_rostralanteriorcingulate.label';'lh.L_rostralmiddlefrontal.label';'lh.L_superiorfrontal.label';'lh.L_superiorparietal.label';'lh.L_superiortemporal.label';'lh.L_supramarginal.label';'lh.L_temporalpole.label';'lh.L_transversetemporal.label';'rh.R_bankssts.label';'rh.R_caudalanteriorcingulate.label';'rh.R_caudalmiddlefrontal.label';'rh.R_cuneus.label';'rh.R_entorhinal.label';'rh.R_frontalpole.label';'rh.R_fusiform.label';'rh.R_inferiorparietal.label';'rh.R_inferiortemporal.label';'rh.R_insula.label';'rh.R_isthmuscingulate.label';'rh.R_lateraloccipital.label';'rh.R_lateralorbitofrontal.label';'rh.R_lingual.label';'rh.R_medialorbitofrontal.label';'rh.R_middletemporal.label';'rh.R_paracentral.label';'rh.R_parahippocampal.label';'rh.R_parsopercularis.label';'rh.R_parsorbitalis.label';'rh.R_parstriangularis.label';'rh.R_pericalcarine.label';'rh.R_postcentral.label';'rh.R_posteriorcingulate.label';'rh.R_precentral.label';'rh.R_precuneus.label';'rh.R_rostralanteriorcingulate.label';'rh.R_rostralmiddlefrontal.label';'rh.R_superiorfrontal.label';'rh.R_superiorparietal.label';'rh.R_superiortemporal.label';'rh.R_supramarginal.label';'rh.R_temporalpole.label';'rh.R_transversetemporal.label'};
+subfilenames={'lh.thalamus','lh.caudate','lh.putamen','lh.pallidum','lh.amygdala','lh.hippocampus','lh.accumbens','lh.cerebellum','rh.thalamus','rh.caudate','rh.putamen','rh.pallidum','rh.amygdala','rh.hippocampus','rh.accumbens','rh.cerebellum','Brain-stem'};
 %filenames([10,44])=[];
+nbROI=length(filenames);
+%nbInROI=zeros(nbROI,1);
 
 %ft_defaults
 atlas=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii']);% load aparc+aseg.nii to get subcortical coordinates
 
-leftLabels = gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.aparc.32k_fs_LR.label.gii']);
-rightLabels = gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.aparc.32k_fs_LR.label.gii']);
-
-for labelName=string(leftLabels.labels.name)
-    labelId = find(leftLabels.labels.name == labelName) -1; %minus1 due to MATLAB indexing starting from 1
-    
-    %If labelId is zero, this is equivalent to -1 (i.e., missing label).
-    if(labelId == 0)
-        labelId = -1;
-    end
-    leftLabelsCdataByLabelName(leftLabels.cdata == labelId,:) = labelName;
-end
-
-for labelName=string(rightLabels.labels.name)
-    labelId = find(rightLabels.labels.name == labelName) -1; %minus1 due to MATLAB indexing starting from 1
-    
-    %If labelId is zero, this is equivalent to -1 (i.e., missing label).
-    if(labelId == 0)
-        labelId = -1;
-    end
-    rightLabelsCdataByLabelName(rightLabels.cdata == labelId,:) = labelName;
-end
-
-
-labels.names= [ leftLabels.labels.name, rightLabels.labels.name];
-labels.ids = [ leftLabels.labels.key, rightLabels.labels.key + length(leftLabels.labels.key)];
-% 64k, 
-labels.facesByLabelName = [ leftLabelsCdataByLabelName; rightLabelsCdataByLabelName];
-labels.facesByLabelId = [ leftLabels.cdata; rightLabels.cdata + length(rightLabels.labels.key)];
-
-nbROI=size(labels.names, 2);
-nbInROI=zeros(nbROI,1);
-
 if type==1
-
+    for i=1:nbROI
+        ROIfacevert(i,1).id=filenames(i);
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/T1w/',subjectId,'/label/label_type1/',filenames{i}]);    
+    end
     % load hi-res surface - pial.surf.gii
     display('load lh(rh).pial.surf.gii as surface')
     
-    giftilh=gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.pial.32k_fs_LR.surf.gii']);
+    giftilh=gifti([pathToFile,'/MNINonLinear/',subjectId,'/surf/lh.pial.surf.gii']);
     glpfaces      = giftilh.faces;
     glpvertex     = giftilh.vertices;
-    giftirh=gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.pial.32k_fs_LR.surf.gii']);
+    giftirh=gifti([pathToFile,'/MNINonLinear/',subjectId,'/surf/rh.pial.surf.gii']);
     grpfaces      = giftirh.faces;
     grpvertex     = giftirh.vertices;
     clear giftilh giftirh 
-
-    % Variables that store the position of each label.
-    for i=1:nbROI
-        ROIfacevert(i,1).id = labels.names(i);
-        ROIfacevert(i,1).faces = find(labels.facesByLabelId == i);
-    end
-%     ROIfacevert(:,1).id=labelIds(:);
-%     ROIfacevert(:,1).faces = [gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.pial.32k_fs_LR.surf.gii']).faces; gifti([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.pial.32k_fs_LR.surf.gii']).faces];
     
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates (that is lh/rh.pial.surf.gii)
 elseif type==2
     for i=1:nbROI
         ROIfacevert(i,1).id=filenames(i);
-        ROIfacevert(i,1).faces=importfile([pathToFile,'/T1w/',subjectId,'/label/label_type2/',filenames{i}]);    
+        ROIfacevert(i,1).faces=importfile([pathToFile,'/MNINonLinear/',subjectId,'/label/label_type2/',filenames{i}]);    
     end
     % load hi-res surface - pial
     display('load lh(rh).pial as surface')
@@ -91,24 +52,18 @@ end
 
 %% assign labels to LH hi-res
 facesLH={};
-for roi=1:nbROI/2
+parfor roi=1:nbROI/2
     x=sum(ismember(glpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0); %by Peter
-
-    % Find faces that have 2 or more nodes by the name of this roi.
     ROIfacevert(roi).ffaces=find(x>1); %by Xue
     nbffaces=length(ROIfacevert(roi).ffaces);
-
-    % Store a dict of these faces alongside 
     %facesLH(roi,1)=glpfaces(ROIfacevert(roi).ffaces,:);
     facesLH{roi} = [glpfaces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
 end
 facesLH = cat(1,facesLH{:});
 %% assign labels to RH hi-res
 facesRH={};
-
-for roi=(nbROI/2)+1:nbROI
-    grpfaces = grpfaces + max(glpfaces)
+parfor roi=(nbROI/2)+1:nbROI
     x=sum(ismember(grpfaces,ROIfacevert(roi).faces(:,1)+1),2);  
 %     ROIfacevert(roi).ffaces=find(x>0);% by Peter
     ROIfacevert(roi).ffaces=find(x>1);% by Xue

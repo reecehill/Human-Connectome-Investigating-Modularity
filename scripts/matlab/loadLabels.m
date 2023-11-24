@@ -1,5 +1,9 @@
 function [faceROIidL,faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid]=loadLabels(pathToFile,subjectId,type,downsample,rate)
 addpath(genpath('toolboxes/SurfStat'));
+addpath('toolboxes/FieldTrip');
+ft_defaults;
+ft_hastoolbox('spm12',1);
+addpath('toolboxes/Iso2Mesh/iso2mesh');
 %% load label info
 display('step2: load surface node coordinates and their denoted label')
 

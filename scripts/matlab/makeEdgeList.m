@@ -2,12 +2,12 @@ function [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdge
 clear ft_hastoolbox;
 restoredefaultpath;
 addpath('toolboxes/AlongTractStats');
-addpath('toolboxes/Gifti');
-addpath('toolboxes/Iso2Mesh');
 addpath(genpath('toolboxes/SurfStat'));
-addpath(genpath('toolboxes/spm12'));
 addpath('toolboxes/FieldTrip');
 ft_defaults;
+ft_hastoolbox('spm12',1);
+addpath('toolboxes/Iso2Mesh/iso2mesh');
+ft_hastoolbox('gifti',1);
 
 display('step3: check if there are fibres connected between node pairs')
 

@@ -52,6 +52,7 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
     pathToExecutable =  \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
+      getoutput(f"find $HOME -wholename '*/{executableAlias}/*' -name '{executable}' -type f -executable") or \
       which(executable)
     # If the pathToExecutable is a string and contains data after being stripped of white space. 
     if (isinstance(pathToExecutable, str) and pathToExecutable.strip()):

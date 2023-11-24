@@ -1,10 +1,12 @@
 function [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords(pathToFile,subjectId,Coor,type)
-addpath('toolboxes/AlongTractStats');
-addpath('toolboxes/Gifti');
-%addpath('toolboxes/Iso2Mesh');
-addpath(genpath('toolboxes/SurfStat'));
-addpath(genpath('toolboxes/spm12'));
 addpath('toolboxes/FieldTrip');
+ft_defaults;
+ft_hastoolbox('spm12',1);
+ft_hastoolbox('gifti',1);
+addpath('toolboxes/Iso2Mesh/iso2mesh');
+ft_hastoolbox('freesurfer',1);
+addpath('toolboxes/AlongTractStats');
+addpath(genpath('toolboxes/SurfStat'));
 %% This file converts coordinates as follows:
 % "TkReg RAS" -> ""MNI305 RAS" -> "MNI152 RAS"
 display('step5: get high resolution coordinates in MNI space')
@@ -18,10 +20,10 @@ nlen = size(Coor,1);
 
 
 %% load linear transformation matrix
-[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'/T1w/',subjectId,'/mri/transforms/talairach.xfm']);
+[TalairachXFM] = freesurfer_read_talxfm([pathToFile,'T1w/',subjectId,'/mri/transforms/talairach.xfm']);
 
 %ft_defaults
-mri=ft_read_mri([pathToFile,'/T1w/aparc+aseg.nii.gz']);
+mri=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii']);
 Norig = mri.hdr.vox2ras;
 Torig = mri.hdr.tkrvox2ras;
 
@@ -46,4 +48,5 @@ transform305_152 = [  0.9975   -0.0073    0.0176   -0.0429
 In = [Coor_MNI305 ones(nlen,1)]';
 Out = transform305_152*In;
 Coor_MNI152 = Out(1:3,:)';
+display("Finished with getMNIFromRasCoords - output not validated/used though.");
 end

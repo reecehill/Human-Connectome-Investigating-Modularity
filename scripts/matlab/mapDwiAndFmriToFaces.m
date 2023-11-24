@@ -19,8 +19,10 @@ try
     end
 
     %% Initialise.
-    addpath('/home/reece/iso2mesh/iso2mesh')
-    addpath(genpath('/home/reece/MATLAB Add-Ons/Toolboxes/Brain Connectivity Toolbox'));
+    addpath('toolboxes/FieldTrip');
+    ft_defaults;
+    ft_hastoolbox('bct',1);
+    addpath('toolboxes/Iso2Mesh/iso2mesh');
     addpath(genpath('toolboxes/SurfStat'));
     close all;
     clearvars -except pathToParticipants subject conditionIndex visualiseData allBrainData roiStructuralData optimalGamma ;

@@ -3,13 +3,12 @@ clear ft_hastoolbox;
 restoredefaultpath;
 savepath;
 addpath('toolboxes/AlongTractStats');
-%addpath('toolboxes/Gifti');
-%addpath('/home/reece/MATLAB Add-Ons/Collections/Iso2Mesh');
 addpath(genpath('toolboxes/SurfStat'));
-addpath(genpath('toolboxes/spm12'));
 addpath('toolboxes/FieldTrip');
-addpath('toolboxes/Iso2Mesh/iso2mesh')
 ft_defaults;
+ft_hastoolbox('spm12',1);
+addpath('toolboxes/Iso2Mesh/iso2mesh');
+
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
 t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');
 

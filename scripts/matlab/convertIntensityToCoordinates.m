@@ -4,7 +4,9 @@ function convertIntensityToCoordinates(pathToParticipants, subject, binaryThresh
 nConditions = 5., %Todo - automate this.
 
 for conditionIndex=[1:nConditions]
-    addpath(genpath('toolboxes/spm12'));
+    addpath('toolboxes/FieldTrip');
+    ft_defaults;
+    ft_hastoolbox('spm12',1);
 
     %% Load voxels from preprocessed fMRI results report (binarised data)
     % For all of the contrasts produced by SPM, get the MNI co-ordinates of

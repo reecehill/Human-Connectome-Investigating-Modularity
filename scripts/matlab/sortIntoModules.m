@@ -1,5 +1,5 @@
 function [modules, Q1] = sortIntoModules(adjacencyMatrix, gamma)
- addpath('toolboxes/FieldTrip/');
+ addpath('toolboxes/FieldTrip');
  ft_defaults;
  ft_hastoolbox('bct',1);
  disp('Running louvain algorithm...')

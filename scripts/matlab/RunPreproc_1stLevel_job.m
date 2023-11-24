@@ -1,5 +1,7 @@
 function RunPreproc_1stLevel_job(pathToParticipants, subject)
-addpath(genpath('toolboxes/spm12'));
+addpath('toolboxes/FieldTrip');
+ft_defaults;
+ft_hastoolbox('spm12',1);
 close all;
 clearvars -except pathToParticipants subject;
 try

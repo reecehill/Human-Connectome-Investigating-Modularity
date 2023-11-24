@@ -8,9 +8,6 @@
 /awsconfig 
 /tmp
 **/*Zone.Identifier
-/scripts/matlab/toolboxes/Iso2Mesh/*
-/scripts/matlab/toolboxes/iso2mesh-2/*
-/scripts/matlab/toolboxes/Iso2Mesh-old/*
 # Byte-compiled / optimized / DLL files
 __pycache__/*
 *.py[cod]

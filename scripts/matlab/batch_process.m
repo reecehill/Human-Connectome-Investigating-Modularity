@@ -82,12 +82,13 @@ for i=1:length(subjects)
     [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList([pathToFile,subjects{i}],downsample);
     filename=[pathToFile,subjects{i},'/edgeList.mat'];
     save(filename,'edgeListRemote','edgeListLocal','lpcentroids','rpcentroids','subCoor','-v7.3');
-    clear edgeListRemote,edgeListLocal;
+    clear edgeListRemote edgeListLocal;
 end
+
 
 %% Make adjacency matrices (low and hi res)
 for i=1:length(subjects)
-    [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices([pathToFile,subjects{i},'/']);
+    [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices([pathToFile,subjects{i},'/'], downsample);
     filename=[pathToFile,subjects{i},'/matrices.mat'];
     save(filename,'adj_local','adj_remote_bin','adj_remote_wei','adj_remote_len','lo_adj_wei','adj_matrix','lo_adj_cortical_wei','faceROI_all','faceROI_cortical','-v7.3');
 end

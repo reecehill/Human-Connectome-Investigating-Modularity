@@ -140,13 +140,13 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   remoteFilesToExist: "list[Path]" = [
                   (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz'),
                   (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'mri' / 'transforms' / 'talairach.xfm'),
-                  (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'lh.pial'),
-                  (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'rh.pial'),
+                  # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'lh.pial'),
+                  # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'rh.pial'),
                   ]
   localFilesToExist: "list[Path]" = [
      (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / '1m0_mni152.trk'),
      
-    ] + [(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
+    ] + [(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
   
   _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]

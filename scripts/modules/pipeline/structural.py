@@ -66,10 +66,10 @@ def generateMni152Labels(subjectId: str) -> bool:
   # Ensure pial and annot files (both (gifti format) exist.
   filesToExist = [
                   # TODO: Do not hard code this file name?
-                  (subjectDir  / 'fsaverage_LR59k' / f'{subjectId}.R.pial.59k_fs_LR.surf.gii'), # Right surface
-                  (subjectDir  / 'fsaverage_LR59k' / f'{subjectId}.L.pial.59k_fs_LR.surf.gii'), # Left surface
-                  (subjectDir  / 'fsaverage_LR59k' / f'{subjectId}.R.aparc.59k_fs_LR.label.gii'), # Right annotation
-                  (subjectDir  / 'fsaverage_LR59k' / f'{subjectId}.L.aparc.59k_fs_LR.label.gii'), # Left annotation
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
                   ]
   surfaceAndAnnotFiles = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 

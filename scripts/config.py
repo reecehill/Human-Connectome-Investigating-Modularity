@@ -22,11 +22,11 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4
 """
 0:streamline (default), 1:rk4 
 """
-DSI_STUDIO_TRACKING_METHOD = 1
+DSI_STUDIO_TRACKING_METHOD = 0
 
 # DSI_STUDIO_FIBRE_COUNT = 10000000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
-DSI_STUDIO_FIBRE_COUNT = 100000
+DSI_STUDIO_FIBRE_COUNT = 5000000
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
 DSI_STUDIO_FA_THRESH = 0
 DSI_STUDIO_OTSU_THRESH = 0.6
@@ -36,13 +36,13 @@ DSI_STUDIO_INTERPOLATION = 0 #interpolation methods (0:trilinear, 1:gaussian rad
 DSI_STUDIO_RANDOM_SEED = 0 # specify whether a timer is used for generating seed points. Setting it on (--random_seed=1) will make tracking random. The default is off. 
 DSI_STUDIO_STEP_SIZE = 0.625
 DSI_STUDIO_TURNING_ANGLE = 60
-DSI_STUDIO_SMOOTHING =0
+DSI_STUDIO_SMOOTHING = 0
 DSI_STUDIO_MIN_LENGTH = 10
 DSI_STUDIO_MAX_LENGTH = 300
 # DSI_STUDIO_REF_IMG = "T1w.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
-DSI_STUDIO_USE_ROI = True
+DSI_STUDIO_USE_ROI = False
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -56,9 +56,9 @@ GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
 RUN_MATLAB_DIFFUSION = True
-RUN_MATLAB_FUNCTIONAL = True
-RUN_MATLAB_MAPPING = True
-MATLAB_CALCULATE_STATS = True
+RUN_MATLAB_FUNCTIONAL = False
+RUN_MATLAB_MAPPING = False
+MATLAB_CALCULATE_STATS = False
 # ----------
 # [END] PIPELINE PARAMETERS
 # ----------
@@ -68,9 +68,10 @@ MATLAB_CALCULATE_STATS = True
 # ----------
 #NUMBER_OF_TRACTS = 10000000
 NUMBER_OF_TRACTS = 1000 # Not implemented.
+NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
-DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
+DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_RATE = 1 # NOTE: Default should be 0.1 (float). 
 FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 
 
 # ----------

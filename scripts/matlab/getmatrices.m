@@ -1,4 +1,4 @@
-function [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices(pathToFile)
+function [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices(pathToFile, downsample)
 
 display('step4: get finally connectivity matrices')
 
@@ -11,11 +11,17 @@ load([pathToFile,'/trsfmTrk.mat']);
 
 
 %% get lengths of data
-nfllen=length(nfl); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
-nfrlen=length(nfr); % as above, but right hemisphere.
-nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
-
-nbFaces=size(nfr,1)+size(nfl,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+if strcmp(downsample,'no') % method for no downsample
+    %nfllen=length(glpfaces); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
+    %nfrlen=length(grpfaces); % as above, but right hemisphere.
+    nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    nbFaces=size(grpfaces,1)+size(glpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+else
+    %nfllen=length(nfl); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
+    %nfrlen=length(nfr); % as above, but right hemisphere.
+    nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    nbFaces=size(nfr,1)+size(nfl,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+end
 
 
 %% make local connection matrix

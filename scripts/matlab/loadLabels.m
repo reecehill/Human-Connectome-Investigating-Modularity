@@ -40,10 +40,10 @@ elseif type==2
     
     l=SurfStatReadSurf([pathToFile,'/MNINonLinear/',subjectId,'/surf/lh.pial']);
     r=SurfStatReadSurf([pathToFile,'/MNINonLinear/',subjectId,'/surf/rh.pial']);
-    glpfaces = l.tri;
-    glpvertex = l.coord';
-    grpfaces = r.tri;
-    grpvertex = r.coord';
+    glpfaces = l.tri; %118,580x3 int32 (each row is the ID of the 3 nodes of the face)
+    glpvertex = l.coord'; %59292x3 double (each row are the coordinates of a node; row id = node ID)
+    grpfaces = r.tri; %118,580x3 int32 (each row is the ID of the 3 nodes of the face)
+    grpvertex = r.coord'; %59292x3 double (each row are the coordinates of a node; row id = node ID)
     clear l r
     
     RASmat = atlas.hdr.tkrvox2ras; % from voxel slices to tk surface RAS coordinates (that is lh/rh.pial).
@@ -125,7 +125,7 @@ if strcmp(downsample,'no')
     nvl = glpvertex;
     nfl = facesLH(:,1:3);
     faceROIidL = facesLH(:,4);
-
+    
     nvr = grpvertex;
     nfr = facesRH(:,1:3);
     faceROIidR = facesRH(:,4);
@@ -143,15 +143,26 @@ elseif strcmp(downsample,'yes')
     % LH
     numnfl=size(nfl,1);
     faceROIidL=zeros(size(nfl,1),1);
+
+    %% Loop through each face on downsampled mesh to find closest face on original mesh. Returns a vector of correspoding label IDs.
     parfor k=1:numnfl
+        % Print progress.
         if mod(k/1000,1)==0
             disp(num2str(numnfl\k))
         end
-        currentface=lo_centroidsL(k,:);% euclid dist b
+     
+        currentface=lo_centroidsL(k,:); %current face's centroid coordinates
+         %Euclidean distances (vector double) between current face and all mesh centroids 
         dsl=((currentface(:,1)-hi_centroidsL(:,1)).^2 + (currentface(:,2)-hi_centroidsL(:,2)).^2 + (currentface(:,3)-hi_centroidsL(:,3)).^2 );
+        
+        % ID of the mesh centroid that is closest to current face's
+        % centroid.
         [~,faceROIidL(k,1)]=min(dsl);
+
+        % Replace ID (as above) with the label ID of that centroid.
         faceROIidL(k,1)=facesLH(faceROIidL(k,1),4);
     end
+
     % RH
     numnfr=size(nfr,1);
     faceROIidR=zeros(size(nfr,1),1);
@@ -170,10 +181,10 @@ else
 end
 %% Sort the faces according to region number
 % LH
-faceROIidL(:,2)=[1:length(faceROIidL)]';
-faceROIidLsorted=sortrows(faceROIidL,1);
-nfl=nfl(faceROIidLsorted(:,2),:);
-faceROIidL=faceROIidLsorted(:,1);
+faceROIidL(:,2)=[1:length(faceROIidL)]'; % Add node index as 2nd column.
+faceROIidLsorted=sortrows(faceROIidL,1); % Per row, column1= label ID; column2= node ID
+nfl=nfl(faceROIidLsorted(:,2),:); % Reorder nfl so that faces are in asc. order of label ID.
+faceROIidL=faceROIidLsorted(:,1); % Reorder faceROIidL so that label IDs are in asc. order.
 clear faceROIidLsorted 
 % LH
 faceROIidR(:,2)=[1:length(faceROIidR)]';

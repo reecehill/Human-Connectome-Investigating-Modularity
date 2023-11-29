@@ -6,7 +6,7 @@ classdef gp < dml.method
 %   Wrapper to the GPstuff Gaussian process code
 %
 %   REFERENCE
-%    Jarno Vanhatalo, Jaakko RiihimÃ¤ki, Jouni Hartikainen, Pasi JylÃ¤nki,
+%    Jarno Vanhatalo, Jaakko Riihimäki, Jouni Hartikainen, Pasi Jylänki,
 %    Ville Tolvanen, Aki Vehtari (2013). GPstuff: A Toolbox for Bayesian
 %    Modeling with Gaussian Processes. In Journal of Machine Learning
 %    Research, accepted for publication.
@@ -20,7 +20,7 @@ classdef gp < dml.method
 %   Z = m.test(X);
 %
 %   DEVELOPER
-%   Jarno Vanhatalo, Jaakko RiihimÃ¤ki, Jouni Hartikainen, Pasi JylÃ¤nki, Ville Tolvanen, Aki Vehtari
+%   Jarno Vanhatalo, Jaakko Riihimäki, Jouni Hartikainen, Pasi Jylänki, Ville Tolvanen, Aki Vehtari
 
 
   properties

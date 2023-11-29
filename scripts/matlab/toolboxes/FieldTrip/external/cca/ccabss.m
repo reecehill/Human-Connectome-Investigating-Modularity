@@ -11,7 +11,7 @@ function [y,w,r] = ccabss(x)
 %
 % [Y W] = CCABSS(X) also gives the 'de-mixing' matrix W, such that Y = W'*X.
 %
-% Â© 2000 Magnus Borga
+% © 2000 Magnus Borga
 
 
 switch ndims(x)

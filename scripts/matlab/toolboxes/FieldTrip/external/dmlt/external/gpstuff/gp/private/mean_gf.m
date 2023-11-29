@@ -134,7 +134,7 @@ end
 %
 %                 for i2 = 1:length(DKff)
 %                     % help arguments that depend on DKff; vague p
-%                     dyKy{i2} = b'*(DKff{i2}*b);            % d y'*KyÃ¢?Â»*y / d th
+%                     dyKy{i2} = b'*(DKff{i2}*b);            % d y'*Kyâ?»*y / d th
 %                     dA  = -1*HinvC*DKff{i2}*HinvC';        % d A / d th
 %                     trAv{i2} = sum(invAt(:).*dA(:));       % d log(|A|)/dth = trace(inv(A) * dA/dth)
 %                     P   = invKy*DKff{i2}*invKy;

@@ -12,7 +12,7 @@ classdef slda < dml.method
 %   J. Schafer and K. Strimmer (2005) A Shrinkage Approach to Large-Scale
 %   Covariance Matrix Estimation and Implications for Functional Genomics
 %  
-%   Blankertz B, Lemm S, Treder M, Haufe S, MÃ¼ller K-R. Single-Trial
+%   Blankertz B, Lemm S, Treder M, Haufe S, Müller K-R. Single-Trial
 %   Analysis and Classification of ERP Components - a Tutorial. Neuroimage.
 %   2010
 %

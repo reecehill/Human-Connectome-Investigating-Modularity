@@ -45,7 +45,7 @@ function [np_data] = np_readdata (filename, np_info, idx_begin, data_length, opt
 % Germany
 % 02.02.2005
 
-% Daten initialisieren, Startsamples und Blockl√§nge ermitteln
+% Daten initialisieren, Startsamples und Blockl‰nge ermitteln
 if (0==idx_begin) && (inf==data_length)
     N_start=0;
     N = np_info.N;                 
@@ -81,7 +81,7 @@ np_data.t=(N_start:N_start+N-1)'./np_info.fa;
 % x1N x2N x3N ... xKN
 %
 % einlesen in eine Matrix mit der Dimension: (KxN)
-% anschlie√üend transponieren in eine Matrix der Dimension: (NxK)
+% anschlieﬂend transponieren in eine Matrix der Dimension: (NxK)
 %
 % -------------------------------------------------------------------------
 fid=fopen_or_error(filename,'r');

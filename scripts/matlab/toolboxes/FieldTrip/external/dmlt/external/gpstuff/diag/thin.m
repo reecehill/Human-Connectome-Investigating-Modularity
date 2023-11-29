@@ -9,7 +9,7 @@ function x = thin(x,nburn,nthin,nlast)
 %  See also
 %    JOIN
 
-% Copyright (c) 1999 Simo S√§rkk√§
+% Copyright (c) 1999 Simo S‰rkk‰
 % Copyright (c) 2000,2010 Aki Vehtari
 %
 % This software is distributed under the GNU General Public 

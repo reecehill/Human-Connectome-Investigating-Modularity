@@ -38,7 +38,7 @@ case 'gui_cb_about'
   helptext =[ ...
     'FastICA for Matlab 7.x and 6.x                                            '
     'Version 2.5, October 19 2005                                              '
-    'Copyright (c) Hugo G√§vert, Jarmo Hurri, Jaakko S√§rel√§, and Aapo Hyv√§rinen.'
+    'Copyright (c) Hugo G‰vert, Jarmo Hurri, Jaakko S‰rel‰, and Aapo Hyv‰rinen.'
     '                                                                          '
     'For more information please see:                                          '
     'http://www.cis.hut.fi/projects/ica/fastica/                               '];

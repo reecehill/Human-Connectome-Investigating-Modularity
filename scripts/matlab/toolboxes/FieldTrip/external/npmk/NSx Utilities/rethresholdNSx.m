@@ -10,9 +10,9 @@ function NEV = rethresholdNSx(varargin)
 %
 %   NSx:          The data structure holding the channel information
 %
-%   Threshold:    The threshold value in ÂµV. This can be a positive or
+%   Threshold:    The threshold value in µV. This can be a positive or
 %                 negative value.
-%                 DEFAULT: Will automatically set threshold to -65 ÂµV.
+%                 DEFAULT: Will automatically set threshold to -65 µV.
 %
 %   FilterFreq:   The high-pass filter high-pass corner frequency. For
 %                 example, if the filter is set to 250 then the signal will
@@ -26,14 +26,14 @@ function NEV = rethresholdNSx(varargin)
 %   NEV = rethresholdNSx(NSx, -85, 150);
 %
 %   In the example above, the NSx structure will be high-pass filtered at 
-%   150 Hz and then rethresholded at -85 ÂµV. All new waveformes will be
+%   150 Hz and then rethresholded at -85 µV. All new waveformes will be
 %   saved in a NEV structure and will get output to MATLAB.
 %
 %   NEV = rethresholdNSx;
 %
 %   In the example above, the user will be propted to choose a NSx file
 %   then the signal will get high-pass filtered at 150 Hz and then 
-%   rethresholded at -85 ÂµV. All new waveformes will be saved in a NEV 
+%   rethresholded at -85 µV. All new waveformes will be saved in a NEV 
 %   structure and will get output to MATLAB.
 %
 %   Kian Torab

@@ -27,7 +27,7 @@
 %    Laplace approximation and MCMC.
 
 % Reference:
-% Teppo Juntunen, Jarno Vanhatalo, Heikki Peltonen and Samu MÃ¤ntyniemi
+% Teppo Juntunen, Jarno Vanhatalo, Heikki Peltonen and Samu Mäntyniemi
 % (2012). Bayesian spatial multispecies modelling to assess pelagic fish
 % stocks from acoustic- and trawl-survey data. ICES Journal of Marine
 % Science, 69: 95-104.

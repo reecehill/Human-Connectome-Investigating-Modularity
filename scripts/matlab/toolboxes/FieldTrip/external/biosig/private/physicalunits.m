@@ -210,7 +210,7 @@ elseif ischar(arg1) || iscell(arg1)
                		Code(k) = 768;
 		elseif strcmp(unit,'Hz')
               		Code(k) = 2496;
-		elseif strcmp(unit,'l/(min*mÂ²)')
+		elseif strcmp(unit,'l/(min*m²)')
               		Code(k) = 2848;
 		elseif strcmp(unit,'l/min')
               		Code(k) = 3072;
@@ -228,17 +228,17 @@ elseif ischar(arg1) || iscell(arg1)
                		Code(k) = 4288;
 		elseif strcmp(unit,'K')
               		Code(k) = 4384;
-		elseif strcmp(unit,'Â°F')
+		elseif strcmp(unit,'°F')
               		Code(k) = 4416;
-		elseif strcmp(unit,'Â°C')
+		elseif strcmp(unit,'°C')
               		Code(k) = 6048;
-		elseif strcmp(unit,'m/sÂ²')
+		elseif strcmp(unit,'m/s²')
               		Code(k) = 6624
-		elseif strcmp(unit,'dyne*s*mÂ²/cm^5')
+		elseif strcmp(unit,'dyne*s*m²/cm^5')
               		Code(k) = 65440;
-		elseif strcmp(unit,'l/mÂ²')
+		elseif strcmp(unit,'l/m²')
               		Code(k) = 65472;
-		elseif strcmp(unit,'ml/mÂ²')
+		elseif strcmp(unit,'ml/m²')
               		Code(k) = 65472+18;
                 else 
                         % this is the general method to determine the

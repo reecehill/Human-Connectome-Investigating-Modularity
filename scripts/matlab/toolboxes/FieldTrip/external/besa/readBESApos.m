@@ -2,7 +2,7 @@ function sensor = readBESApos(filename, type)
 
 % readBESApos read sensor information from a *.pos file. BESA stores
 % magnetometer information in *.pmg, and gradiometer information in *.pos,
-% however BESA Research doesnç¨š mind which extension is used, the
+% however BESA Research doesn’t mind which extension is used, the
 % distinction between gradiometers and magnetometers is based on the number
 % of values on each line in the file.
 % Brief format description:

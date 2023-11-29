@@ -67,7 +67,6 @@ ft_defaults
 ft_preamble init
 ft_preamble debug
 ft_preamble provenance
-ft_preamble trackconfig
 
 % the ft_abort variable is set to true or false in ft_preamble_init
 if ft_abort
@@ -119,6 +118,23 @@ cfg.template.headshapestyle   = updatestyle(cfg.template.headshapestyle);
 cfg.individual.headshapestyle = updatestyle(cfg.individual.headshapestyle);
 cfg.template.headmodelstyle   = updatestyle(cfg.template.headmodelstyle);
 cfg.individual.headmodelstyle = updatestyle(cfg.individual.headmodelstyle);
+
+if ~isempty(cfg.individual.headshape) && isfield(cfg.individual.headshape, 'color')
+  if isfield(cfg.individual.headshape, 'tri') && size(cfg.individual.headshape.tri,1)==size(cfg.individual.headshape.color,1)
+    cfg.individual.headshapestyle = ft_setopt(cfg.individual.headshapestyle, 'facecolor', cfg.individual.headshape.color);
+  elseif size(cfg.individual.headshape.pos,1)==size(cfg.individual.headshape.color,1)
+    cfg.individual.headshapestyle = ft_setopt(cfg.individual.headshapestyle, 'vertexcolor', cfg.individual.headshape.color);
+  end
+end
+
+if ~isempty(cfg.template.headshape) && isfield(cfg.template.headshape, 'color')
+  if isfield(cfg.template.headshape, 'tri') && size(cfg.template.headshape.tri,1)==size(cfg.template.headshape.color,1)
+    cfg.template.headshapestyle = ft_setopt(cfg.template.headshapestyle, 'facecolor', cfg.template.headshape.color);
+  elseif size(cfg.template.headshape.pos,1)==size(cfg.template.headshape.color,1)
+    cfg.template.headshapestyle = ft_setopt(cfg.template.headshapestyle, 'vertexcolor', cfg.template.headshape.color);
+  end
+end
+
 
 template   = struct(cfg.template);
 individual = struct(cfg.individual);
@@ -237,7 +253,6 @@ delete(fig);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
-ft_postamble trackconfig
 ft_postamble provenance
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

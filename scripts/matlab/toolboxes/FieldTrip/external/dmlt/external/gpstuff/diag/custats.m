@@ -5,7 +5,7 @@ function [CA,CS] = custats(X,n0)
 %   returns cumulative statistics of X. CA is the
 %   cumulative average and CS is the cumulative variance.
 
-% Copyright (C) 1999 Simo S√§rkk√§
+% Copyright (C) 1999 Simo S‰rkk‰
 %
 % This software is distributed under the GNU General Public 
 % Licence (version 3 or later); please refer to the file 

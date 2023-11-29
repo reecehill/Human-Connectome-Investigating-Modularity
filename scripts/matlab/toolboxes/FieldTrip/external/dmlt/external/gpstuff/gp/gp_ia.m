@@ -63,7 +63,7 @@ function [gp_array, P_TH, th, Ef, Varf, pf, ff, H] = gp_ia(gp, x, y, varargin)
 %                   - 'iter' displays output at each evaluation point
 %       
 
-% Copyright (c) 2009-2010 Ville Pietil√§inen, Jarno Vanhatalo
+% Copyright (c) 2009-2010 Ville Pietil‰inen, Jarno Vanhatalo
 % Copyright (c) 2010,2012 Aki Vehtari
 
 % This software is distributed under the GNU General Public

@@ -13,7 +13,7 @@ function x = batch(x,nburn,batchsize,nlast,fun)
 %   See also
 %     THIN
 
-% Copyright (c) 1999 Simo S√§rkk√§
+% Copyright (c) 1999 Simo S‰rkk‰
 % Copyright (c) 2000 Aki Vehtari
 % Copyright (c) 2004 Jarno Vanhatalo
 %

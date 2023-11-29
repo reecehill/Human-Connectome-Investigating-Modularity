@@ -70,7 +70,7 @@ if count~=1,
     ft_error('Unable to read duration string.');
 end
 % Sampleanzahl ermitteln:
-% frÃ¼here Version:
+% frühere Version:
 %       [np_info.N,count]=fread(fid,1,'int32');                
 %       if count~=1,
 %           ft_error(['Fehler beim Lesen der Messdauer. Fehlercode: ' ferror(fid)]);
@@ -82,7 +82,7 @@ SIZEOF_FLOAT=4;
 fp_vector=sort([fp_text fp_marker fp_header np_info.fp_data filesize]);
 idx=find(fp_vector==np_info.fp_data);
 %
-% ErgÃ¤nzung: 16.2.05
+% Ergänzung: 16.2.05
 % wenn fp_data = filesize, dann hat die Datei 
 % wahrscheinlich keine Daten
 %
@@ -121,15 +121,15 @@ if fp_text>0,
     np_info.birthday=da;
     %
     % alte Version hatte nur Probleme, wenn unterschiedliche Regions-
-    % und Sprachoptionen -> deshalb String fÃ¼r GebDat nicht formatieren
+    % und Sprachoptionen -> deshalb String für GebDat nicht formatieren
     % 07.04.2005
 %     if ~isempty(strfind(da,'/')),            % amerikanisches Datumsformat?
-%         %bc=datevec(da);                      % = frÃ¼here Version   
+%         %bc=datevec(da);                      % = frühere Version   
 %         bc=datevec(da,'dd/mm/yyyy');
 %         bs=datestr(bc,24);
 %         np_info.birthday=regexprep(bs,'/','.');
 %     else
-%         np_info.birthday=da;     % sonst Annahme deutsches/europÃ¤isches Format
+%         np_info.birthday=da;     % sonst Annahme deutsches/europäisches Format
 %     end
     tline=fgetl(fid);       %  ID=...
     np_info.ID=tline(4:length(tline));
@@ -151,8 +151,8 @@ for i=1:np_info.K
         ft_error(['Unable to read channel name for channel ' num2str(i) '.']);
     end
     %
-    % wahre StringlÃ¤nge bestimmen!
-    % Ã„nderung am 09.12.2004
+    % wahre Stringlänge bestimmen!
+    % Änderung am 09.12.2004
     %
        hh=h(2:8);
        laenge=0;
@@ -184,8 +184,8 @@ for i=1:np_info.K
     end
     h_unit=h(2:8);
     %
-    % wahre StringlÃ¤ngen bestimmen!
-    % Ã„nderung am 01.02.2005
+    % wahre Stringlängen bestimmen!
+    % Änderung am 01.02.2005
     %
     laenge=0;
     for k=1:length(h_unit)
@@ -199,8 +199,8 @@ for i=1:np_info.K
 
     h_type=h(10:16);
     %
-    % wahre StringlÃ¤ngen bestimmen!
-    % Ã„nderung am 01.02.2005
+    % wahre Stringlängen bestimmen!
+    % Änderung am 01.02.2005
     %
     laenge=0;
     for k=1:length(h_type)
@@ -219,7 +219,7 @@ fclose(fid);
 % -------------------------------------------------------------------------
 % --- alte Version: fid=fopen([filename(1:length(filename)-1) '_'],'r');
 % --- bis 19.09.2005: in alter Version werden nicht die *X*.EEG Dateien
-% --- fÃ¼r EEG-Splitting benutzt; neue Version liest Setup, PMtype,
+% --- für EEG-Splitting benutzt; neue Version liest Setup, PMtype,
 % --- Algorithmus immer von der "ersten" EE_-Datei
 [pa,fn,ex]=fileparts(filename);
 if strcmp(pa,''),
@@ -236,17 +236,17 @@ Idx1=strfind(s,'70:');      % Name70=PMTyp
 if ~isempty(Idx1),
     % der Marker:   70:0(...) ist vorhanden
     % Beispiel:     70:0(EEG-4-FB;FB;TP_ADHD_SCP)
-    [block,R]=strtok(s(Idx1(1):length(s)),'|');    % nÃ¤chsten Block bis '|' ermitteln
+    [block,R]=strtok(s(Idx1(1):length(s)),'|');    % nächsten Block bis '|' ermitteln
     [A,B]=strtok(block,'(');                       % suche nach '(' in block
     [C,D]=strtok(B(2:length(B)),')');              % suche nach ')' in Restblock C
-    [np_info.setup,R]=strtok(C,';');               % Abtrennung fÃ¼r Setup
-    [np_info.pmtype,R]=strtok(R,';');              % Abtrennung fÃ¼r PMTyp
-    [np_info.algorithm,R]=strtok(R,';');           % Abtrennung fÃ¼r Algorithmus
+    [np_info.setup,R]=strtok(C,';');               % Abtrennung für Setup
+    [np_info.pmtype,R]=strtok(R,';');              % Abtrennung für PMTyp
+    [np_info.algorithm,R]=strtok(R,';');           % Abtrennung für Algorithmus
 else
     % der Marker:   70:0(...) ist nicht vorhanden
     % es muss 16518:... benutzt werden
     % nur setup kann ermittelt werden aus der letzten
-    % SekundÃ¤rmontage
+    % Sekundärmontage
     try
         fid=fopen_or_error([filename(1:length(filename)-1) '_'],'r');
     catch
@@ -259,7 +259,7 @@ else
     for i=1:length(MarkerIdx)
         % Beispiel 1: 16518:0|              -> keine Montage vorhanden
         % Beispiel 2: 16518:0(EEG;Fp1...)
-        [block,R]=strtok(s(MarkerIdx(i):length(s)),'|');    % nÃ¤chsten Block bis '|' ermitteln
+        [block,R]=strtok(s(MarkerIdx(i):length(s)),'|');    % nächsten Block bis '|' ermitteln
         [A,B]=strtok(block,'(');                            % im Block nach '(' suchen
         [C,D]=strtok(B(2:length(B)),')');                   % im Restblock B nach ')' suchen
         [E,F]=strtok(C,';');                                % im Block C nach ';' suchen
@@ -273,8 +273,8 @@ else
     end   
     np_info.setup=letzteSekMontage;
 end
-% ErgÃ¤nzung: 21.09.05
-% Alias fÃ¼r Algorithmus (Protokoll) eintragen
+% Ergänzung: 21.09.05
+% Alias für Algorithmus (Protokoll) eintragen
 dw=which('np_read_splitted_fileinfo.m');
 if ~isempty(dw),
     [pa,fn,ex]=fileparts(dw);
@@ -300,7 +300,7 @@ if strcmp(np_info.pathname,'')
 end
 np_info.filename=[fn ext];
 [pa,fn,ex]=fileparts(filename);
-s=fn(1:14);     % nur ein Datum fÃ¼r gesplittete EEG-Dateien
+s=fn(1:14);     % nur ein Datum für gesplittete EEG-Dateien
 % 
 % Anpassung an ISO 8601  'yyyy-mm-dd'             2000-03-01
 % alte Version: np_info.date=datestr([s(5:6) '/' s(7:8) '/' s(1:4)]);
@@ -317,7 +317,7 @@ end
 s=fscanf(fid,'%c',inf);
 fclose(fid);
 Idx1=strfind(s,'16384:0');
-if length(Idx1)>1,      % fÃ¼r den Fall, dass 16384:0 mehrfach auftaucht
+if length(Idx1)>1,      % für den Fall, dass 16384:0 mehrfach auftaucht
     Idx1=Idx1(1);       % das kann bei Pausen der Fall sein
 end
 if ~isempty(s)
@@ -325,26 +325,26 @@ if ~isempty(s)
     % Formate: 16384:0(01.02.2005 12:54:41)  oder  16384:0(2/1/2005 8:50:03 PM)
     % in einer neuen Version: 01_02_2005 12:54:41
     %
-    [block,R]=strtok(s(Idx1:length(s)),'|');            % nÃ¤chsten Block bis '|' ermitteln
+    [block,R]=strtok(s(Idx1:length(s)),'|');            % nächsten Block bis '|' ermitteln
     [A,B]=strtok(block,'(');                            % im Block nach '(' suchen
     [C,D]=strtok(B(2:length(B)),')');                   % im Restblock B nach ')' suchen    
     [str,R]=strtok(C,' ');                              % ergibt das Datum in str und time in R
     np_info.time=datestr(datenum(R(2:length(R))),13);   % formatiere Zeit: hh:mm:ss
     %
-    % ErgÃ¤nzung 07.04.2005:
-    % PrÃ¼fen des Messdatums
+    % Ergänzung 07.04.2005:
+    % Prüfen des Messdatums
     % z.B. EEG-Dateiname: 20050407235920.EEG   07.04.2005 23:59:20
     %      Messbeginn:    8.4.2005 00:20:21
     % dann muss das Messdatum um 1 Tag korrigiert werden
-    % Alternative: Messdatum aus EE_-Datei -> abhÃ¤ngig von Regions- und
+    % Alternative: Messdatum aus EE_-Datei -> abhängig von Regions- und
     % Spracheinstellungen
     filename_time=str2num(np_info.filename(9:14));          % z.B. 235920
     info_time=str2num([np_info.time(1:2) np_info.time(4:5) np_info.time(7:8)]);     % z.B. 002021
     if (info_time<filename_time),
-        % Messgebinn war nach Mitternacht, Messdatum um 1 Tag erhÃ¶hen
+        % Messgebinn war nach Mitternacht, Messdatum um 1 Tag erhöhen
         np_info.date=datestr(datenum(str2num(np_info.date(1:4)),...             % Jahr
                                      str2num(np_info.date(6:7)),...             % Monat 
-                                     str2num(np_info.date(9:10)))+1,29);        % Tag um 1 erhÃ¶hen
+                                     str2num(np_info.date(9:10)))+1,29);        % Tag um 1 erhöhen
     end
 end
 
@@ -368,7 +368,7 @@ if status~=0,
 end
 SamplesToRead=1000;
 try
-    for k=1:np_info.K                   % setze Werte fÃ¼r PhysMin und PhysMax
+    for k=1:np_info.K                   % setze Werte für PhysMin und PhysMax
         val=fread(fid,1,'float');       % auf die Anfangswerte des jeweiligen
         np_info.PhysMin(1,k)=val;       % Kanals
         np_info.PhysMax(1,k)=val;
@@ -382,7 +382,7 @@ try
             break;
         end
     end
-    % wichtige ErgÃ¤nzung: 23.08.2004
+    % wichtige Ergänzung: 23.08.2004
     fclose(fid);
 catch
     fclose(fid);

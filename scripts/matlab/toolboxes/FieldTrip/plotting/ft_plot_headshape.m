@@ -12,16 +12,17 @@ function hs = ft_plot_headshape(headshape, varargin)
 % where the shape is a structure obtained from FT_READ_HEADSHAPE.
 %
 % Optional arguments should come in key-value pairs and can include
-%   'vertexcolor'  = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'facecolor'    = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx3 or Nx1 array where N is the number of faces
+%   'vertexcolor'  = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx3 or Nx1 array where N is the number of vertices
 %   'vertexsize'   = scalar value specifying the size of the vertices (default = 10)
-%   'fidcolor'     = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'fidcolor'     = [r g b] values or string, for example 'red', 'r', or an Nx3 or Nx1 array where N is the number of fiducials
 %   'fidmarker'    = ['.', '*', '+',  ...]
 %   'fidlabel'     = ['yes', 'no', 1, 0, 'true', 'false']
 %   'transform'    = transformation matrix for the fiducials, converts MRI voxels into head shape coordinates
 %   'unit'         = string, convert to the specified geometrical units (default = [])
 %   'axes'         = boolean, whether to plot the axes of the 3D coordinate system (default = false)
 %
-% Example
+% Example:
 %   shape = ft_read_headshape(filename);
 %   ft_plot_headshape(shape)
 %
@@ -127,9 +128,16 @@ if isfield(headshape, 'fid')
   end
 end
 
+if isfield(headshape, 'coordsys')
+  % add a context sensitive menu to change the 3d viewpoint to top|bottom|left|right|front|back
+  menu_viewpoint(gca, headshape.coordsys)
+end
+
 if nargout==0
   clear hs
 end
+
 if ~holdflag
   hold off
 end
+

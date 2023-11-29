@@ -13,6 +13,7 @@ __pycache__/*
 *.py[cod]
 *$py.class
 src/*
+/scripts/matlab/toolboxes/FieldTrip-old/*
 
 # C extensions
 *.so

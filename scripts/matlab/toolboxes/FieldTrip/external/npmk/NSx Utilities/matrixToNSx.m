@@ -17,7 +17,7 @@ function matrixToNSx(varargin)
 %                  supported.
 %
 %   inputUnits:    The unit for the recorded data. Most data acquisition 
-%                  systems save the data in units of ÂµV. TDT units are V.
+%                  systems save the data in units of µV. TDT units are V.
 %                  The supported units are V, mV, uV or nV.
 %
 %   savedDataPath: The full path (excluding the extension) of the saved
@@ -53,14 +53,14 @@ switch nargin
         disp('Data is a required input.');
         return
     case 1
-        disp('Sampling rate and input unit were not provided. Assuming 30kHz and ÂµV.');
+        disp('Sampling rate and input unit were not provided. Assuming 30kHz and µV.');
         disp('The converted file will be saved on the Desktop.');
         inputData = varargin{1};
         samplingFreq = input('What is the sampling frequency of the recorded data (e.g. ''30000'')? ');
         signalUnit = input('What is the input unit of the signal (V, mV, uV or nV)? ', 's');
         savedFilePath = input('Enter the full path for the converted file? ', 's');
     case 2
-        disp('Input unit was not provided. Assuming ÂµV.');
+        disp('Input unit was not provided. Assuming µV.');
         disp('The converted file will be saved on the Desktop.');
         inputData = varargin{1};
         signalUnit = input('What is the input unit of the signal (V, mV, uV or nV)? ', 's');

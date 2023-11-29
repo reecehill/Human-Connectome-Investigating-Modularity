@@ -234,7 +234,7 @@ if ~isempty(findstr(PERMISSION,'r')),		%%%%% READ
                         elseif tmp(1)== 5, HDR.PhysDimCode = 3808; %% dyne
                         elseif tmp(1)== 6, HDR.PhysDimCode = 3776; %% N
                         elseif tmp(1)== 7, HDR.PhysDimCode = 544;  %% '%'
-                        elseif tmp(1)== 8, HDR.PhysDimCode = 6048; %% Â°C
+                        elseif tmp(1)== 8, HDR.PhysDimCode = 6048; %% °C
                         elseif tmp(1)== 9, HDR.PhysDimCode = 2528; %% 1/min
                         elseif tmp(1)==10, HDR.PhysDimCode = 4264; %% 1/s
                         elseif tmp(1)==11, HDR.PhysDimCode = 4288; %% Ohm

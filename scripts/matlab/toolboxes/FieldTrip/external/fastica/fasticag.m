@@ -281,7 +281,7 @@ ht_FastICA_mixedStatus = uicontrol('Parent',a, ...
   'Style','text', ...
   'Tag','t_mixedstatus');
 
-% V√§h√§n v√§li√§
+% V‰h‰n v‰li‰
 pos_t = pos_t - 8;
 
 pos_l = pos_frame(1) + 6;
@@ -376,7 +376,7 @@ ht_FastICA_whiteStatus = uicontrol('Parent',a, ...
   'Style','text', ...
   'Tag','t_whiteStatus');
 
-% V√§h√§n v√§li√§
+% V‰h‰n v‰li‰
 pos_t = pos_t - 8;
 
 pos_l = pos_frame(1) + 6;
@@ -462,7 +462,7 @@ ht_FastICA_icaStatus = uicontrol('Parent',a, ...
   'Style','text', ...
   'Tag','t_icaStatus');
 
-% V√§h√§n v√§li√§
+% V‰h‰n v‰li‰
 pos_t = pos_t - 8;
 
 %pos_l = pos_frame(1) + 6;

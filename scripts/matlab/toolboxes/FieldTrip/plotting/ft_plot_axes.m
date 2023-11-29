@@ -80,7 +80,7 @@ end
 
 if ~isempty(object) && ~isempty(coordsys)
   % check the user specified coordinate system with the one in the object
-  assert(strcmp(coordsys, unit.coordsys), 'coordsys is inconsistent with the object')
+  assert(strcmp(coordsys, object.coordsys), 'coordsys is inconsistent with the object')
 elseif ~isempty(object) &&  isempty(coordsys)
   % take the coordinate system from the object
   coordsys = object.coordsys;
@@ -176,4 +176,9 @@ text(xdat(2,3), ydat(2,3), zdat(2,3), labelz{2}, 'linewidth', 2, 'color', fontco
 
 if ~prevhold
   hold off
+end
+
+if isfield(object, 'coordsys')
+  % add a context sensitive menu to change the 3d viewpoint to top|bottom|left|right|front|back
+  menu_viewpoint(gca, object.coordsys)
 end

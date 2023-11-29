@@ -7,8 +7,8 @@ function [nel, comm] = ToyTalk()
 %Dependency:
 %-----------
 %The TCP communication is based on pnet.m by:
-%       Peter RydesÃ¤ter,
-%       MitthÃ¶gskolan(Mid Sweden University) campus Ã–stersund, SWEDEN
+%       Peter Rydesäter,
+%       Mitthögskolan(Mid Sweden University) campus Östersund, SWEDEN
 %pnet is not in AFNI's matlab library yet. You should have a copy of it by now
 %since you pointed me to it. If the mex file is not available for your machine,
 %you will need to compile a mex file for pnet. On the mac (or linux), just do:

@@ -401,7 +401,7 @@ CNT.SampleRate=h.rate;	% D-to-A rate
 CNT.Scale=h.scale;	% scale factor for calibration
 CNT.Scale2=h.ampsensitivity;
 CNT.HeadLen = 900 + 75*CNT.NS;
-%CNT.PhysDim = repmat({'ÂµV'},CNT.NS,1);
+%CNT.PhysDim = repmat({'µV'},CNT.NS,1);
 CNT.PhysDimCode = repmat(4275,CNT.NS,1); %% uV 
 
 % Scan4.3->Edit->Overall Setup->Amplifier->Notch->Off/50Hz/60Hz

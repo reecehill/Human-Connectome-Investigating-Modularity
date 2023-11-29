@@ -8,7 +8,7 @@ function V=spm_vol_minc(fname,n)
 % an additional field (V.private.cdf) that contains the NetCDF header
 % information.
 %
-% The MINC file format was developed by Peter Neelin at the MontrÃ©al
+% The MINC file format was developed by Peter Neelin at the Montréal
 % Neurological Institute, and is based upon the NetCDF libraries.
 % The NetCDF documentation specifically recommends that people do not
 % write their own libraries for accessing the data.  However, this

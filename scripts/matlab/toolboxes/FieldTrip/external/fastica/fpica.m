@@ -445,7 +445,7 @@ if approachMode == 1,
       B = (X * (( X' * B) .^ 3)) / numSamples - 3 * B;
      case 11
       % optimoitu - epsilonin kokoisia eroja
-      % t√§m√§ on optimoitu koodi, katso vanha koodi esim.
+      % t‰m‰ on optimoitu koodi, katso vanha koodi esim.
       % aikaisemmista versioista kuten 2.0 beta3
       Y = X' * B;
       Gpow3 = Y .^ 3;

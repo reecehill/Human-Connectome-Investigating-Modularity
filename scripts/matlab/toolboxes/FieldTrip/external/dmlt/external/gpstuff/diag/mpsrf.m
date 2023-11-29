@@ -31,7 +31,7 @@ function [R,neff,V,W,B] = mpsrf(varargin)
 %   See also
 %     CMPSRF, PSRF, CPSRF
 
-% Copyright (C) 1999 Simo S√§rkk√§
+% Copyright (C) 1999 Simo S‰rkk‰
 %
 % This software is distributed under the GNU General Public 
 % Licence (version 3 or later); please refer to the file 

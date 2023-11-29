@@ -20,7 +20,7 @@ function [P,X,V,D] = kernels(T,varargin)
 %   See also
 %     KERNEL1
 
-% Copyright (C) 1999 Simo S√§rkk√§
+% Copyright (C) 1999 Simo S‰rkk‰
 %
 % This software is distributed under the GNU General Public 
 % Licence (version 3 or later); please refer to the file 

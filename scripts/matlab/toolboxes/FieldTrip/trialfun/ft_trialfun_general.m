@@ -69,18 +69,33 @@ cfg.trialdef.length       = ft_getopt(cfg.trialdef, 'length');
 cfg.trialdef.overlap      = ft_getopt(cfg.trialdef, 'overlap', 0); % between 0 and 1
 cfg.trialdef.ntrials      = ft_getopt(cfg.trialdef, 'ntrials');
 
-% these options get passed to FT_READ_EVENT
-cfg.trialdef.detectflank  = ft_getopt(cfg.trialdef, 'detectflank');
-cfg.trialdef.trigshift    = ft_getopt(cfg.trialdef, 'trigshift');
-cfg.trialdef.chanindx     = ft_getopt(cfg.trialdef, 'chanindx');
-cfg.trialdef.threshold    = ft_getopt(cfg.trialdef, 'threshold');
-cfg.trialdef.tolerance    = ft_getopt(cfg.trialdef, 'tolerance');
-cfg.trialdef.combinebinary = ft_getopt(cfg.trialdef, 'combinebinary');
+% construct the low-level options as key-value pairs, these are passed to FT_READ_HEADER and FT_READ_DATA
+headeropt = {};
+headeropt  = ft_setopt(headeropt, 'headerformat',   ft_getopt(cfg, 'headerformat'));        % is passed to low-level function, empty implies autodetection
+headeropt  = ft_setopt(headeropt, 'readbids',       ft_getopt(cfg, 'readbids'));            % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'coordsys',       ft_getopt(cfg, 'coordsys', 'head'));    % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'coilaccuracy',   ft_getopt(cfg, 'coilaccuracy'));        % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'checkmaxfilter', ft_getopt(cfg, 'checkmaxfilter'));      % this allows to read non-maxfiltered neuromag data recorded with internal active shielding
+headeropt  = ft_setopt(headeropt, 'chantype',       ft_getopt(cfg, 'chantype', {}));        % 2017.10.10 AB required for NeuroOmega files
+
+% construct the low-level options as key-value pairs, these are passed to FT_READ_EVENT
+eventopt = {};
+eventopt = ft_setopt(eventopt, 'headerformat',  ft_getopt(cfg, 'headerformat'));        % is passed to low-level function, empty implies autodetection
+eventopt = ft_setopt(eventopt, 'dataformat',    ft_getopt(cfg, 'dataformat'));          % is passed to low-level function, empty implies autodetection
+eventopt = ft_setopt(eventopt, 'eventformat',   ft_getopt(cfg, 'eventformat'));         % is passed to low-level function, empty implies autodetection
+eventopt = ft_setopt(eventopt, 'readbids',      ft_getopt(cfg, 'readbids'));
+eventopt = ft_setopt(eventopt, 'detectflank',   ft_getopt(cfg.trialdef, 'detectflank'));
+eventopt = ft_setopt(eventopt, 'trigshift',     ft_getopt(cfg.trialdef, 'trigshift'));
+eventopt = ft_setopt(eventopt, 'chanindx',      ft_getopt(cfg.trialdef, 'chanindx'));
+eventopt = ft_setopt(eventopt, 'threshold',     ft_getopt(cfg.trialdef, 'threshold'));
+eventopt = ft_setopt(eventopt, 'tolerance',     ft_getopt(cfg.trialdef, 'tolerance'));
+eventopt = ft_setopt(eventopt, 'combinebinary', ft_getopt(cfg.trialdef, 'combinebinary'));
 
 % specify the default file formats
 cfg.eventformat   = ft_getopt(cfg, 'eventformat');
 cfg.headerformat  = ft_getopt(cfg, 'headerformat');
 cfg.dataformat    = ft_getopt(cfg, 'dataformat');
+cfg.representation = ft_getopt(cfg, 'representation');
 
 % get the header, this is among others for the sampling frequency
 if isfield(cfg, 'hdr')
@@ -89,7 +104,7 @@ if isfield(cfg, 'hdr')
 else
   % read the header, contains the sampling frequency
   ft_info('reading the header from ''%s''\n', cfg.headerfile);
-  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  hdr = ft_read_header(cfg.headerfile, headeropt{:});
 end
 
 % get the events
@@ -98,7 +113,7 @@ if isfield(cfg, 'event')
   event = cfg.event;
 else
   ft_info('reading the events from ''%s''\n', cfg.headerfile);
-  event = ft_read_event(cfg.headerfile, 'headerformat', cfg.headerformat, 'eventformat', cfg.eventformat, 'dataformat', cfg.dataformat,  'detectflank', cfg.trialdef.detectflank, 'trigshift', cfg.trialdef.trigshift, 'chanindx', cfg.trialdef.chanindx, 'threshold', cfg.trialdef.threshold, 'tolerance', cfg.trialdef.tolerance, 'combinebinary', cfg.trialdef.combinebinary);
+  event = ft_read_event(cfg.headerfile, eventopt{:});
 end
 
 if ~isempty(cfg.trialdef.length) && ~isinf(cfg.trialdef.length)
@@ -191,23 +206,46 @@ else
     
     if isnumeric(event(i).value) && ~isempty(event(i).value)
       trlval = event(i).value;
-    elseif ischar(event(i).value) && numel(event(i).value)>1 && (event(i).value(1)=='S'|| event(i).value(1)=='R')
-      % on brainvision these are called 'S  1' for stimuli or 'R  1' for responses
-      trlval = str2double(event(i).value(2:end));
+    elseif ischar(event(i).value) && ~isempty(regexp(event(i).value, '^[SR]+[\s]*+[0-9]{1,3}$'))
+      % This looks like Brainvision event markers. For backward compatibility, convert
+      % the strings into the numerals following the 'S' or 'R', unless the user has specified
+      % the cfg.representation to be a table
+      if ~isequal(cfg.representation, 'table')
+        ft_warning('Brainvision markers are converted to numeric representation, if you want tabular output please specify cfg.representation=''table''');
+        trlval = str2double(event(i).value(2:end));
+      else
+        trlval = event(i).value;
+      end
+    elseif ischar(event(i).value) && ~isequal(cfg.representation, 'numeric')
+      trlval = event(i).value;
     else
-      trlval = nan;
+      % the following depends on cfg.representation
+      if isequal(cfg.representation, 'numeric') || isempty(cfg.representation)
+        trlval = nan;
+      else
+        trlval = event(i).value;
+      end
     end
     
     % add the trial only if all samples are in the dataset
     if trlbeg>0 && trlend<=hdr.nSamples*hdr.nTrials
-      thistrl = [trlbeg trlend trloff trlval];
+      if isnumeric(trlval)
+        % create a numeric array
+        thistrl = [trlbeg trlend trloff trlval];
+      else
+        thistrl = cell2table({trlbeg trlend trloff trlval});
+      end
       trl = cat(1, trl, thistrl);
     end
   end
   
-  if ~isempty(trl) && all(isnan(trl(:,4)))
+  if ~isempty(trl) && ~istable(trl) && all(isnan(trl(:,4)))
     % the values are not informative, remove them
     trl = trl(:,1:3);
+  elseif ~isempty(trl) && istable(trl)
+    % add names to the columns of the table
+    trl.Properties.VariableNames = {'begsample', 'endsample', 'offset', 'eventvalue'};
   end
+  
   
 end

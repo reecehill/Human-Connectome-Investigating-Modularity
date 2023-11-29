@@ -7,7 +7,7 @@ addpath(genpath('toolboxes/SurfStat'));
 addpath('toolboxes/FieldTrip');
 ft_defaults;
 ft_hastoolbox('spm12',1);
-addpath('toolboxes/Iso2Mesh/iso2mesh');
+ft_hastoolbox('iso2mesh',1);
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
 t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');

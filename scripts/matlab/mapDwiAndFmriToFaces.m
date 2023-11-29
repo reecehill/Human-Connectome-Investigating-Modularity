@@ -22,7 +22,7 @@ try
     addpath('toolboxes/FieldTrip');
     ft_defaults;
     ft_hastoolbox('bct',1);
-    addpath('toolboxes/Iso2Mesh/iso2mesh');
+    ft_hastoolbox('iso2mesh',1);
     addpath(genpath('toolboxes/SurfStat'));
     close all;
     clearvars -except pathToParticipants subject conditionIndex visualiseData allBrainData roiStructuralData optimalGamma ;

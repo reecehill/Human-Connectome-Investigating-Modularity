@@ -3,7 +3,7 @@ addpath('toolboxes/FieldTrip');
 ft_defaults;
 ft_hastoolbox('spm12',1);
 ft_hastoolbox('gifti',1);
-addpath('toolboxes/Iso2Mesh/iso2mesh');
+ft_hastoolbox('iso2mesh',1);
 ft_hastoolbox('freesurfer',1);
 addpath('toolboxes/AlongTractStats');
 addpath(genpath('toolboxes/SurfStat'));

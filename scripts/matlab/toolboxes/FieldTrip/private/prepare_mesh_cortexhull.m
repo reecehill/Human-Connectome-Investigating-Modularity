@@ -80,7 +80,7 @@ headshape = ft_read_headshape(surf_smooth);
 
 % smooth the surface using iso2mesh's smoothsurf
 if laplace_steps >= 1
-  addpath('toolboxes/Iso2Mesh/iso2mesh');
+  ft_hastoolbox('iso2mesh',1);
   fprintf('Laplacian smoothing for %d iterations\n', laplace_steps)
   conn = meshconn(headshape.tri, size(headshape.pos,1)); % determine neighbors
   headshape.pos = smoothsurf(headshape.pos, [], conn, laplace_steps, 0, 'laplacianhc', .2);

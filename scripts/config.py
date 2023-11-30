@@ -24,7 +24,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4
 """
 DSI_STUDIO_TRACKING_METHOD = 0
 
-DSI_STUDIO_FIBRE_COUNT = 10000000
+DSI_STUDIO_FIBRE_COUNT = 1000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.

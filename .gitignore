@@ -14,7 +14,7 @@ __pycache__/*
 *$py.class
 src/*
 /scripts/matlab/toolboxes/FieldTrip-old/*
-
+*.fig
 # C extensions
 *.so
 

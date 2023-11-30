@@ -10,25 +10,6 @@ ft_hastoolbox('spm12',1);
 ft_hastoolbox('iso2mesh',1);
 ft_hastoolbox('gifti',1);
 
-adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
-load('../../data/subjects/100610/edgeList.mat');
-load('../../data/subjects/100610/labelSRF.mat');
-load('../../data/subjects/100610/matrices.mat');
-load('../../data/subjects/100610/trsfmTrk.mat');
-load('../../data/subjects/100610/MNIcoor.mat');
-
-allFileNames = [filenames; subfilenames']';
-plottedLabels=allFileNames(faceROI_all);
-figure;
-spy(adj_matrix);
-hold on;
-xticks(1:(showTicksPer/50):length(plottedLabels));
-yticks(1:(showTicksPer/50):length(plottedLabels));
-xticklabels(plottedLabels(1:(showTicksPer/50):end));
-yticklabels(plottedLabels(1:(showTicksPer/50):end));
-savefig('../../data/subjects/100610/adjmatrix.fig');
-quit;
-
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
 t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');
 
@@ -91,20 +72,19 @@ adj_matrix_L = adj_matrix(find(faceROIidL), find(faceROIidL)); %TODO: label25=pr
 figure;
 
 load('../../data/subjects/100610/labelSRF.mat', "nvl", "nvr", "nfl", "nfr", "faceROIidL", "faceROIidR");
-
-% adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
-% load('../../data/subjects/100610/edgeList.mat');
-% load('../../data/subjects/100610/labelSRF.mat');
-% load('../../data/subjects/100610/matrices.mat');
-% load('../../data/subjects/100610/trsfmTrk.mat');
-% load('../../data/subjects/100610/MNIcoor.mat');
+>> adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
+>> load('../../data/subjects/100610/edgeList.mat');
+>> load('../../data/subjects/100610/labelSRF.mat');
+>> load('../../data/subjects/100610/matrices.mat');
+>> load('../../data/subjects/100610/trsfmTrk.mat');
+>> load('../../data/subjects/100610/MNICoor.mat');
 
 %%allFileNames = [filenames; subfilenames']';
 %%plottedLabels=allFileNames(faceROI_all);
-        xticks(1:(showTicksPer/50):length(plottedLabels));
-        yticks(1:(showTicksPer/50):length(plottedLabels));
-        xticklabels(plottedLabels(1:(showTicksPer/50):end));
-        yticklabels(plottedLabels(1:(showTicksPer/50):end));
+%         xticks(1:(showTicksPer/50):length(plottedLabels));
+%         yticks(1:(showTicksPer/50):length(plottedLabels));
+%         xticklabels(plottedLabels(1:(showTicksPer/50):end));
+%         yticklabels(plottedLabels(1:(showTicksPer/50):end));
 [x,y,z] = adjacency_plot_und(adj_matrix_L,nfl(:,1:3));
 plot3(x,y,z);
 legend;

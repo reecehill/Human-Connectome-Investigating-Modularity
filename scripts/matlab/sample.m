@@ -22,12 +22,13 @@ plottedLabels=allFileNames(faceROI_all);
 figure;
 spy(adj_matrix);
 hold on;
+showTicksPer=100000;
 xticks(1:(showTicksPer/50):length(plottedLabels));
 yticks(1:(showTicksPer/50):length(plottedLabels));
 xticklabels(plottedLabels(1:(showTicksPer/50):end));
 yticklabels(plottedLabels(1:(showTicksPer/50):end));
 savefig('../../data/subjects/100610/adjmatrix.fig');
-quit;
+return;
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
 t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');

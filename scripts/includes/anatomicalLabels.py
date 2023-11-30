@@ -1,4 +1,5 @@
 anatomicalLabelsToExist: "list[str]" = [
+'lh.L_unknown.label',
 'lh.L_bankssts.label',
 'lh.L_caudalanteriorcingulate.label',
 'lh.L_caudalmiddlefrontal.label',
@@ -33,6 +34,7 @@ anatomicalLabelsToExist: "list[str]" = [
 'lh.L_supramarginal.label',
 'lh.L_temporalpole.label',
 'lh.L_transversetemporal.label',
+'rh.R_unknown.label',
 'rh.R_bankssts.label',
 'rh.R_caudalanteriorcingulate.label',
 'rh.R_caudalmiddlefrontal.label',
@@ -66,4 +68,5 @@ anatomicalLabelsToExist: "list[str]" = [
 'rh.R_superiortemporal.label',
 'rh.R_supramarginal.label',
 'rh.R_temporalpole.label',
-'rh.R_transversetemporal.label']
+'rh.R_transversetemporal.label'
+]

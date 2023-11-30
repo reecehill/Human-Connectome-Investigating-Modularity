@@ -137,7 +137,10 @@ def generateMni152Labels(subjectId: str) -> bool:
                 "--outdir",
                 outputPath
                 ])
-  
+  if(os.path.exists('data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.???.label')):
+    os.rename('data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.???.label', 'data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.L_unknown.label')
+  if(os.path.exists('data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.???.label')):
+    os.rename('data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.???.label', 'data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.R_unknown.label')
   
   return (
     rhGiftiSurfaceToFreesurferSuccess and

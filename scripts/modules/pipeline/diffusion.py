@@ -43,12 +43,15 @@ def reconstructImage(subjectId: str) -> bool:
     method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
     
     destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
+    processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
     return call(cmdLabel="DSIStudio",
                 cmd=[
                         config.DSI_STUDIO,
                         '--action=rec',
                         f'--source={sourceFile}',
+                        f'--align_acpc=0',
+                        # f'--save_nii={processedFile}',
                         f'--method={method}',
                         f'--thread_count={threadCount}',
                         f'--output={destinationFile}',
@@ -102,6 +105,7 @@ def trackFibres(subjectId: str) -> bool:
   cmd = [config.DSI_STUDIO,
                       '--action=trk',
                       f'--source={sourceFile}',
+                      f'--random_seed=1', #Set seed for reproducability
                       f'--method={method}',
                       f'--thread_count={threadCount}',
                       f'--output={destinationFile}',

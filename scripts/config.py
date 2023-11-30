@@ -17,7 +17,7 @@ CPU_THREADS = multiprocessing.cpu_count()
 """
 0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
 """
-DSI_STUDIO_RECONSTRUCTION_METHOD = 7
+DSI_STUDIO_RECONSTRUCTION_METHOD = 4
 
 """
 0:streamline (default), 1:rk4 
@@ -70,7 +70,7 @@ MATLAB_CALCULATE_STATS = False
 NUMBER_OF_TRACTS = 1000 # Not implemented.
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 1 # NOTE: Default should be 0.1 (float). 
 FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 
 

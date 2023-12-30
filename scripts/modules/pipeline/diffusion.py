@@ -43,6 +43,10 @@ def reconstructImage(subjectId: str) -> bool:
     method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
     
     destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
+    # TODO: Convert the filename to parameter.
+    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DSI_STUDIO_REF_IMG )
+    refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
+    
     processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
     return call(cmdLabel="DSIStudio",
@@ -50,7 +54,10 @@ def reconstructImage(subjectId: str) -> bool:
                         config.DSI_STUDIO,
                         '--action=rec',
                         f'--source={sourceFile}',
-                        f'--align_acpc=0',
+                        f'--align_acpc=1',
+                        f'--align_to={refFile}',
+                        f'--motion_correction=0',
+                        # f'--template={refFile}',
                         # f'--save_nii={processedFile}',
                         f'--method={method}',
                         f'--thread_count={threadCount}',
@@ -92,13 +99,14 @@ def trackFibres(subjectId: str) -> bool:
   destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
   createDirectories(directoryPaths=[destinationFolder], createParents=True, throwErrorIfExists=False)
   destinationFile: str = str(destinationFolder / '1m0.tt.nii.gz')
-  # templateFile: str = str(destinationFolder / '1m0_mni152.tt.nii.gz')
-  templateFile: str = str(destinationFolder / '1m0_mni152.trk')
+  templateFile: str = str(destinationFolder / '1m0_mni152.tt.nii.gz')
+  #templateFile: str = str(destinationFolder / '1m0_mni152.mat')
 
   # If it is in the T1w space, then it is aparc+aseg space.
   #refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_REF_IMG )
+  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DSI_STUDIO_REF_IMG )
   refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
+  refFileMni152Registered = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.reg_', config.DSI_STUDIO_REF_IMG)))
   
  
 
@@ -106,19 +114,20 @@ def trackFibres(subjectId: str) -> bool:
                       '--action=trk',
                       f'--source={sourceFile}',
                       f'--random_seed=1', #Set seed for reproducability
-                      f'--method={method}',
                       f'--thread_count={threadCount}',
                       f'--output={destinationFile}',
                       f'--fiber_count={nFibres}',
                       f'--seed_count={nSeeds}',
+                      # f'--method={method}',
                       f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
                       f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
                       f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',
-                      f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
+                      # f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
                       f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
                       f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                       f'--template_track={templateFile}',
-                      f'--ref={refFileMni152}'
+                      # f'--ref={refFileMni152}'
+                      f'--ref={refFile}'
                       ]
   # Limit tracks to only those that pass through the precentral gyri.
   if (config.DSI_STUDIO_USE_ROI):

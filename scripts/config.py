@@ -24,7 +24,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4
 """
 DSI_STUDIO_TRACKING_METHOD = 0
 
-DSI_STUDIO_FIBRE_COUNT = 10000
+DSI_STUDIO_FIBRE_COUNT = 40000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -39,8 +39,8 @@ DSI_STUDIO_TURNING_ANGLE = 60
 DSI_STUDIO_SMOOTHING = 0
 DSI_STUDIO_MIN_LENGTH = 10
 DSI_STUDIO_MAX_LENGTH = 300
-# DSI_STUDIO_REF_IMG = "T1w.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
-DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
+DSI_STUDIO_REF_IMG = "T1w_acpc_dc_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
+#DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
 DSI_STUDIO_USE_ROI = False
 # ----------
@@ -55,7 +55,7 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
-RUN_MATLAB_DIFFUSION = True
+RUN_MATLAB_DIFFUSION = False
 RUN_MATLAB_FUNCTIONAL = False
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False

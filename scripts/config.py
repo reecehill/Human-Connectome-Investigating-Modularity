@@ -17,7 +17,7 @@ CPU_THREADS = multiprocessing.cpu_count()
 """
 0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
 """
-DSI_STUDIO_RECONSTRUCTION_METHOD = 4
+DSI_STUDIO_RECONSTRUCTION_METHOD = 7
 
 """
 0:streamline (default), 1:rk4 
@@ -39,7 +39,7 @@ DSI_STUDIO_TURNING_ANGLE = 60
 DSI_STUDIO_SMOOTHING = 0
 DSI_STUDIO_MIN_LENGTH = 10
 DSI_STUDIO_MAX_LENGTH = 300
-DSI_STUDIO_REF_IMG = "T1w_acpc_dc_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
+DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 #DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
 DSI_STUDIO_USE_ROI = False
@@ -55,7 +55,7 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
-RUN_MATLAB_DIFFUSION = False
+RUN_MATLAB_DIFFUSION = True
 RUN_MATLAB_FUNCTIONAL = False
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False

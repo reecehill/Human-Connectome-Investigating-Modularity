@@ -16,14 +16,14 @@ load('../../data/subjects/100610/edgeList.mat');
 load('../../data/subjects/100610/labelSRF.mat');
 load('../../data/subjects/100610/matrices.mat');
 load('../../data/subjects/100610/trsfmTrk.mat');
-load('../../data/subjects/100610/MNIcoor.mat');
+%load('../../data/subjects/100610/MNIcoor.mat');
 
 allFileNames = [filenames; subfilenames']';
 plottedLabels=allFileNames(faceROI_all);
 figure;
 spy(adj_matrix);
 hold on;
-showTicksPer=100000;
+showTicksPer=1000;
 xticks(1:(showTicksPer/50):length(plottedLabels));
 yticks(1:(showTicksPer/50):length(plottedLabels));
 xticklabels(plottedLabels(1:(showTicksPer/50):end));

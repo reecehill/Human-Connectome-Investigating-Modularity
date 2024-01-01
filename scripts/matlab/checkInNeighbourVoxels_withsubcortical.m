@@ -33,7 +33,8 @@ valsToCheck=[...
 %     endpoints(1)+1,endpoints(2)+1,endpoints(3)+1;...
 %     endpoints(1)-1,endpoints(2)-1,endpoints(3)-1;];
 
-valsToCheck(valsToCheck<0)=0;
+% MATLAB indices start from 1 only.
+valsToCheck(valsToCheck<1)=1;
 valsToCheck(valsToCheck>255)=255;
 % chk=zeros(26,1);
 chk=zeros(26,1);

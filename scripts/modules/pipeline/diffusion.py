@@ -145,9 +145,9 @@ def trackFibres(subjectId: str) -> bool:
               cmd=cmd)
 
 def runDsiStudio(subjectId: str) -> bool:
-  # return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
+  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
   # return reconstructImage(subjectId) and trackFibres(subjectId)
-  return trackFibres(subjectId)
+  # return trackFibres(subjectId)
 
 
 def matlabProcessDiffusion(subjectId: str) -> bool:

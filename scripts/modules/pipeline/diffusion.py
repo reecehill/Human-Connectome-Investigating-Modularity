@@ -105,8 +105,9 @@ def trackFibres(subjectId: str) -> bool:
   #templateFile: str = str(destinationFolder / '1m0_mni152.mat')
 
   # If it is in the T1w space, then it is aparc+aseg space.
-  #refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w_moddedheader.native.nii.gz', localOnly=True)
+  # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
+  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_REF_IMG )
+  # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w_moddedheader.native.nii.gz', localOnly=True)
   refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
   refFileMni152Registered = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.reg_', config.DSI_STUDIO_REF_IMG)))
   
@@ -144,8 +145,9 @@ def trackFibres(subjectId: str) -> bool:
               cmd=cmd)
 
 def runDsiStudio(subjectId: str) -> bool:
-  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
+  # return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
   # return reconstructImage(subjectId) and trackFibres(subjectId)
+  return trackFibres(subjectId)
 
 
 def matlabProcessDiffusion(subjectId: str) -> bool:

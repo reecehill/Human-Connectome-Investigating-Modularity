@@ -162,7 +162,7 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
                   # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'rh.pial'),
                   ]
   localFilesToExist: "list[Path]" = [
-     (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / '1m0_mni152.trk'),
+     (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / '1m0.trk'),
      
     ] + [(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
   

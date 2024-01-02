@@ -118,7 +118,8 @@ def trackFibres(subjectId: str) -> bool:
                       f'--source={sourceFile}',
                       f'--random_seed=1', #Set seed for reproducability
                       f'--thread_count={threadCount}',
-                      f'--output={destinationFolder / "dsistudio"}',
+                      # f'--output={destinationFolder / "dsistudio"}',
+                      f'--output={destinationFile}',
                       f'--fiber_count={nFibres}',
                       f'--seed_count={nSeeds}',
                       # f'--method={method}',

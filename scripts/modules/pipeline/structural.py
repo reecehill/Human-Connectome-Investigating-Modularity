@@ -138,15 +138,19 @@ def generateMni152Labels(subjectId: str) -> bool:
                 "--outdir",
                 outputPath
                 ])
+
+  g.logger.info("Tidying anatomical label file names.")
   lhLabelPath = Path(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'lh.???.label' )
   if(lhLabelPath.exists()):
     lhLabelPath.rename(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'lh.L_unknown.label')
+    g.logger.info("lh.???.label -> lh.L_unknown.label")
   else:
     g.logger.info("lh.???.label does not exist...")
 
   rhLabelPath = Path(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'rh.???.label' )
   if(rhLabelPath.exists()):
     rhLabelPath.rename(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'rh.R_unknown.label')
+    g.logger.info("rh.???.label -> rh.R_unknown.label")
   else:
     g.logger.info("rh.???.label does not exist...")
   

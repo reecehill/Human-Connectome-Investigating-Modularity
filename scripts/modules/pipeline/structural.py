@@ -1,6 +1,7 @@
 import os
 import modules.globals as g
 import config
+from pathlib import Path
 from modules.file_directory.file_directory import createDirectories
 from modules.hcp_data_manager.downloader import getFile
 from modules.subprocess_caller.call import *
@@ -137,10 +138,17 @@ def generateMni152Labels(subjectId: str) -> bool:
                 "--outdir",
                 outputPath
                 ])
-  if(os.path.exists('data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.???.label')):
-    os.rename('data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.???.label', 'data/subjects/100610/MNINonLinear/100610/label/label_type2/lh.L_unknown.label')
-  if(os.path.exists('data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.???.label')):
-    os.rename('data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.???.label', 'data/subjects/100610/MNINonLinear/100610/label/label_type2/rh.R_unknown.label')
+  lhLabelPath = Path(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'lh.???.label' )
+  if(lhLabelPath.exists()):
+    lhLabelPath.rename(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'lh.L_unknown.label')
+  else:
+    g.logger.info("lh.???.label does not exist...")
+
+  rhLabelPath = Path(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'rh.???.label' )
+  if(rhLabelPath.exists()):
+    rhLabelPath.rename(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / 'rh.R_unknown.label')
+  else:
+    g.logger.info("rh.???.label does not exist...")
   
   return (
     rhGiftiSurfaceToFreesurferSuccess and

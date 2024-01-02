@@ -100,7 +100,7 @@ def trackFibres(subjectId: str) -> bool:
   # The destination file need not exist locally already, but its folders must.
   destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
   createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
-  destinationFile: str = str(destinationFolder / '1m0.tt.nii.gz')
+  destinationFile: str = str(destinationFolder / '1m0.trk')
   templateFile: str = str(destinationFolder / '1m0_mni152.tt.nii.gz')
   #templateFile: str = str(destinationFolder / '1m0_mni152.mat')
 

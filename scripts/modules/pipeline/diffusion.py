@@ -161,8 +161,8 @@ def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  return registerDsiStudioTemplateToSubject(subjectId)
-  # return reconstructImage(subjectId) and trackFibres(subjectId)
+  #return registerDsiStudioTemplateToSubject(subjectId)
+  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId) and registerDsiStudioTemplateToSubject(subjectId)
   # return trackFibres(subjectId)
 
 def matlabProcessDiffusion(subjectId: str) -> bool:

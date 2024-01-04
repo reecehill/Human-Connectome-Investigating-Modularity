@@ -70,8 +70,8 @@ MATLAB_CALCULATE_STATS = False
 NUMBER_OF_TRACTS = 1000 # Not implemented.
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
-DOWNSAMPLE_RATE = 1 # NOTE: Default should be 0.1 (float). 
+DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
 FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 
 
 # ----------

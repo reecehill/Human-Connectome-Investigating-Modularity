@@ -13,8 +13,8 @@ display(['Type: ' num2str(type) ' (' class(type) ')'])
 %atlas=ft_read_mri([pathToFile,'/mri/aparc+aseg.nii']);
 atlas=ft_read_mri([pathToFile '/MNINonLinear/aparc+aseg.nii.gz']);
 atlasImg=niftiinfo([pathToFile '/MNINonLinear/aparc+aseg.nii.gz']);
-trackImg_mni152=ft_read_mri([pathToFile '/T1w/Diffusion/1m0_mni152.tt.nii.gz']);
-trackImg=ft_read_mri([pathToFile '/T1w/Diffusion/1m0.tt.nii.gz']);
+%trackImg_mni152=ft_read_mri([pathToFile '/T1w/Diffusion/1m0_mni152.tt.nii.gz']);
+%trackImg=ft_read_mri([pathToFile '/T1w/Diffusion/1m0.tt.nii.gz']);
 
 %TODO: We must first flip the Y coordinates (LPS -> LAS)
 % The T1w image is LAS
@@ -191,7 +191,7 @@ for i=1:1
         %     hold off
 
     end
-
+    disp("nNotInAtlas:")
     trk_len_full(1+((i-1)*lenrawTrk):(i)*lenrawTrk) =trk_len;
     trk_type_full(1+((i-1)*lenrawTrk):(i)*lenrawTrk,:)=trk_type;
     trkEP_full(1+((i-1)*lenrawTrk):(i)*lenrawTrk,:)=trkEP;

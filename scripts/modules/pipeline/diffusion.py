@@ -45,7 +45,7 @@ def reconstructImage(subjectId: str) -> bool:
     # destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
     destinationFile: str = str(destinationFolder / 'data.src.gz.icbm152_adult.qsdr.1.25.R68.fib.gz')
     # TODO: Convert the filename to parameter.
-    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_REF_IMG )
+    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_ANNOTATED_IMG )
     refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
     
     processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
@@ -92,10 +92,6 @@ def reconstructImage(subjectId: str) -> bool:
 
 def trackFibres(subjectId: str) -> bool:
   sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.icbm152_adult.qsdr.1.25.R68.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
-  threadCount = config.CPU_THREADS # Default: CPU number.
-  method = config.DSI_STUDIO_TRACKING_METHOD
-  nFibres = config.DSI_STUDIO_FIBRE_COUNT
-  nSeeds = config.DSI_STUDIO_SEED_COUNT
   
   # The destination file need not exist locally already, but its folders must.
   destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
@@ -106,7 +102,7 @@ def trackFibres(subjectId: str) -> bool:
 
   # If it is in the T1w space, then it is aparc+aseg space.
   # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_REF_IMG )
+  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_ANNOTATED_IMG )
   # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w_moddedheader.native.nii.gz', localOnly=True)
   refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
   refFileMni152Registered = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.reg_', config.DSI_STUDIO_REF_IMG)))
@@ -117,12 +113,12 @@ def trackFibres(subjectId: str) -> bool:
                       '--action=trk',
                       f'--source={sourceFile}',
                       f'--random_seed=1', #Set seed for reproducability
-                      f'--thread_count={threadCount}',
+                      f'--thread_count={config.CPU_THREADS}',
                       # f'--output={destinationFolder / "dsistudio"}',
                       f'--output={destinationFile}',
-                      f'--fiber_count={nFibres}',
-                      f'--seed_count={nSeeds}',
-                      # f'--method={method}',
+                      f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',
+                      f'--seed_count={config.DSI_STUDIO_SEED_COUNT}',
+                      # f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
                       f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
                       f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
                       f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',

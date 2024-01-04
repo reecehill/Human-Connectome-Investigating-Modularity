@@ -143,7 +143,7 @@ def trackFibres(subjectId: str) -> bool:
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
-  mov = getFile(config.DSI_STUDIO.parent /'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
+  mov = getFile(config.SCRIPTS_DIR / 'matlab' / 'toolboxes' / 'DsiStudio' / 'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
   targ = getFile(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w.nii.gz')
   reg = str(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'register.dat')
   return call(cmdLabel="createRegisterDatFile",

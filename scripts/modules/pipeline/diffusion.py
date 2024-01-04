@@ -143,19 +143,25 @@ def trackFibres(subjectId: str) -> bool:
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
+  mov = getFile(config.DSI_STUDIO.parent /'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
+  targ = getFile(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w.nii.gz')
+  reg = str(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'register.dat')
   return call(cmdLabel="createRegisterDatFile",
               cmd=[
                       "tkregister2",
-                      f"--mov {config.DSI_STUDIO.parent /'atlas' / 'ICBM152_adult ' /'ICBM152_adult.T1W.nii.gz'}",
-                      f"--targ {config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w.nii.gz'}",
-                      f"--reg {config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'register.dat'}",
-                      "--regheader",
-                      "--noedit",
+                      '--mov',
+                      mov,
+                      '--targ',
+                      targ,
+                      '--reg',
+                      reg,
+                      '--regheader',
+                      '--noedit',
                       ])
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId) and registerDsiStudioTemplateToSubject(subjectId)
+  return registerDsiStudioTemplateToSubject(subjectId)
   # return reconstructImage(subjectId) and trackFibres(subjectId)
   # return trackFibres(subjectId)
 

@@ -6,6 +6,7 @@ from typing import Any, Optional, Union
 import modules.globals as g
 
 def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]" = None) -> bool:
+  g.logger.info("CMD: " + ' '.join(str(x) for x in cmd))
   process: subprocess.Popen[Any] = subprocess.Popen(cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

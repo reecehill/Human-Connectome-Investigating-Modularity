@@ -23,7 +23,7 @@ plottedLabels=allFileNames(faceROI_all);
 figure;
 spy(adj_matrix);
 hold on;
-showTicksPer=1000000;
+showTicksPer=100000;
 xticks(1:(showTicksPer/50):length(plottedLabels));
 yticks(1:(showTicksPer/50):length(plottedLabels));
 xticklabels(plottedLabels(1:(showTicksPer/50):end));

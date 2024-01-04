@@ -141,13 +141,26 @@ def trackFibres(subjectId: str) -> bool:
   return call(cmdLabel="DSIStudio",
               cmd=cmd)
 
+
+def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
+  return call(cmdLabel="createRegisterDatFile",
+              cmd=[
+                      "tkregister2",
+                      f"--mov {config.DSI_STUDIO.parent /'atlas' / 'ICBM152_adult ' /'ICBM152_adult.T1W.nii.gz'}",
+                      f"--targ {config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w.nii.gz'}",
+                      f"--reg {config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'register.dat'}",
+                      "--regheader",
+                      "--noedit",
+                      ])
+
+
 def runDsiStudio(subjectId: str) -> bool:
-  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId)
+  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId) and registerDsiStudioTemplateToSubject(subjectId)
   # return reconstructImage(subjectId) and trackFibres(subjectId)
   # return trackFibres(subjectId)
 
-
 def matlabProcessDiffusion(subjectId: str) -> bool:
+  
   g.logger.info("Running MATLAB: converting tracked fibres into endpoints and adjacency matrices.")
 
   # Ensure neccessary files exist from previous steps.

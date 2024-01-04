@@ -1,5 +1,6 @@
 
 function output=checkInNeighbourVoxels_withsubcortical(atlas,endpoints)
+% Check for anatomical labels in neighbouring voxels;
 
 valsToCheck=[...
     endpoints(1)+1,endpoints(2)+1,endpoints(3)+1;...
@@ -38,7 +39,7 @@ valsToCheck(valsToCheck<1)=1;
 valsToCheck(valsToCheck>255)=255;
 % chk=zeros(26,1);
 chk=zeros(26,1);
-for i=1:26
+for i=1:1:length(valsToCheck)
     valsToCheck1 = valsToCheck(i,1);
     valsToCheck2 = valsToCheck(i,2);
     valsToCheck3 = valsToCheck(i,3);

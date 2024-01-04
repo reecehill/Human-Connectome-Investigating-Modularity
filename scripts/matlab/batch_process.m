@@ -8,6 +8,8 @@ function batch_process(pathToFile,subjects,type,downsample,rate)
 %             'no'--- no downsample (default)
 % rate:  downsample rate, default is 0.1, 90% left
 disp(matlab.addons.installedAddons);
+%start parallel pool.
+gcp; 
 
 % Ensure numbers are numbers and not char
 if(isa(type, "char"))
@@ -57,7 +59,7 @@ end
  for i=1:length(subjects)
      subject = subjects{i}
      pathToSubjectData = [pathToFile,num2str(subject)]
-     [trkEP,trk_len,trk_type]=conversion(pathToSubjectData,type);
+     [trkEP,trk_len,trk_type]=conversion_tt(pathToSubjectData,type);
      filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
      save(filename,'trkEP','trk_len','trk_type','-v7.3');
      clear trkEP trk_len trk_type

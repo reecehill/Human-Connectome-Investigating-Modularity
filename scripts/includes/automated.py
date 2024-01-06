@@ -86,6 +86,9 @@ def getSpmDir(userSubmitted: str = "") -> Path:
       print("The SPM12 installation directory provided could not be found. Try again, providing an absolute path from root.")
       raise
 
+def getNativeOrMni152Folder(isMni152: bool) -> str:
+  return "MNINonLinear" if (isMni152) else "T1w"
+
 # ----------
 # [END] EXECUTABLE PATHS
 # ----------

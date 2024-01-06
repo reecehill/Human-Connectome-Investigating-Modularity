@@ -28,7 +28,7 @@ xticks(1:(showTicksPer/50):length(plottedLabels));
 yticks(1:(showTicksPer/50):length(plottedLabels));
 xticklabels(plottedLabels(1:(showTicksPer/50):end));
 yticklabels(plottedLabels(1:(showTicksPer/50):end));
-savefig('../../data/subjects/100610/adjmatrix_reduction.fig');
+savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
 return;
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');

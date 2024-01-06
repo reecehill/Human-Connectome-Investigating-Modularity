@@ -21,6 +21,7 @@ def getFmriData(subjectId: str) -> bool:
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 
+  # TODO: The surface files may not be 59k nodes... 
   g.logger.info("Ensuring surface files exist")
   filesToExist = [
                     (subjectDir / 'fsaverage_LR59k' / f'{subjectId}.L.pial.59k_fs_LR.surf.gii'),

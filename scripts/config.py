@@ -11,6 +11,9 @@ from includes.automated import *
 CPU_THREADS = multiprocessing.cpu_count()
 #CPU_THREADS = 5
 
+USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
+NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space first. 
+
 # ----------
 # [START] DSI STUDIO PARAMETERS
 # ----------
@@ -54,7 +57,6 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
-USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
 RUN_MATLAB_DIFFUSION = True
 RUN_MATLAB_FUNCTIONAL = False
 RUN_MATLAB_MAPPING = False
@@ -110,7 +112,7 @@ EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code com
 # DO NOT EDIT BELOW THIS LINE
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
-
+NATIVEORMNI152FOLDER: str = getNativeOrMni152Folder(NORMALISE_TO_MNI152)
 DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsi_studio", executableAlias="dsi-studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)

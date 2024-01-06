@@ -45,8 +45,7 @@ def reconstructImage(subjectId: str) -> bool:
     # destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
     destinationFile: str = str(destinationFolder / 'data.src.gz.icbm152_adult.qsdr.1.25.R68.fib.gz')
     # TODO: Convert the filename to parameter.
-    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_ANNOTATED_IMG )
-    refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
+    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId /  config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
     
     processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
@@ -55,8 +54,8 @@ def reconstructImage(subjectId: str) -> bool:
                         config.DSI_STUDIO,
                         '--action=rec',
                         f'--source={sourceFile}',
-                        # f'--align_acpc=1',
-                        # f'--align_to={refFile}',
+                        f'--align_acpc=1',
+                        f'--align_to={refFile}',
                         f'--motion_correction=0',
                         f'--template=0',
                         # f'--save_nii={processedFile}',
@@ -102,10 +101,7 @@ def trackFibres(subjectId: str) -> bool:
 
   # If it is in the T1w space, then it is aparc+aseg space.
   # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_ANNOTATED_IMG )
-  # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w_moddedheader.native.nii.gz', localOnly=True)
-  refFileMni152 = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.', config.DSI_STUDIO_REF_IMG)))
-  refFileMni152Registered = copy2(refFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / ''.join(('automated_mni152.reg_', config.DSI_STUDIO_REF_IMG)))
+  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
   
  
 
@@ -131,10 +127,12 @@ def trackFibres(subjectId: str) -> bool:
                       ]
   # Limit tracks to only those that pass through the precentral gyri.
   if (config.DSI_STUDIO_USE_ROI):
-    roiFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / config.DSI_STUDIO_ANNOTATED_IMG )
-    roiFileMni152 = copy2(roiFile, config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'automated_mni152.aparcaseg.nii.gz')
+    roiFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
+    
+    if(config.NORMALISE_TO_MNI152):
+      roiFile = copy2(roiFile, config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / f'automated_mni152.{config.DSI_STUDIO_ANNOTATED_IMG}')
 
-    roiCmd = f'--roi={roiFileMni152}:ctx-lh-precentral,dilation,dilation+{roiFileMni152}:ctx-rh-precentral,dilation,dilation'
+    roiCmd = f'--roi={roiFile}:ctx-lh-precentral,dilation,dilation+{roiFile}:ctx-rh-precentral,dilation,dilation'
     cmd.append(roiCmd)
   
   g.logger.info("Running DSI Studio: tracking fibres.")
@@ -143,9 +141,10 @@ def trackFibres(subjectId: str) -> bool:
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
+  # TODO: Is mov correctly set in non-MNI152 settings?
   mov = getFile(config.SCRIPTS_DIR / 'matlab' / 'toolboxes' / 'DsiStudio' / 'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
-  targ = getFile(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w.nii.gz')
-  reg = str(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'register.dat')
+  targ = getFile(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'T1w.nii.gz')
+  reg = str(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'register.dat')
   return call(cmdLabel="createRegisterDatFile",
               cmd=[
                       "tkregister2",
@@ -172,15 +171,14 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   # Ensure neccessary files exist from previous steps.
   anatomicalLabelsToExist: list[str] = anatomicalLabels.anatomicalLabelsToExist
   remoteFilesToExist: "list[Path]" = [
-                  (config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'aparc+aseg.nii.gz'),
+                  (config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'aparc+aseg.nii.gz'),
                   (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'mri' / 'transforms' / 'talairach.xfm'),
                   # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'lh.pial'),
                   # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'rh.pial'),
                   ]
   localFilesToExist: "list[Path]" = [
      (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / '1m0.trk'),
-     
-    ] + [(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
+    ] + [(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
   
   _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]

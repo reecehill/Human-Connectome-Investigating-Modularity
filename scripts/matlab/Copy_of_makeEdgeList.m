@@ -1,10 +1,6 @@
 function [edgeListRemote,edgeListLocal,lpcentroids,rpcentroids,subCoor]=makeEdgeList(pathToFile,downsample)
-disp("------");
-disp("Start of edgeList.m")
-tic
-disp("------");
 clear ft_hastoolbox;
-restoredefaultpath;
+%restoredefaultpath;
 gcp;
 addpath('toolboxes/AlongTractStats');
 addpath(genpath('toolboxes/SurfStat'));
@@ -35,13 +31,13 @@ if strcmp(downsample,'no') % method for no downsample
     rpcentroids=meshcentroid(grpvertex,grpfaces);
     glpfacesLen=length(glpfaces);
     grpFacesLen=length(grpfaces);
-    % nbFaces=size(grpfaces,1)+size(glpfaces,1);
+    %nbFaces=size(grpfaces,1)+size(glpfaces,1);
 else
     lpcentroids=meshcentroid(nvl,nfl);
     rpcentroids=meshcentroid(nvr,nfr);
     nfllen=length(nfl);
     nfrlen=length(nfr);
-    % nbFaces=size(nfr,1)+size(nfl,1);
+    %nbFaces=size(nfr,1)+size(nfl,1);
 end
 
 %% make edge list for remote connections
@@ -57,14 +53,15 @@ rpCentroidsThirdCol = rpcentroids(:,3);
 subCoorFirstCol = subCoor(:,1);
 subCoorSecCol = subCoor(:,2);
 subCoorThirdCol = subCoor(:,3);
-disp('Building Remote connection elist:\n');
+fprintf('Building Remote connection elist:\n');
+fprintf(['\n' repmat('.',1,round(nbTracts/100000)) '\n\n']);
+
 buildRemote = 1;
 if(buildRemote == 1)
-    
     startps = trkEP(:, 1:3);
     endps = trkEP(:,4:6);
     milestones = round(nbTracts * (0:0.1:1));
-    parfor k=1:nbTracts    
+    parfor k=1:nbTracts  
         if ismember(k,milestones)
             disp((k/nbTracts)*100+"%");
         end
@@ -85,8 +82,9 @@ if(buildRemote == 1)
             startpoints=[dsl;dsr;dss];
             [C,I]=min([endpoints,startpoints]);
             edgeListRemote(k,:)=[I,sqrt(C),k];             
-        end      
+        end
     end
+    disp(".");
     disp("Done building remote edge list");
     toc
     edgeListRemote(edgeListRemote(:,5)==0,:)=[];
@@ -95,157 +93,163 @@ end
 % distance from the pial surface, column 5 is the track ID.
 
 %% get local connection -- downsample or no downsample
-
+disp('building local connection matrix');
+count =1;
 % adj_local=sparse(nbFaces,nbFaces);
+
 % two method pointing to downsample or no downsample
 if strcmp(downsample,'no') % method for no downsample
+    edgeListLocalLH=zeros(glpfacesLen*3,2,'single');
     tic
-    disp("Building left hemisphere's local edges.")
-    edgeListLocalLH=zeros(glpfacesLen,2*3,'single');
-    milestones = round(glpfacesLen * (0:0.1:1));
-    parfor k=1:glpfacesLen
-        if ismember(k,milestones)
-            disp((k/glpfacesLen)*100+"%");
-        end
-        [faceNode_1,~]=find(glpfaces==glpfaces(k,1));
-        [faceNode_2,~]=find(glpfaces==glpfaces(k,2));
-        [faceNode_3,~]=find(glpfaces==glpfaces(k,3));
+    for i=1:glpfacesLen
+        [faceNode_1,~]=find(glpfaces==glpfaces(i,1));
+        [faceNode_2,~]=find(glpfaces==glpfaces(i,2));
+        [faceNode_3,~]=find(glpfaces==glpfaces(i,3));
         faceNodes=[faceNode_1;faceNode_2;faceNode_3];
         [~, I] = unique(faceNodes, 'first');
         tmp = 1:length(faceNodes);
         tmp(I) = [];
-        
-        % Get the face that shares TWO or more nodes. (i.e, adjacent face - as
-        % they're triangular).
-        % NOTE: a "face" is defined by its three nodes.
         faceNodes=faceNodes(tmp);
-        faceNodes(faceNodes==k)=[];
-        
+        faceNodes(faceNodes==i)=[];
         if length(faceNodes) == 3
-            edgeListLocalLH(k,:)=[k, faceNodes(1), k, faceNodes(2), k, faceNodes(3);];
+            edgeListLocalLH(count,:)=[i,faceNodes(1)];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,faceNodes(2)];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,faceNodes(3)];
+            count=count+1;
         elseif  length(faceNodes) == 2
-            edgeListLocalLH(k,:)=[k, faceNodes(1), k, faceNodes(2), k, 0;];
+            edgeListLocalLH(count,:)=[i,faceNodes(1)];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,faceNodes(2)];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
         elseif length(faceNodes) == 1
-            edgeListLocalLH(k,:)=[k, faceNodes(1), k, 0, k, 0;];
+            edgeListLocalLH(count,:)=[i,faceNodes(1)];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
         elseif isempty(faceNodes)
-            edgeListLocalLH(k,:)=[k, 0, k, 0, k, 0;];
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
+            edgeListLocalLH(count,:)=[i,0];
+            count=count+1;
         end 
-    end
-    
-    disp("Done building left hemisphere's local edges.")
-    toc
-
-    tic
-    disp("Building right hemisphere's local edges.")
-    edgeListLocalRH=zeros(grpFacesLen,2*3,'single');
-    milestones = round(grpFacesLen * (0:0.1:1));
-
-    parfor k=1:grpFacesLen
-        if ismember(k,milestones)
-            disp((k/grpFacesLen)*100+"%");
+        clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
+        if mod(i/1000,1)==0
+            disp(num2str(glpfacesLen\i))
         end
-        [faceNode_1,~]=find(grpfaces==grpfaces(k,1));
-        [faceNode_2,~]=find(grpfaces==grpfaces(k,2));
-        [faceNode_3,~]=find(grpfaces==grpfaces(k,3));
+    end
+    toc
+    edgeListLocalRH=zeros(grpFacesLen*3,2,'single');
+    count=1;
+    for i=1:grpFacesLen
+        [faceNode_1,~]=find(grpfaces==grpfaces(i,1));
+        [faceNode_2,~]=find(grpfaces==grpfaces(i,2));
+        [faceNode_3,~]=find(grpfaces==grpfaces(i,3));
         faceNodes=[faceNode_1;faceNode_2;faceNode_3];
         [~, I] = unique(faceNodes, 'first');
         tmp = 1:length(faceNodes);
         tmp(I) = [];
         faceNodes=faceNodes(tmp);
-        faceNodes(faceNodes==k)=[];
+        faceNodes(faceNodes==i)=[];
         if length(faceNodes) == 3
-            edgeListLocalRH(k,:)=[k+glpfacesLen, faceNodes(1), k+glpfacesLen, faceNodes(2), k+glpfacesLen, faceNodes(3);];
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(1)+glpfacesLen];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(2)+glpfacesLen];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(3)+glpfacesLen];
+            count=count+1;
         elseif length(faceNodes) == 2
-            edgeListLocalRH(k,:)=[k+glpfacesLen, faceNodes(1), k+glpfacesLen, faceNodes(2), k+glpfacesLen, 0;];
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(1)+glpfacesLen];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(2)+glpfacesLen];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;
         elseif length(faceNodes) == 1
-            edgeListLocalRH(k,:)=[k+glpfacesLen, faceNodes(1), k+glpfacesLen, 0, k+glpfacesLen, 0;];
+            edgeListLocalRH(count,:)=[i+glpfacesLen,faceNodes(1)+glpfacesLen];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;
         elseif isempty(faceNodes)
-            edgeListLocalRH(k,:)=[k+glpfacesLen, 0, k+glpfacesLen, 0, k+glpfacesLen, 0;];   
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;
+            edgeListLocalRH(count,:)=[i+glpfacesLen,0];
+            count=count+1;      
         end
-        %clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
+        clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
+        edgeListLocal=[edgeListLocalLH;edgeListLocalRH];
+        edgeListLocal(edgeListLocal(:,2)==0,:)=[];
     end
-    disp("Done building right hemisphere's local edges.")
-    toc
 elseif strcmp(downsample,'yes') % method for downsample data
-    disp("Building left hemisphere's local edges.")
     tic
     % Loop through each face of the downsample mesh
     % nfl(1) = [nodeId1, nodeId2, nodeId3];
-    edgeListLocalLH=zeros(nfllen,2*3,'single');
-    milestones = round(nfllen * (0:0.1:1));
-    parfor k=1:nfllen
-        if ismember(k,milestones)
-            disp((k/nfllen)*100+"%");
-        end
+    count=1;
+    for i=1:nfllen
+        [faceNode_1,~]=find(nfl==nfl(i,1)); % via current face's first node
+        [faceNode_2,~]=find(nfl==nfl(i,2)); % via current face's second node
+        [faceNode_3,~]=find(nfl==nfl(i,3)); % via current face's third node
+
         %x = linear indices of all faces containing a node with face ID == i.
-        [faceNode_1,~]=find(nfl==nfl(k,1)); % via current face's first node
-        [faceNode_2,~]=find(nfl==nfl(k,2)); % via current face's second node
-        [faceNode_3,~]=find(nfl==nfl(k,3)); % via current face's third node
+        faceNodes = [faceNode_1; faceNode_2; faceNode_3];
+        
 
-        %x = linear indices of all faces containing a node with ID == i.
-        faceNodes=[faceNode_1;faceNode_2;faceNode_3];
-
-        %I = indices of x that contain unique values.
-        [~, I] = unique(faceNodes, 'first');
+        % Get the face that shares TWO or more nodes. (i.e, adjacent face - as
+        % they're triangular).
+        % NOTE: a "face" is defined by its three nodes.
+        
+        [~, I] = unique(faceNodes, "first");
         tmp = 1:length(faceNodes);
         tmp(I) = []; % remove indices of values that are unique. tmp is now a vector of indices of nodeIds that are repeated.
         faceNodes=faceNodes(tmp); % get the nodeIds that are repeated
-        faceNodes(faceNodes==k)=[]; % where the node ID is from the current face, exclude it.
-
-        edgeListLocalLH(k,:) = [k, faceNodes(1), k, faceNodes(2), k, faceNodes(3)]; % x(1) = nodeIds that connect to the current face via the face's first node.
-       
+        faceNodes(faceNodes==i)=[]; % where the node ID is from the current face, exclude it.
+        
+        edgeListLocalLH(i,:)=[i,faceNodes(1)]; % x(1) = nodeIds that connect to the current face via the face's first node.
+        edgeListLocalLH(i+1,:)=[i,faceNodes(2)]; % x(2) = nodeIds that connect to the current face via the face's second node.
+        edgeListLocalLH(i+2,:)=[i,faceNodes(3)]; % x(3) = nodeIds that connect to the current face via the face's third node.
         %clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
-    end
-    
-    disp("Done building left hemisphere's local edges.")
-    toc
-
-    disp("Building right hemisphere's local edges.")
-    tic
-    edgeListLocalRH=zeros(nfrlen,2*3,'single');
-    milestones = round(nfrlen * (0:0.1:1));
-    parfor k=1:nfrlen
-        if ismember(k,milestones)
-            disp((k/nfrlen)*100+"%");
+        if mod(i/1000,1)==0
+            disp(num2str(nfllen\i))
         end
-        [faceNode_1,~]=find(nfr==nfr(k,1));
-        [faceNode_2,~]=find(nfr==nfr(k,2));
-        [faceNode_3,~]=find(nfr==nfr(k,3));
+    end
+    toc
+    edgeListLocalRH=zeros(nfrlen*3,2,'single');
+    count=1;
+    for i=1:nfrlen
+        [faceNode_1,~]=find(nfr==nfr(i,1));
+        [faceNode_2,~]=find(nfr==nfr(i,2));
+        [faceNode_3,~]=find(nfr==nfr(i,3));
         faceNodes=[faceNode_1;faceNode_2;faceNode_3];
         [~, I] = unique(faceNodes, 'first');
         tmp = 1:length(faceNodes);
         tmp(I) = [];
         faceNodes=faceNodes(tmp);
-        faceNodes(faceNodes==k)=[];
-
-        edgeListLocalRH(k,:) = [k+nfllen, faceNodes(1)+nfllen, k+nfllen, faceNodes(2)+nfllen, k+nfllen, faceNodes(3)+nfllen]; % x(1) = nodeIds that connect to the current face via the face's first node.
-
-        % clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
+        faceNodes(faceNodes==i)=[];
+        edgeListLocalRH(count,:)=[i+nfrlen,faceNodes(1)+nfrlen];
+        count=count+1;
+        edgeListLocalRH(count,:)=[i+nfrlen,faceNodes(2)+nfrlen];
+        count=count+1;
+        edgeListLocalRH(count,:)=[i+nfrlen,faceNodes(3)+nfrlen];
+        count=count+1;
+        clear faceNode_1 faceNode_2 faceNode_3 faceNodes I tmp
+        if mod(i/1000,1)==0
+            disp(num2str(nfrlen\i))
+        end
     end
-
-    disp("Done building right hemisphere's local edges.")
-    toc
+    edgeListLocal=[edgeListLocalLH;edgeListLocalRH];
 end
-
-edgeListLocalLH = sort([ ...
-        edgeListLocalLH(:,1), edgeListLocalLH(:,2);
-        edgeListLocalLH(:,3), edgeListLocalLH(:,4);
-        edgeListLocalLH(:,5), edgeListLocalLH(:,6); ]);
-edgeListLocalRH = sort([ ...
-        edgeListLocalRH(:,1), edgeListLocalRH(:,2);
-        edgeListLocalRH(:,3), edgeListLocalRH(:,4);
-        edgeListLocalRH(:,5), edgeListLocalRH(:,6); ]);
-edgeListLocal=[...
-        edgeListLocalLH;
-        edgeListLocalRH;
-        ];
-edgeListLocal(edgeListLocal(:,2)==0,:)=[];
 
 % adj_local=sparse(edgeListLocal(:,1),edgeListLocal(:,2),ones(length(edgeListLocalLH(:,1)),1),nbFaces,nbFaces);
 clear edgeListLocalLH edgeListLocalRH 
-
-disp("------");
-disp("Finished with edgeList.m")
-toc
-disp("------");
 end

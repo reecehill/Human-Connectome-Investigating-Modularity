@@ -11,12 +11,12 @@ ft_hastoolbox('iso2mesh',1);
 ft_hastoolbox('gifti',1);
 
 adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
-adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
+%adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
 load('../../data/subjects/100610/edgeList.mat');
 load('../../data/subjects/100610/labelSRF.mat');
 load('../../data/subjects/100610/matrices.mat');
 load('../../data/subjects/100610/trsfmTrk.mat');
-load('../../data/subjects/100610/MNIcoor.mat');
+%load('../../data/subjects/100610/MNIcoor.mat');
 
 allFileNames = [filenames; subfilenames']';
 plottedLabels=allFileNames(faceROI_all);
@@ -28,7 +28,7 @@ xticks(1:(showTicksPer/50):length(plottedLabels));
 yticks(1:(showTicksPer/50):length(plottedLabels));
 xticklabels(plottedLabels(1:(showTicksPer/50):end));
 yticklabels(plottedLabels(1:(showTicksPer/50):end));
-savefig('../../data/subjects/100610/adjmatrix.fig');
+savefig('../../data/subjects/100610/adjmatrix_reduction.fig');
 return;
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');

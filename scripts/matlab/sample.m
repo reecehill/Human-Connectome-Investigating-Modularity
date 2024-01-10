@@ -20,14 +20,22 @@ load('../../data/subjects/100610/trsfmTrk.mat');
 
 allFileNames = [filenames; subfilenames']';
 plottedLabels=allFileNames(faceROI_all);
+[~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
+[~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
+positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
+plottedLabelsFinal_all = sort(positionOfMiddleLabel);
+
 figure;
 spy(adj_matrix);
 hold on;
-showTicksPer=100000;
-xticks(1:(showTicksPer/50):length(plottedLabels));
-yticks(1:(showTicksPer/50):length(plottedLabels));
-xticklabels(plottedLabels(1:(showTicksPer/50):end));
-yticklabels(plottedLabels(1:(showTicksPer/50):end));
+set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
+set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabelsFinal_all));
+
+% showTicksPer=100000;
+% xticks(1:(showTicksPer/50):length(plottedLabels));
+% yticks(1:(showTicksPer/50):length(plottedLabels));
+% xticklabels(plottedLabels(1:(showTicksPer/50):end));
+% yticklabels(plottedLabels(1:(showTicksPer/50):end));
 savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
 return;
 

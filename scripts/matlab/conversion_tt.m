@@ -202,7 +202,7 @@ legend;
 scatter3(atlasCoords_tkReg(1:1:end,1),atlasCoords_tkReg(1:1:end,2),atlasCoords_tkReg(1:1:end,3), 'DisplayName', "atlasCoords_{tkReg}");
 scatter3(trkCoords_tkReg(1:1:end,1),(trkCoords_tkReg(1:1:end,2)),trkCoords_tkReg(1:1:end,3), 'DisplayName', "trkCoords_{tkReg}");
 savefig('../../data/subjects/100610/tracts_aparc_xyz.fig');
-savefig('../../data/subjects/100610/tracts_aparc_xyz.png');
+saveas(gcf,'../../data/subjects/100610/tracts_aparc_xyz.png');
 
 figure;
 title("Tracts and Aparc in voxels (ijk)")
@@ -216,5 +216,5 @@ legend;
 scatter3(atlasCRS(1:1:end,1),atlasCRS(1:1:end,2),atlasCRS(1:1:end,3), 'DisplayName', "atlasCRS");
 scatter3(trkCRS(1,1:1:end),trkCRS(2,1:1:end),trkCRS(3,1:1:end), 'DisplayName', "trkCRS");
 savefig('../../data/subjects/100610/tracts_aparc_ijk.fig');
-savefig('../../data/subjects/100610/tracts_aparc_ijk.png');
+saveas(gcf, '../../data/subjects/100610/tracts_aparc_ijk.png');
 end

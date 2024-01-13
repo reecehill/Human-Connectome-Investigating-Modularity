@@ -125,7 +125,7 @@ hold on;
 set(gca, 'Ytick',1:1:length(plottedLabelsFinal_all),'YTickLabel',plottedLabels(plottedLabelsFinal_all));
 set(gca, 'Xtick',1:1:length(plottedLabelsFinal_all),'XTickLabel',plottedLabels(plottedLabelsFinal_all));
 savefig('../../data/subjects/100610/whole_adjmatrix.fig');
-savefig('../../data/subjects/100610/whole_adjmatrix.png');
+saveas(gcf, '../../data/subjects/100610/whole_adjmatrix.png');
 %%DELETE ABOVE
 
 

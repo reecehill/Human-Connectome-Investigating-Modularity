@@ -103,7 +103,34 @@ end
 
 display(["Finished using structural data in MATLAB."]);
 %quit;
+
+%%DELETE BELOW
+adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
+%adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
+load('../../data/subjects/100610/edgeList.mat');
+load('../../data/subjects/100610/labelSRF.mat');
+load('../../data/subjects/100610/matrices.mat');
+load('../../data/subjects/100610/trsfmTrk.mat');
+allFileNames = [filenames; subfilenames']';
+plottedLabels=allFileNames(faceROI_all);
+[~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
+[~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
+positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
+plottedLabelsFinal_all = sort(positionOfMiddleLabel);
+
+figure;
+title("Whole connectivity matrix.")
+spy(adj_matrix);
+hold on;
+set(gca, 'Ytick',1:1:length(plottedLabelsFinal_all),'YTickLabel',plottedLabels(plottedLabelsFinal_all));
+set(gca, 'Xtick',1:1:length(plottedLabelsFinal_all),'XTickLabel',plottedLabels(plottedLabelsFinal_all));
+savefig('../../data/subjects/100610/whole_adjmatrix.fig');
+savefig('../../data/subjects/100610/whole_adjmatrix.png');
+%%DELETE ABOVE
+
+
 end
+
 
 
 

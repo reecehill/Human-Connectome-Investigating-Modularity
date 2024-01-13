@@ -20,7 +20,7 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 """
 0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
 """
-DSI_STUDIO_RECONSTRUCTION_METHOD = 7
+DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 
 """
 0:streamline (default), 1:rk4 

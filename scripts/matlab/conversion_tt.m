@@ -170,8 +170,7 @@ for i=1:1
     end
     disp("Done looping converting tracks to endpoints.")
     toc;
-    disp("Number of tracts not in atlas:");
-    disp(nNotInAtlas);
+    disp(["Number of tracts not in atlas:", num2str(nNotInAtlas)]);
     trk_len_full(1+((i-1)*rawTrkLen):(i)*rawTrkLen) =trk_len;
     trk_type_full(1+((i-1)*rawTrkLen):(i)*rawTrkLen,:)=trk_type;
     trkEP_full(1+((i-1)*rawTrkLen):(i)*rawTrkLen,:)=trkEP;

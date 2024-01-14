@@ -9,7 +9,7 @@ addpath('toolboxes/AlongTractStats');
 addpath(genpath('toolboxes/SurfStat'));
 %% This file converts coordinates as follows:
 % "TkReg RAS" -> ""MNI305 RAS" -> "MNI152 RAS"
-display('step5: get high resolution coordinates in MNI space')
+disp('step5: get high resolution coordinates in MNI space')
 
 disp('loading edgeList.mat')
 %load([pathToFile,'/edgeList.mat'])
@@ -32,7 +32,7 @@ if type==1  % pial.surf.nii
 elseif type==2 % pial
     transform = TalairachXFM*Norig*inv(Torig); % from voxel slices to tk surface RAS coordinates.
 else
-    display('wrong type of surface')
+    disp('wrong type of surface')
 end
 
 %% MNI305 space
@@ -48,5 +48,5 @@ transform305_152 = [  0.9975   -0.0073    0.0176   -0.0429
 In = [Coor_MNI305 ones(nlen,1)]';
 Out = transform305_152*In;
 Coor_MNI152 = Out(1:3,:)';
-display("Finished with getMNIFromRasCoords - output not validated/used though.");
+disp("Finished with getMNIFromRasCoords - output not validated/used though.");
 end

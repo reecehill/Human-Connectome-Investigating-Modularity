@@ -43,7 +43,7 @@ if ~exist('downsample','var')
 end
 
 if ~strcmp(downsample,'no') & ~strcmp(downsample,'yes')
-  display('wrong description of downsample, please type ''yes'' or ''no''.')
+  disp('wrong description of downsample, please type ''yes'' or ''no''.')
 elseif strcmp(downsample,'yes')
     sprintf('downsample=%s, rate=%1f',downsample,rate)
 elseif strcmp(downsample,'no')
@@ -57,8 +57,8 @@ end
 % convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
  
  for i=1:length(subjects)
-     subject = subjects{i}
-     pathToSubjectData = [pathToFile,num2str(subject)]
+     subject = subjects{i};
+     pathToSubjectData = [pathToFile,num2str(subject)];
      [trkEP,trk_len,trk_type]=conversion_tt(pathToSubjectData,type);
      filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
      save(filename,'trkEP','trk_len','trk_type','-v7.3');
@@ -98,10 +98,10 @@ for i=1:length(subjects)
     [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i},'/'],subjects{i},[lpcentroids;rpcentroids;subCoor],type);
     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
-    clear lpcentroids,rpcentroids,subCoor;
+    clear lpcentroids rpcentroids subCoor;
 end
 
-display(["Finished using structural data in MATLAB."]);
+disp("Finished using structural data in MATLAB.");
 %quit;
 
 %%DELETE BELOW

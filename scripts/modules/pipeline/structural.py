@@ -72,10 +72,10 @@ def generateMni152Labels(subjectId: str) -> bool:
                   # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
                   # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
                   # ]
-                  (subjectDir  / 'Native' / f'{subjectId}.R.pial.native.surf.gii'), # Right surface
-                  (subjectDir  / 'Native' / f'{subjectId}.L.pial.native.surf.gii'), # Left surface
-                  (subjectDir  / 'Native' / f'{subjectId}.R.aparc.native.label.gii'), # Right annotation
-                  (subjectDir  / 'Native' / f'{subjectId}.L.aparc.native.label.gii'), # Left annotation
+                  (subjectDir  / f'{subjectId}.R.pial_MSMAll.164k_fs_LR.surf.gii'), # Right surface
+                  (subjectDir  / f'{subjectId}.L.pial_MSMAll.164k_fs_LR.surf.gii'), # Left surface
+                  (subjectDir  / f'{subjectId}.R.aparc.164k_fs_LR.label.gii'), # Right annotation
+                  (subjectDir  / f'{subjectId}.L.aparc.164k_fs_LR.label.gii'), # Left annotation
                   ]
   surfaceAndAnnotFiles = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 

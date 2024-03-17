@@ -26,6 +26,7 @@ positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2
 plottedLabelsFinal_all = sort(positionOfMiddleLabel);
 
 figure;
+title("Adjacency matrix: matrices.mat")
 spy(adj_matrix);
 hold on;
 set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
@@ -37,7 +38,7 @@ set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabels
 % xticklabels(plottedLabels(1:(showTicksPer/50):end));
 % yticklabels(plottedLabels(1:(showTicksPer/50):end));
 savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
-return;
+
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
 t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');
@@ -52,7 +53,16 @@ left_pial_59k = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/1
 left_pial_labels =  gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.aparc.32k_fs_LR.label.gii');
 right_pial_59k = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii');
 
+
+%% Plot fMRI and structural/diffusion data over each other
+openfig('../../data/subjects/100610/tracts_aparc_xyz.fig');
+hold on;
 mycifti = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2.feat/100610_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii')
+scatter3(mycifti.pos(:,1), mycifti.pos(:,2), mycifti.pos(:,3), [], mycifti.x100610_tfmri_motor_level2_lf_hp200_s2);
+
+
+
+
 
 %%Diffusion
 load('../../data/subjects/100610/labelSRF.mat', "nvl", "nvr", "nfl", "nfr", "faceROIidL", "faceROIidR");

@@ -212,7 +212,6 @@ hold on;
 mycifti = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2.feat/100610_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii');
 mygifti_L = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.pial.32k_fs_LR.surf.gii');
 mygifti_R = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii');
-
 figure;
 title("Tracts and Aparc and fmri in coordinates (xyz)")
 hold on;
@@ -220,10 +219,8 @@ legend;
 xlabel('x');
 ylabel('y');
 zlabel('z');
-temp_ones_L = ones(size(mygifti_L.vertices,1),1);
-temp_ones_R = ones(size(mygifti_R.vertices,1),1);
-mygifti_L_vertices_transformed = [mygifti_L.vertices temp_ones_L];
-mygifti_R_vertices_transformed = [mygifti_R.vertices temp_ones_R];
+mygifti_L_vertices_transformed = [mygifti_L.vertices];
+mygifti_R_vertices_transformed = [mygifti_R.vertices];
 
 % NB: vertices coords are in SurfaceRAS. Therefore, to go from aparc (CRS)
 % to this, we must use "type 1".

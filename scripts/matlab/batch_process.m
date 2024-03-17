@@ -54,28 +54,36 @@ for i=1:length(subjects)
     gunzip([pathToFile num2str(subjects{i}) '/MNINonLinear/aparc+aseg.nii.gz']);
 end
 
-% convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
+%% convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
  for i=1:length(subjects)
      subject = subjects{i};
      pathToSubjectData = [pathToFile,num2str(subject)];
-     %[trkEP,trk_len,trk_type]=conversion_tt(pathToSubjectData,type);
+     [trkEP,trk_len,trk_type]=conversion_tt(pathToSubjectData,type);
      filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
-     %save(filename,'trkEP','trk_len','trk_type','-v7.3');
+     save(filename,'trkEP','trk_len','trk_type','-v7.3');
      clear trkEP trk_len trk_type
  end
 
  
  %%  assign freesurfer ROI labels to each face
- 
  for i=1:length(subjects)
      [faceROIidL,faceROIidR,hi_faceROIidL,hi_faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid,hi_subCoor,hi_subROIid,lo_centroidsL,lo_centroidsR,hi_centroidsL,hi_centroidsR]=loadLabels([pathToFile,subjects{i}],subjects{i},type,downsample,rate);
- %     [faceROIidL,faceROIidR,filenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr]=loadLabels([pathToFile,subjects{i}]);
-     % save data
      filename=[pathToFile,subjects{i},'/labelSRF.mat'];
      save(filename,'faceROIidL','faceROIidR','hi_faceROIidL','hi_faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','hi_subCoor','hi_subROIid','lo_centroidsL','lo_centroidsR','hi_centroidsL','hi_centroidsR','-v7.3');
      return;
      clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
  end
+
+ %%  project HCP 32k surface to desired mesh
+ for i=1:length(subjects)
+     [faceROIidL,faceROIidR,hi_faceROIidL,hi_faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid,hi_subCoor,hi_subROIid,lo_centroidsL,lo_centroidsR,hi_centroidsL,hi_centroidsR]=loadLabels([pathToFile,subjects{i}],subjects{i},type,downsample,rate);
+     filename=[pathToFile,subjects{i},'/labelSRF.mat'];
+     save(filename,'faceROIidL','faceROIidR','hi_faceROIidL','hi_faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','hi_subCoor','hi_subROIid','lo_centroidsL','lo_centroidsR','hi_centroidsL','hi_centroidsR','-v7.3');
+     return;
+     clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
+ end
+
+
 
 %% Make edgelist and other stuff
 for i=1:length(subjects)

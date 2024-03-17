@@ -1,7 +1,7 @@
-function mapFmriToHighResSurf(pathToFile, type)
+function mapFmriToHighResSurf(pathToFile, subjectId, downsample, type)
 % HCP Dataset has fMRI data in 32k nodes per hemisphere only. This function
-% therefore maps the 32k node data to the high-res surface. No
-% interpolation is performed, so this is suitable with module numbers/labels only.
+% therefore maps the 32k node data to the higher-res surface.
+% No interpolation is performed, so this is suitable with module numbers/labels only.
 
 close all;
 restoredefaultpath;
@@ -18,7 +18,19 @@ disp(['Type: ' num2str(type) ' (' class(type) ')'])
 
 disp('loading labelSRF.mat');
 fileToLoad=[pathToFile,'/labelSRF.mat'];
-load(fileToLoad, "glpfaces","grpfaces","glpvertex","grpvertex", "faceROIidL","faceROIidR","hi_faceROIidL","hi_faceROIidR","subROIid","subCoor","hi_subCoor","hi_subROIid","filenames","subfilenames",  "hi_centroidsL","hi_centroidsR"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+if strcmp(downsample,'yes')
+    load(fileToLoad, "nfl","nfr","nvl","nvr"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+    hi_faces_L = nfl;
+    hi_faces_R = nfr;
+    hi_nodes_L = nvl;
+    hi_nodes_R = nvr;
+elseif strcmp(downsample,'no')
+    load(fileToLoad, "glpfaces","grpfaces","glpvertex","grpvertex"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+    hi_faces_L = glpfaces;
+    hi_faces_R = grpfaces;
+    hi_nodes_L = glpvertex;
+    hi_nodes_R = grpvertex;
+end
 
 fMriValues = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii');
 fMriValues_L = fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall(fMriValues.brainstructure==1);
@@ -26,81 +38,39 @@ fMriValues_R = fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall(fMriValu
 
 surf_32k_L = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.pial.32k_fs_LR.surf.gii');
 surf_32k_R = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii');
-surf_164k_L = gifti('../../data/subjects/100610/MNINonLinear/100610.L.pial_MSMAll.164k_fs_LR.surf.gii');
-surf_164k_R = gifti('../../data/subjects/100610/MNINonLinear/100610.R.pial_MSMAll.164k_fs_LR.surf.gii');
 
-numglpvertices=size(glpvertex,1);
-numgrpvertices=size(grpvertex,1);
-hi_fMriValues_L=zeros(size(numglpvertices,1),1);
-hi_fMriValues_R=zeros(size(numgrpvertices,1),1);
-% 
-% centroids_32k_L = meshcentroid(surf_32k_L.vertices,surf_32k_L.faces);% centroids in lo-res mesh
-% centroids_32k_R = meshcentroid(surf_32k_R.vertices,surf_32k_R.faces);% centroids in lo-res mesh
-nMissingFmriData = 0;
-
-matchedNodes = zeros(numglpvertices,7);
 %% Loop through each NODE on high-res mesh to find closest NODE on downsampled mesh. Maps fMRI value up.
-parfor k=1:numglpvertices
-    % Print progress.
-    if mod(k/1000,1)==0
-        disp(num2str(numglpvertices\k))
-    end
+[hi_fMriValues_L] = loopNodesProjectFromLoToHiRes(surf_32k_L.vertices,hi_nodes_L,fMriValues_L);
+[hi_fMriValues_R] = loopNodesProjectFromLoToHiRes(surf_32k_R.vertices,hi_nodes_R,fMriValues_R);
 
-    currentnode=glpvertex(k,:); %current node's coordinates
-    %Euclidean distances (vector double) between current face and all mesh centroids
-    dsl=((currentnode(:,1)-surf_32k_L.vertices(:,1)).^2 + (currentnode(:,2)-surf_32k_L.vertices(:,2)).^2 + (currentnode(:,3)-surf_32k_L.vertices(:,3)).^2 );
-
-    % ID of the mesh centroid that is closest to current face's
-    % centroid.
-    [distance,closestVertex_id]=min(dsl);
-    matchedNodes(k,:) = [currentnode surf_32k_L.vertices(closestVertex_id,:) distance];
-
-    % Replace ID (as above) with the fMRI value of the closest centroid.
-    try
-        hi_fMriValues_L(k,1)=fMriValues_L(closestVertex_id);
-    catch
-        % Nearest face is not cortical.
-        hi_fMriValues_L(k,1)=NaN;
-        nMissingFmriData = nMissingFmriData+1;
-    end
-end
-parfor k=1:numgrpvertices
-    % Print progress.
-    if mod(k/1000,1)==0
-        disp(num2str(numgrpvertices\k))
-    end
-
-    currentnode=grpvertex(k,:); %current nodes coordinates
-    %Euclidean distances (vector double) between current face and all mesh centroids
-    dsr=((currentnode(:,1)-surf_32k_R.vertices(:,1)).^2 + (currentnode(:,2)-surf_32k_R.vertices(:,2)).^2 + (currentnode(:,3)-surf_32k_R.vertices(:,3)).^2 );
-
-    % ID of the mesh centroid that is closest to current face's
-    % centroid.
-    [~,closestVertex_id]=min(dsr);
-
-    % Replace ID (as above) with the fMRI value of the closest centroid.
-    try
-        hi_fMriValues_R(k,1)=fMriValues_R(closestVertex_id);
-    catch
-        % Nearest face is not cortical.
-        hi_fMriValues_R(k,1)=NaN;
-        nMissingFmriData =nMissingFmriData+1;
-    end
-end
+%% Store surface as new gifti
+hi_surf_L = surf_32k_L;
+hi_surf_L.faces = hi_faces_L;
+hi_surf_L.vertices = hi_nodes_L;
+hi_surf_R = surf_32k_R;
+hi_surf_R.faces = hi_faces_R;
+hi_surf_R.vertices = hi_nodes_R;
+save(hi_surf_L, '../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/L.surf.gii');
+save(hi_surf_R, '../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/R.surf.gii');
 
 
-if(nMissingFmriData>0)
-    disp(nMissingFmriData+" vertices with an unknown/missing fMRI data value encountered. It was skipped.");
-end
 %% Store as new cifti
 hi_fMriValues = ft_read_cifti('../../data/subjects/100610/MNINonLinear/100610.curvature_MSMAll.164k_fs_LR.dscalar.nii','readdata',false); % copy struct, to replace.
-hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall = [hi_fMriValues_L; hi_fMriValues_R;];
-%hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall(isnan(hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall)) = 0;
-ft_write_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll', hi_fMriValues, 'parameter', 'x100610_tfmri_motor_level2_lf_hp200_s2_msmall');
-temp = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii');
-lo_temp = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii');
+hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall  = [hi_fMriValues_L; hi_fMriValues_R;];
+hi_fMriValues.brainstructure = ones(size(test_hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall,1),1);
+hi_fMriValues.brainstructure(length(hi_fMriValues_L)+1:end)=2;
+hi_fMriValues.pos=[hi_nodes_L; hi_nodes_R];
+hi_fMriValues.tri=[hi_faces_L; hi_faces_R];
 
+
+%hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall(isnan(hi_fMriValues.x100610_tfmri_motor_level2_lf_hp200_s2_msmall)) = 0;
+
+ft_write_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll', hi_fMriValues, 'parameter', 'x100610_tfmri_motor_level2_lf_hp200_s2_msmall');
+
+%TODO: Sort fMRI into modules, THEN upsample to high res.
 %!wb_command -cifti-find-clusters ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii 0.5 -inf inf inf COLUMN ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/results.dscalar.nii -left-surface ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.CORTEX_LEFT.surf.gii -right-surface ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.CORTEX_RIGHT.surf.gii -distance 100 -inf
+%! wb_command -cifti-find-clusters ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100610_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii 3.0 -inf inf inf COLUMN ../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/results_lowres.dscalar.nii -left-surface ../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.pial.32k_fs_LR.surf.gii -right-surface ../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii
+
 close all;
 hi_binarised_fMRI = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/HiResAutoGenerated/results.dscalar.nii');
 disp(max(hi_binarised_fMRI.dscalar));
@@ -122,4 +92,46 @@ hi_res_fmri(isnan(hi_res_fmri)) = 0;
 plotsurf(glpvertex, glpfaces, hi_res_fmri);
 plotsurf(grpvertex, grpfaces, fMriValues_R > 1);
 
+end
+function [hi_nodes_scalar] = loopNodesProjectFromLoToHiRes(lo_nodes,hi_nodes,lo_nodes_scalar)
+nHiNodes = size(hi_nodes,1);
+nMissingFmriData = 0;
+matchedNodes = zeros(nHiNodes,7);
+hi_nodes_scalar=zeros(nHiNodes,1);
+parfor k=1:nHiNodes
+    % Print progress.
+    if mod(k/1000,1)==0
+        disp(num2str(nHiNodes\k))
+    end
+
+    currentnode=hi_nodes(k,:); %current node's coordinates
+    %Euclidean distances (vector double) between current face and all mesh centroids
+    ds=((currentnode(:,1)-lo_nodes(:,1)).^2 + (currentnode(:,2)-lo_nodes(:,2)).^2 + (currentnode(:,3)-lo_nodes(:,3)).^2 );
+
+    % ID of the mesh centroid that is closest to current face's
+    % centroid.
+    [distance,closestVertex_id]=min(ds);
+    matchedNodes(k,:) = [currentnode lo_nodes(closestVertex_id,:) distance];
+    % Replace ID (as above) with the fMRI value of the closest centroid.
+    try
+        hi_nodes_scalar(k,1)=lo_nodes_scalar(closestVertex_id);
+    catch
+        % Nearest face is not cortical.
+        hi_nodes_scalar(k,1)=NaN;
+        nMissingFmriData = nMissingFmriData+1;
+    end
+end
+if(nMissingFmriData>0)
+    disp(nMissingFmriData+" vertices with an unknown/missing fMRI data value encountered. They were skipped.");
+end
+end
+function [facesROI] = loopROIAndAssignLabels(ROI_startIndex, ROI_endIndex, faces)
+    facesROI={};
+    parfor roi=ROI_startIndex:ROI_endIndex
+        x=sum(ismember(faces,ROIfacevert(roi).faces(:,1)+1),2);
+        ROIfacevert(roi).ffaces=find(x>1); %by Xue
+        nbffaces=length(ROIfacevert(roi).ffaces);
+        facesROI{roi} = [faces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
+    end
+    facesROI=cat(1,facesROI{:});
 end

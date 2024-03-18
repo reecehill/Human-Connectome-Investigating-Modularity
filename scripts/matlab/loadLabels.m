@@ -17,7 +17,7 @@ ft_hastoolbox('iso2mesh',1);
 %% load label info
 disp('step2: load surface node coordinates and their denoted label')
 atlas=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii']);% load aparc+aseg.nii to get subcortical coordinates
-[glpfaces, grpfaces, glpvertex, grpvertex, filenames, subfilenames, ROIfacevert, nbROI] = load164kMesh(pathToFile,subjectId,type);
+[glpfaces, grpfaces, glpvertex, grpvertex, filenames, subfilenames, ROIfacevert, nbROI]  = load164kMesh(pathToFile,subjectId,type);
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates (that is lh/rh.pial.surf.gii)
 elseif type==2

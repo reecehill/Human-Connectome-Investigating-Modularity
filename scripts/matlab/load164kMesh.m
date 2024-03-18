@@ -1,6 +1,6 @@
 function [glpfaces, grpfaces, glpvertex, grpvertex, filenames, subfilenames, ROIfacevert, nbROI] = load164kMesh(pathToFile,subjectId,type)
 
-ROIfacevert = getROIByFaceVertex();
+[ROIfacevert, filenames, subfilenames, nbROI]= getROIByFaceVertex(pathToFile,subjectId);
 if type==1
     disp('load lh(rh).pial.surf.gii as surface')
     giftilh=gifti([pathToFile,'/MNINonLinear/',subjectId,'.L.pial_MSMAll.164k_fs_LR.surf.gii']);

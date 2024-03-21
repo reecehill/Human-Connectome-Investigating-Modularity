@@ -10,15 +10,13 @@ def runPipeline() -> None:
 
   # (2B) RUN FREESURFER: Annotate pial surface with labels
   # if(config.GENERATE_LABELS): [structural.generateLabels(subjectId) for subjectId in config.ALL_SUBJECTS]
-  if(config.GENERATE_LABELS): [structural.generateMni152Labels(subjectId) for subjectId in config.ALL_SUBJECTS]
+  #if(config.GENERATE_LABELS): [structural.generateMni152Labels(subjectId) for subjectId in config.ALL_SUBJECTS]
 
-
-  return
   # (3) RUN DSI STUDIO
-  if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
+  #if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
 
   # (4) RUN MATLAB: Process diffusion tracks
-  if(config.RUN_MATLAB_DIFFUSION): [diffusion.matlabProcessDiffusion(subjectId) for subjectId in config.ALL_SUBJECTS]
+  #if(config.RUN_MATLAB_DIFFUSION): [diffusion.matlabProcessDiffusion(subjectId) for subjectId in config.ALL_SUBJECTS]
 
   # (5) RUN MATLAB: Process functional data
   if(config.RUN_MATLAB_FUNCTIONAL): [functional.matlabProcessFunctional(subjectId) for subjectId in config.ALL_SUBJECTS]

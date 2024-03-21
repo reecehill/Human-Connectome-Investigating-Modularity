@@ -16,6 +16,8 @@ from typing import Optional
 
 from modules.file_directory.shutil_ported import which
 
+def findAndInject(find: str, replace: str, string: str) -> str:
+  return string.replace(find, replace)
 
 def getLogDirectoryPath(userSubmitted: str) -> Path:
   LOGS_DIR: Path = (BASE_DIR / userSubmitted / TIMESTAMP_OF_SCRIPT).resolve(strict=False)

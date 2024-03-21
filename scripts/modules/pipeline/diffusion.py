@@ -1,3 +1,4 @@
+from os import DirEntry
 from pathlib import Path
 import modules.globals as g
 import config
@@ -167,25 +168,48 @@ def runDsiStudio(subjectId: str) -> bool:
 def matlabProcessDiffusion(subjectId: str) -> bool:
   
   g.logger.info("Running MATLAB: converting tracked fibres into endpoints and adjacency matrices.")
+  subjectFolder = config.DATA_DIR / 'subjects' / subjectId
 
-  # Ensure neccessary files exist from previous steps.
+  # Downsampled surface files (e.g., 32k)
+  subjectDownsampledFolder = subjectFolder / config.LOW_RES_SURFACE_FOLDER
+  subjectDownsampledSurface_left = subjectFolder / config.LOW_RES_SURFACE_FOLDER / (config.LOW_RES_SURFACE_LEFT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId))
+  subjectDownsampledSurface_right = subjectFolder / config.LOW_RES_SURFACE_FOLDER / (config.LOW_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId))
+
+  # Original/high-resolution surface files (e.g., native or 164k).
+  subjectHiResSurfaceFolder = subjectFolder / config.HIGH_RES_SURFACE_FOLDER
+  subjectHiResSurface_left = subjectHiResSurfaceFolder / config.HIGH_RES_SURFACE_LEFT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId)
+  subjectHiResSurface_right = subjectHiResSurfaceFolder / config.HIGH_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId)
+
+  
+  # Ensure necessary files exist from previous steps.
+  
   anatomicalLabelsToExist: list[str] = anatomicalLabels.anatomicalLabelsToExist
   remoteFilesToExist: "list[Path]" = [
-                  (config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'aparc+aseg.nii.gz'),
-                  (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'mri' / 'transforms' / 'talairach.xfm'),
-                  # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'lh.pial'),
-                  # (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / subjectId / 'surf' / 'rh.pial'),
+                  (subjectFolder / config.NATIVEORMNI152FOLDER / 'aparc+aseg.nii.gz'),
+                  (subjectFolder / 'T1w' / subjectId / 'mri' / 'transforms' / 'talairach.xfm'),
+                  subjectHiResSurface_left,
+                  subjectHiResSurface_right,
                   ]
+  
   localFilesToExist: "list[Path]" = [
-     (config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / '1m0.trk'),
-    ] + [(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
+     (subjectFolder / 'T1w' / config.DIFFUSION_FOLDER / '1m0.trk'),
+    ] + [(subjectFolder / config.NATIVEORMNI152FOLDER / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
+
+  # Ensure, if required, the downsampled meshes already exist.
+  if(config.USE_PRESET_DOWNSAMPLED_MESH):
+    remoteFilesToExist.append(subjectDownsampledSurface_left)
+    remoteFilesToExist.append(subjectDownsampledSurface_right)
+  else:
+    # We will create our own downsampled surfaces, so ensure the folder exists. 
+    createDirectories(directoryPaths=[subjectDownsampledFolder], createParents=True, throwErrorIfExists=False)
   
   _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
-  
+
+  subjectDownsampledFolder.resolve(strict=True)
   return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,
-                      f'-batch "batch_process {config.matLabDriveAndPathToSubjects} {subjectId} {config.PIAL_SURFACE_TYPE} {config.DOWNSAMPLE_SURFACE} {config.DOWNSAMPLE_RATE}"',
+                      f'-batch "batch_process \'{config.matLabDriveAndPathToSubjects}\' \'{subjectId}\' {config.PIAL_SURFACE_TYPE} \'{config.DOWNSAMPLE_SURFACE}\' \'{config.DOWNSAMPLE_RATE}\' \'{config.USE_PRESET_DOWNSAMPLED_MESH}\' \'{subjectDownsampledSurface_left.resolve(strict=False)}\' \'{subjectDownsampledSurface_right.resolve(strict=False)}\'"',
                       ],
               cwd=config.matlabScriptsFolder)

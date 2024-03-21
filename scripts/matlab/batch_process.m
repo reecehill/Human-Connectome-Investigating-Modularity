@@ -1,4 +1,4 @@
-function batch_process(pathToFile,subjects,type,downsample,rate)
+function batch_process(pathToFile,subject,type,downsample,rate,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R)
 % pathToFile: path to all data folders
 % subjects: the list of subjects
 % type: two types of surface data:
@@ -19,8 +19,8 @@ if(isa(rate, "char"))
     rate = str2double(rate);
 end
 
-disp(subjects);
-subjects={subjects};
+disp(subject);
+subjects={subject};
 clear ft_hastoolbox;
 addpath('toolboxes/AlongTractStats');
 addpath(genpath('toolboxes/SurfStat'));
@@ -51,27 +51,27 @@ elseif strcmp(downsample,'no')
 end
 
 for i=1:length(subjects)
-    gunzip([pathToFile num2str(subjects{i}) '/MNINonLinear/aparc+aseg.nii.gz']);
+    gunzip([pathToFile subjects{i} '/MNINonLinear/aparc+aseg.nii.gz']);
 end
 
 %% convert .trk file from DSI_studio to matrix containing endpoints converted to the same space, the trk_len and termination info (GM)
-%  for i=1:length(subjects)
+ for i=1:length(subjects)
 %      subject = subjects{i};
 %      pathToSubjectData = [pathToFile,num2str(subject)];
 %      [trkEP,trk_len,trk_type]=conversion_tt(pathToSubjectData,type);
 %      filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
 %      save(filename,'trkEP','trk_len','trk_type','-v7.3');
 %      clear trkEP trk_len trk_type
-%  end
+ end
 
  
  %%  assign freesurfer ROI labels to each face
-%  for i=1:length(subjects)
-%      [faceROIidL,faceROIidR,hi_faceROIidL,hi_faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid,hi_subCoor,hi_subROIid,lo_centroidsL,lo_centroidsR,hi_centroidsL,hi_centroidsR]=loadLabels([pathToFile,subjects{i}],subjects{i},type,downsample,rate);
-%      filename=[pathToFile,subjects{i},'/labelSRF.mat'];
-%      save(filename,'faceROIidL','faceROIidR','hi_faceROIidL','hi_faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','hi_subCoor','hi_subROIid','lo_centroidsL','lo_centroidsR','hi_centroidsL','hi_centroidsR','-v7.3');
-%      clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
-%  end
+ for i=1:length(subjects)
+     [faceROIidL,faceROIidR,hi_faceROIidL,hi_faceROIidR,filenames,subfilenames,glpfaces,grpfaces,glpvertex,grpvertex,nfl,nfr,nvl,nvr,subCoor,subROIid,hi_subCoor,hi_subROIid,lo_centroidsL,lo_centroidsR,hi_centroidsL,hi_centroidsR]=loadLabels([pathToFile,subjects{i}],subjects{i},type,downsample,rate,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R);
+     filename=[pathToFile,subjects{i},'/labelSRF.mat'];
+     save(filename,'faceROIidL','faceROIidR','hi_faceROIidL','hi_faceROIidR','filenames','subfilenames','glpfaces','grpfaces','glpvertex','grpvertex','nfl','nfr','nvl','nvr','subCoor','subROIid','hi_subCoor','hi_subROIid','lo_centroidsL','lo_centroidsR','hi_centroidsL','hi_centroidsR','-v7.3');
+     clear faceROIidL faceROIidR filenames subfilenames glpfaces grpfaces glpvertex grpvertex nfl nfr nvl nvr subCoor subROIid
+  end
 
 %% Make edgelist and other stuff
 for i=1:length(subjects)
@@ -88,14 +88,14 @@ for i=1:length(subjects)
     filename=[pathToFile,subjects{i},'/matrices.mat'];
     save(filename,'adj_local','adj_remote_bin','adj_remote_wei','adj_remote_len','lo_adj_wei','adj_matrix','lo_adj_cortical_wei','faceROI_all','faceROI_cortical','-v7.3');
 end
-
+return
 %% map coordinates into MNI space
-for i=1:length(subjects)
-    [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i},'/'],subjects{i},[lpcentroids;rpcentroids;subCoor],type);
-    filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
-    save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
-    clear lpcentroids rpcentroids subCoor;
-end
+% for i=1:length(subjects)
+%     [Coor_MNI305,Coor_MNI152]=getMNIFromRasCoords([pathToFile,subjects{i},'/'],subjects{i},[lpcentroids;rpcentroids;subCoor],type);
+%     filename=[pathToFile,subjects{i},'/MNIcoor.mat'];
+%     save(filename,'Coor_MNI305','Coor_MNI152','-v7.3');
+%     clear lpcentroids rpcentroids subCoor;
+% end
 
 disp("Finished using structural data in MATLAB.");
 %quit;
@@ -108,7 +108,7 @@ load('../../data/subjects/100610/labelSRF.mat');
 load('../../data/subjects/100610/matrices.mat');
 load('../../data/subjects/100610/trsfmTrk.mat');
 allFileNames = [filenames; subfilenames']';
-plottedLabels=allFileNames(faceROI_all);
+plottedLabels=[filenames(faceROIidL); filenames(faceROIidR); subfilenames(subROIid)'];
 [~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
 [~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
 positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
@@ -118,8 +118,8 @@ figure;
 title("Whole connectivity matrix.")
 spy(adj_matrix);
 hold on;
-set(gca, 'Ytick',1:1:length(plottedLabelsFinal_all),'YTickLabel',plottedLabels(plottedLabelsFinal_all));
-set(gca, 'Xtick',1:1:length(plottedLabelsFinal_all),'XTickLabel',plottedLabels(plottedLabelsFinal_all));
+set(gca, 'Ytick',1:1:length(plottedLabels),'YTickLabel',plottedLabels(plottedLabelsFinal_all));
+set(gca, 'Xtick',1:1:length(plottedLabels),'XTickLabel',plottedLabels(plottedLabelsFinal_all));
 savefig('../../data/subjects/100610/whole_adjmatrix.fig');
 saveas(gcf, '../../data/subjects/100610/whole_adjmatrix.png');
 %%DELETE ABOVE

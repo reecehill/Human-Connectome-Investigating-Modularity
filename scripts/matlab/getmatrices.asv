@@ -63,7 +63,6 @@ end
 %% make lo res matrix(68 corticals + 14 subcortical + rh/lh.cerebellum + brain-stem = 85)
 disp('making lo_adj include all regions')
 lo_adj_wei=zeros(85,85);
-max(faceROIidL);
 faceROI_all=[faceROIidL;faceROIidR+(length(filenames)/2);subROIid+length(filenames)];
 ROIlen = max(faceROI_all);
 for i=1:ROIlen

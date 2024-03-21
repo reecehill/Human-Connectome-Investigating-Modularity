@@ -58,7 +58,7 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 RUN_MATLAB_DIFFUSION = True
-RUN_MATLAB_FUNCTIONAL = False
+RUN_MATLAB_FUNCTIONAL = True
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------
@@ -71,9 +71,19 @@ MATLAB_CALCULATE_STATS = False
 #NUMBER_OF_TRACTS = 10000000
 NUMBER_OF_TRACTS = 1000 # Not implemented.
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
-PIAL_SURFACE_TYPE = 2 # NOTE: Anything other than 2 (int) is unsupported.
+PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 2 (int) is unsupported.
 DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
+USE_PRESET_DOWNSAMPLED_MESH = 1 # (int) If 1, the below downsamples meshes will be imported as a low-res mesh. If 0 (false), they will be created by the downsample_rate of the pial surface.
+# IMPORTANT: Filenames may use the $subjectId$ placeholder to dynamically insert subject's id.
+LOW_RES_SURFACE_FOLDER = "MNINonLinear/fsaverage_LR32k" # (string) Relative to the main (root) folder of each subject
+LOW_RES_SURFACE_LEFT_HEMISPHERE_FILENAME: str = '$subjectId$.L.pial.32k_fs_LR.surf.gii' # (string) Filename of low-resolution surface of left-hemisphere.
+LOW_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME: str = '$subjectId$.R.pial.32k_fs_LR.surf.gii' # (string) Filename to low-resolution surface of right-hemisphere. .surf.gii
+HIGH_RES_SURFACE_FOLDER: str = 'MNINonLinear' # (string) Relative to the main (root) folder of each subject
+HIGH_RES_SURFACE_LEFT_HEMISPHERE_FILENAME: str = '$subjectId$.L.pial_MSMAll.164k_fs_LR.surf.gii' # NOTE: '{subjectId}.' will be prepended.
+HIGH_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME: str = '$subjectId$.R.pial_MSMAll.164k_fs_LR.surf.gii' # NOTE: '{subjectId}.' will be prepended.
+FMRI_DATA_FOLDER: str = "MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat" # (string) Relative to the main (root) folder of each subject
+FMRI_DATA_FILENAME: str = "$subjectId$_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii" # (string) Is a dscalar.nii (cifti) format, and must have same number of faces/nodes (i.e., be compatible with) the surface defined in LOW_RES_SURFACE_LEFT_HEMISPHERE_FILENAME. 
 FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 
 
 # ----------

@@ -16,8 +16,9 @@ from traceback import format_exc
 from typing import Any
 #import modules.globals as g
 from modules import globals as g
+from config import BASE_DIR, logUsingSSH
 from modules.saver.streamToLogger import StreamToLogger
-from config import BASE_DIR
+
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config
     config.START_A_FRESH = startAFresh
@@ -87,14 +88,15 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # ------------------------------------------------------------
                 # [START] Load the global saver and upload current configuration.
                 # ------------------------------------------------------------
-                try:
-                    g.logger.info("Instantiating saver class...")
-                    g.saver = SaverClass(user, host, pathToKey)
-                    compressedFiles: str = g.saver.compress(filePathsToCompress=[config.SCRIPTS_DIR / 'config.py', config.INCLUDES_DIR]) 
-                    archivePath: Path = Path(compressedFiles).resolve(strict=True)
-                    g.saver.saveToServer(archivePath) 
-                except Exception:
-                    raise
+                if(logUsingSSH == True):
+                    try:
+                        g.logger.info("Instantiating saver class...")
+                        g.saver = SaverClass(user, host, pathToKey)
+                        compressedFiles: str = g.saver.compress(filePathsToCompress=[config.SCRIPTS_DIR / 'config.py', config.INCLUDES_DIR]) 
+                        archivePath: Path = Path(compressedFiles).resolve(strict=True)
+                        g.saver.saveToServer(archivePath) 
+                    except Exception:
+                        raise
 
                 # ------------------------------------------------------------
                 # [START] Confirm the executable paths.
@@ -112,10 +114,12 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 try:
                     g.logger.info("Ready to begin accepting steps")
                     pipeline.runPipeline()
-                    
-                    compressedFiles: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
-                    archivePath: Path = Path(compressedFiles).resolve(strict=True)
-                    g.saver.saveToServer(archivePath) 
+
+                    if(logUsingSSH == True):
+                        g.logger.info("Compressing and uploading files to remote server.")
+                        compressedFiles: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
+                        archivePath: Path = Path(compressedFiles).resolve(strict=True)
+                        g.saver.saveToServer(archivePath) 
                     
                     g.logger.info("Pipeline scripts finished.")
                 except:

@@ -171,18 +171,17 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   subjectFolder = config.DATA_DIR / 'subjects' / subjectId
 
   # Downsampled surface files (e.g., 32k)
-  subjectDownsampledFolder = subjectFolder / config.LOW_RES_SURFACE_FOLDER
-  subjectDownsampledSurface_left = subjectFolder / config.LOW_RES_SURFACE_FOLDER / (config.LOW_RES_SURFACE_LEFT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId))
-  subjectDownsampledSurface_right = subjectFolder / config.LOW_RES_SURFACE_FOLDER / (config.LOW_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId))
+  subjectDownsampledFolder = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
+  subjectLowResSurfacePath_left = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectLowResSurfacePath_right = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
 
   # Original/high-resolution surface files (e.g., native or 164k).
-  subjectHiResSurfaceFolder = subjectFolder / config.HIGH_RES_SURFACE_FOLDER
-  subjectHiResSurface_left = subjectHiResSurfaceFolder / config.HIGH_RES_SURFACE_LEFT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId)
-  subjectHiResSurface_right = subjectHiResSurfaceFolder / config.HIGH_RES_SURFACE_RIGHT_HEMISPHERE_FILENAME.replace("$subjectId$",subjectId)
+  subjectHiResSurfaceFolder = subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] 
+  subjectHiResSurface_left = subjectHiResSurfaceFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectHiResSurface_right = subjectHiResSurfaceFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
 
   
   # Ensure necessary files exist from previous steps.
-  
   anatomicalLabelsToExist: list[str] = anatomicalLabels.anatomicalLabelsToExist
   remoteFilesToExist: "list[Path]" = [
                   (subjectFolder / config.NATIVEORMNI152FOLDER / 'aparc+aseg.nii.gz'),
@@ -197,8 +196,8 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
 
   # Ensure, if required, the downsampled meshes already exist.
   if(config.USE_PRESET_DOWNSAMPLED_MESH):
-    remoteFilesToExist.append(subjectDownsampledSurface_left)
-    remoteFilesToExist.append(subjectDownsampledSurface_right)
+    remoteFilesToExist.append(subjectLowResSurfacePath_left)
+    remoteFilesToExist.append(subjectLowResSurfacePath_right)
   else:
     # We will create our own downsampled surfaces, so ensure the folder exists. 
     createDirectories(directoryPaths=[subjectDownsampledFolder], createParents=True, throwErrorIfExists=False)
@@ -210,6 +209,6 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,
-                      f'-batch "batch_process \'{config.matLabDriveAndPathToSubjects}\' \'{subjectId}\' {config.PIAL_SURFACE_TYPE} \'{config.DOWNSAMPLE_SURFACE}\' \'{config.DOWNSAMPLE_RATE}\' \'{config.USE_PRESET_DOWNSAMPLED_MESH}\' \'{subjectDownsampledSurface_left.resolve(strict=False)}\' \'{subjectDownsampledSurface_right.resolve(strict=False)}\'"',
+                      f'-batch "batch_process \'{config.matLabDriveAndPathToSubjects}\' \'{subjectId}\' {config.PIAL_SURFACE_TYPE} \'{config.DOWNSAMPLE_SURFACE}\' \'{config.DOWNSAMPLE_RATE}\' \'{config.USE_PRESET_DOWNSAMPLED_MESH}\' \'{subjectLowResSurfacePath_left.resolve(strict=False)}\' \'{subjectLowResSurfacePath_right.resolve(strict=False)}\'"',
                       ],
               cwd=config.matlabScriptsFolder)

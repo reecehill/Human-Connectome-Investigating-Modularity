@@ -105,18 +105,19 @@ class SaverClass:
             raise
 
     def saveToServer(self, fileToUploadPath : Path) -> None:
-        try:
-            self.rsyncCmd = [
-            "scp",
-            "-i",
-            self.pathToKey,
-            "-C",
-            "-r",
-            # "-v",
-            fileToUploadPath.resolve() or config.UPLOADS_DIR.__str__(),
-            f'{self.userHost}:$HOME/PROJECT_TRANSFERS/{config.TIMESTAMP_OF_SCRIPT}',
-        ]
-            self.initiateSCPConnection()
-            self.connection.communicate()
-        except Exception:
-            raise
+        if bool(g.logUsingSSH) == True:
+            try:
+                self.rsyncCmd = [
+                "scp",
+                "-i",
+                self.pathToKey,
+                "-C",
+                "-r",
+                # "-v",
+                fileToUploadPath.resolve() or config.UPLOADS_DIR.__str__(),
+                f'{self.userHost}:$HOME/PROJECT_TRANSFERS/{config.TIMESTAMP_OF_SCRIPT}',
+            ]
+                self.initiateSCPConnection()
+                self.connection.communicate()
+            except Exception:
+                raise

@@ -1,0 +1,155 @@
+function mapFmriToHighResSurf(pathToFile, subjectId, downsample, type, hiResFmriFolder, fMriScalarFile, fMriClusterFile, fMriLoResSurf_L, fMriLoResSurf_R)
+% HCP Dataset has fMRI data in 32k nodes per hemisphere only. This function
+% therefore maps the 32k node data to the higher-res surface.
+% No interpolation is performed, so this is suitable with module numbers/labels only.
+
+close all;
+restoredefaultpath;
+gcp;
+addpath('toolboxes/AlongTractStats');
+addpath(genpath('toolboxes/SurfStat'));
+addpath('toolboxes/FieldTrip');
+ft_defaults;
+ft_hastoolbox('gifti',1);
+ft_hastoolbox('iso2mesh',1);
+ft_hastoolbox('freesurfer',1);
+disp('Mapping fMRI (32k) to high-res surface')
+disp(['Type: ' num2str(type) ' (' class(type) ')'])
+
+disp('loading labelSRF.mat');
+fileToLoad=[pathToFile,'/',subjectId,'/labelSRF.mat'];
+
+if strcmp(downsample,'yes')
+    load(fileToLoad, "nfl","nfr","nvl","nvr"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+    structuralFaces_L = nfl;
+    structuralFaces_R = nfr;
+    structuralNodes_L = nvl;
+    structuralNodes_R = nvr;
+elseif strcmp(downsample,'no')
+    load(fileToLoad, "glpfaces","grpfaces","glpvertex","grpvertex"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+    structuralFaces_L = glpfaces;
+    structuralFaces_R = grpfaces;
+    structuralNodes_L = glpvertex;
+    structuralNodes_R = grpvertex;
+end
+
+surf_32k_L = gifti(fMriLoResSurf_L);
+surf_32k_R = gifti(fMriLoResSurf_R);
+fMriValues = ft_read_cifti(fMriScalarFile, 'readdata',true,'mapname','array','cortexleft',fMriLoResSurf_L,'cortexright',fMriLoResSurf_R);
+fMriClusters = ft_read_cifti(fMriClusterFile, 'readdata',true,'mapname','array','cortexleft',fMriLoResSurf_L,'cortexright',fMriLoResSurf_R);
+
+
+fMriValues_L = fMriValues.dscalar(fMriValues.brainstructure==1,:);
+fMriValues_R = fMriValues.dscalar(fMriValues.brainstructure==2,:);
+fMriClusters_L = fMriClusters.clusters(fMriClusters.brainstructure==1,:);
+fMriClusters_R = fMriClusters.clusters(fMriClusters.brainstructure==2,:);
+
+%% Loop through each NODE on high-res mesh to find closest NODE on downsampled mesh. Maps fMRIs value up.
+[hi_fMriValues_L] = loopNodesProjectFromLoToHiRes(surf_32k_L.vertices,structuralNodes_L,fMriValues_L);
+[hi_fMriValues_R] = loopNodesProjectFromLoToHiRes(surf_32k_R.vertices,structuralNodes_R,fMriValues_R);
+[hi_fMriClusters_L] = loopNodesProjectFromLoToHiRes(surf_32k_L.vertices,structuralNodes_L,fMriClusters_L);
+[hi_fMriClusters_R] = loopNodesProjectFromLoToHiRes(surf_32k_R.vertices,structuralNodes_R,fMriClusters_R);
+
+%% Store structural surface (either high-res or downsampled) as new gifti
+hi_surf_L = surf_32k_L;
+hi_surf_L.faces = structuralFaces_L;
+hi_surf_L.vertices = structuralNodes_L;
+hi_surf_R = surf_32k_R;
+hi_surf_R.faces = structuralFaces_R;
+hi_surf_R.vertices = structuralNodes_R;
+save(hi_surf_L, [hiResFmriFolder,'/L.surf.gii']);
+save(hi_surf_R, [hiResFmriFolder,'/R.surf.gii']);
+
+
+%% Store fMRI values in structural space as new cifti
+hi_fMriValues = fMriValues;
+hi_fMriValues.dimord = 'pos'; %switch to struct without mapnames
+hi_fMriValues = rmfield(hi_fMriValues, "mapname");
+hi_fMriValues.pos=[structuralNodes_L; structuralNodes_R];
+hi_fMriValues.tri=[structuralFaces_L; structuralFaces_R];
+for fMriBlockIndex = 1:length(fMriValues.mapname)
+    hi_fMriValues.dscalar  = [hi_fMriValues_L(:,fMriBlockIndex); hi_fMriValues_R(:,fMriBlockIndex)];
+    hi_fMriValues.brainstructure = ones(size(hi_fMriValues.dscalar,1),1);
+    hi_fMriValues.brainstructure(length(hi_fMriValues_L)+1:end)=2;
+    hi_fMriValues.brainstructurelabel = hi_fMriValues.brainstructurelabel(1,1:2);
+    ft_write_cifti(strjoin([hiResFmriFolder,'/',string(fMriValues.mapname(fMriBlockIndex))],''), hi_fMriValues, 'parameter', 'dscalar','writesurface',false);
+end
+
+%% Store fMRI clusters in structural space as new cifti
+hi_fMriClusters = fMriClusters;
+hi_fMriClusters.dimord = 'pos'; %switch to struct without mapnames
+hi_fMriClusters = rmfield(hi_fMriClusters, "mapname");
+hi_fMriClusters.pos=[structuralNodes_L; structuralNodes_R];
+hi_fMriClusters.tri=[structuralFaces_L; structuralFaces_R];
+for fMriBlockIndex = 1:length(fMriClusters.mapname)
+    hi_fMriClusters.clusters  = [hi_fMriClusters_L(:,fMriBlockIndex); hi_fMriClusters_R(:,fMriBlockIndex)];
+    hi_fMriClusters.brainstructure = ones(size(hi_fMriClusters.dscalar,1),1);
+    hi_fMriClusters.brainstructure(length(hi_fMriClusters_L)+1:end)=2;
+    hi_fMriClusters.brainstructurelabel = hi_fMriClusters.brainstructurelabel(1,1:2);
+    ft_write_cifti(strjoin([hiResFmriFolder,'/',string(fMriClusters.mapname(fMriBlockIndex)),'.clusters'],''), hi_fMriClusters, 'parameter', 'clusters','writesurface',false);
+end
+
+
+close all;
+
+
+
+% %% Plot high-res fMRI
+% figure;
+% hold on;
+% plotsurf(glpvertex, glpfaces, hi_fMriClusters.dscalar(hi_fMriClusters.brainstructure==1)+1);
+% plotsurf(grpvertex, grpfaces, hi_fMriClusters.dscalar(hi_fMriClusters.brainstructure==2)+1);
+% lighting gouraud;
+% 
+% % fMriValues_L(fMriValues_L > 1) = 1;
+% % fMriValues_L(fMriValues_L <= 1) = 0;
+% hi_res_fmri = hi_fMriValues_L(:,1);
+% hi_res_fmri(hi_res_fmri > 1) = 10;
+% hi_res_fmri(hi_res_fmri ~= 10) = 0;
+% hi_res_fmri(isnan(hi_res_fmri)) = 0;
+% plotsurf(glpvertex, glpfaces, hi_res_fmri);
+% plotsurf(grpvertex, grpfaces, fMriValues_R > 1);
+
+end
+function [hi_nodes_scalar] = loopNodesProjectFromLoToHiRes(lo_nodes,hi_nodes,lo_nodes_values)
+nHiNodes = size(hi_nodes,1);
+nMissingFmriData = 0;
+matchedNodes = zeros(nHiNodes,7);
+hi_nodes_scalar=zeros(nHiNodes,size(lo_nodes_values,2));
+for k=1:nHiNodes
+    % Print progress.
+    if mod(k/1000,1)==0
+        display(num2str(nHiNodes\k))
+    end
+
+    currentnode=hi_nodes(k,:); %current node's coordinates
+    %Euclidean distances (vector double) between current face and all mesh centroids
+    ds=((currentnode(:,1)-lo_nodes(:,1)).^2 + (currentnode(:,2)-lo_nodes(:,2)).^2 + (currentnode(:,3)-lo_nodes(:,3)).^2 );
+
+    % ID of the mesh centroid that is closest to current face's
+    % centroid.
+    [distance,closestVertex_id]=min(ds);
+    matchedNodes(k,:) = [currentnode lo_nodes(closestVertex_id,:) distance];
+    % Replace ID (as above) with the fMRI value of the closest centroid.
+    try
+        hi_nodes_scalar(k,:)=lo_nodes_values(closestVertex_id,:);
+    catch
+        % Nearest face is not cortical.
+        hi_nodes_scalar(k,:)=NaN;
+        nMissingFmriData = nMissingFmriData+1;
+    end
+end
+if(nMissingFmriData>0)
+    disp(nMissingFmriData+" vertices with an unknown/missing fMRI data value encountered. They were skipped.");
+end
+end
+function [facesROI] = loopROIAndAssignLabels(ROI_startIndex, ROI_endIndex, faces)
+    facesROI={};
+    parfor roi=ROI_startIndex:ROI_endIndex
+        x=sum(ismember(faces,ROIfacevert(roi).faces(:,1)+1),2);
+        ROIfacevert(roi).ffaces=find(x>1); %by Xue
+        nbffaces=length(ROIfacevert(roi).ffaces);
+        facesROI{roi} = [faces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
+    end
+    facesROI=cat(1,facesROI{:});
+end

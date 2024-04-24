@@ -1,4 +1,3 @@
-from os import DirEntry
 from pathlib import Path
 import modules.globals as g
 import config
@@ -42,11 +41,22 @@ def reconstructImage(subjectId: str) -> bool:
     sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'data.src.gz' ).resolve(strict=True)
     threadCount = config.CPU_THREADS # Default: CPU number.
     method = config.DSI_STUDIO_RECONSTRUCTION_METHOD
+    maskFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / 'nodif_brain_mask.nii.gz' )
     
-    # destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
-    destinationFile: str = str(destinationFolder / 'data.src.gz.icbm152_adult.qsdr.1.25.R68.fib.gz')
-    # TODO: Convert the filename to parameter.
-    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId /  config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
+    if(config.NORMALISE_TO_MNI152):
+      destinationFile: str = str(destinationFolder / ('automated_'+'data.src.gz.gqi.1.25.fib.gz'))
+      
+      # TODO: Convert the filename to parameter.
+      # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "MNINonLinear" / "T1w_restore_brain.nii.gz" )
+      # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "T1w_acpc_dc_restore_brain.nii.gz" )
+      refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "T1w_acpc_dc_restore_brain.nii.gz" )
+      copiedRefFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / ("automated_"+"T1w_acpc_dc_restore_brain.nii.gz")
+      
+      refFile = copy2(refFile, copiedRefFile)
+    else:
+      # TODO: Does this need to change if not mni?
+      destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
+    
     
     processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
@@ -55,15 +65,17 @@ def reconstructImage(subjectId: str) -> bool:
                         config.DSI_STUDIO,
                         '--action=rec',
                         f'--source={sourceFile}',
-                        f'--align_acpc=1',
+                        f'--align_acpc=0',
                         f'--align_to={refFile}',
                         f'--motion_correction=0',
                         f'--template=0',
                         # f'--save_nii={processedFile}',
                         f'--method={method}',
+                        f'--mask={maskFile}',
                         f'--thread_count={threadCount}',
                         f'--output={destinationFile}',
                         f'--param0=1.25',
+                        f'--dti_no_high_b=1',
                         f'--check_btable=1',
                         f'--other_output=all',
                         ])
@@ -91,61 +103,93 @@ def reconstructImage(subjectId: str) -> bool:
               cwd=config.matlabScriptsFolder)
 
 def trackFibres(subjectId: str) -> bool:
-  sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.icbm152_adult.qsdr.1.25.R68.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
-  
-  # The destination file need not exist locally already, but its folders must.
-  destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
-  createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
-  destinationFile: str = str(destinationFolder / '1m0.trk')
-  templateFile: str = str(destinationFolder / '1m0_mni152.tt.nii.gz')
-  #templateFile: str = str(destinationFolder / '1m0_mni152.mat')
+  if(config.NORMALISE_TO_MNI152):
+    sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / (('automated_'+'data.src.gz.gqi.1.25.fib.gz') if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
 
-  # If it is in the T1w space, then it is aparc+aseg space.
-  # refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / 'T1w' / 'aparc+aseg.nii.gz' )
-  refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
+    # The destination file need not exist locally already, but its folders must.
+    destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
   
- 
-
-  cmd = [config.DSI_STUDIO,
-                      '--action=trk',
-                      f'--source={sourceFile}',
-                      f'--random_seed=1', #Set seed for reproducability
-                      f'--thread_count={config.CPU_THREADS}',
-                      # f'--output={destinationFolder / "dsistudio"}',
-                      f'--output={destinationFile}',
-                      f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',
-                      f'--seed_count={config.DSI_STUDIO_SEED_COUNT}',
-                      # f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
-                      f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
-                      f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
-                      f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',
-                      # f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
-                      f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
-                      f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
-                      f'--template_track={templateFile}',
-                      # f'--ref={refFileMni152}'
-                      f'--ref={refFile}'
-                      ]
-  # Limit tracks to only those that pass through the precentral gyri.
-  if (config.DSI_STUDIO_USE_ROI):
-    roiFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / config.DSI_STUDIO_ANNOTATED_IMG )
+    createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
     
-    if(config.NORMALISE_TO_MNI152):
-      roiFile = copy2(roiFile, config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / f'automated_mni152.{config.DSI_STUDIO_ANNOTATED_IMG}')
 
-    roiCmd = f'--roi={roiFile}:ctx-lh-precentral,dilation,dilation+{roiFile}:ctx-rh-precentral,dilation,dilation'
-    cmd.append(roiCmd)
+    refFile = getFile(localOnly=True,localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "aparc+aseg.nii.gz" )
+    copiedRefFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / ("automated_"+"aparc+aseg.nii.gz")
+    copy2(refFile, copiedRefFile)
+    refFile = copiedRefFile
+  else:
+    sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.gqi.1.25.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
+
+    # The destination file need not exist locally already, but its folders must.
+    destinationFolder = config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER
+    createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
+    
+    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "T1w_restore_brain.nii.gz" )
+    
+  iterationSuccess: list[bool] = []
+  for currentIteration in range(0, config.DSI_STUDIO_ITERATION_COUNT, 1):
+    destinationFile: str = str(destinationFolder / ('1m'+str(currentIteration)+'.trk') )
+    destinationFile_template: str = str(destinationFolder / ('template_'+'1m'+str(currentIteration)+'.trk') )
   
-  g.logger.info("Running DSI Studio: tracking fibres.")
-  return call(cmdLabel="DSIStudio",
-              cmd=cmd)
+    cmd = [config.DSI_STUDIO,
+                        '--action=trk',
+                        f'--source={sourceFile}',
+                        f'--random_seed={str(currentIteration)}', #Set seed for reproducability
+                        f'--thread_count={config.CPU_THREADS}',
+                        # f'--output={destinationFolder / "dsistudio"}',
+                        f'--output={destinationFile}',
+                        f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',
+                        f'--seed_count={config.DSI_STUDIO_SEED_COUNT}',
+                        # f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
+                        f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
+                        f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
+                        f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',
+                        # f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
+                        f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
+                        f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
+                        # f'--ref={refFileMni152}',
+                        f'--template_track={destinationFile_template}',
+                        # f'--t1t2={refFile}',
+                        f'--ref={refFile}'
+                        ]
+    # Limit tracks to only those that pass through the precentral gyri.
+    if (config.DSI_STUDIO_USE_ROI):
+      if(config.NORMALISE_TO_MNI152):
+        roiFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.DSI_STUDIO_ANNOTATED_IMG )
+        copiedRoiFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / str("automated_"+config.DSI_STUDIO_ANNOTATED_IMG).replace('+','_')
+        roiFile = copy2(roiFile, copiedRoiFile)
+    
+        # roiCmd = f'--end={roiFile}:ctx-lh-precentral,dilation,dilation,smoothing --end2={roiFile}:ctx-lh-precentral,dilation,dilation,smoothing'
+        # cmd.append(roiCmd)
+    
+    g.logger.info("Running DSI Studio: tracking fibres.")
+
+    iterationSuccess.append(call(cmdLabel="DSIStudio",
+              cmd=cmd))
+  return all(iterationSuccess)
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
   # TODO: Is mov correctly set in non-MNI152 settings?
-  mov = getFile(config.SCRIPTS_DIR / 'matlab' / 'toolboxes' / 'DsiStudio' / 'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
-  targ = getFile(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'T1w.nii.gz')
+  targ = getFile(config.SCRIPTS_DIR / 'matlab' / 'toolboxes' / 'DsiStudio' / 'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
+  mov = getFile(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'automated_T1w_restore_brain.nii.gz')
   reg = str(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'register.dat')
+  return call(cmdLabel="createRegisterDatFile",
+              cmd=[
+                      "tkregister2",
+                      '--mov',
+                      mov,
+                      '--targ',
+                      targ,
+                      '--reg',
+                      reg,
+                      '--regheader',
+                      '--noedit',
+                      ])
+def registerSubjectT1ToMNIT1(subjectId: str) -> bool:
+  # TODO: Is mov correctly set in non-MNI152 settings?
+  mov = getFile(config.DATA_DIR / 'subjects' / subjectId / "T1w" / 'T1w_acpc_dc_restore_brain.nii.gz')
+  targ = getFile(config.DATA_DIR / 'subjects' / subjectId / "MNINonLinear" / 'T1w_restore_brain.nii.gz')
+  reg = str(config.DATA_DIR / 'subjects' / subjectId / "MNINonLinear" / 'acpc2standard_byT1.dat')
   return call(cmdLabel="createRegisterDatFile",
               cmd=[
                       "tkregister2",
@@ -161,9 +205,28 @@ def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  #return registerDsiStudioTemplateToSubject(subjectId)
-  return generateSrcFile(subjectId) and reconstructImage(subjectId) and trackFibres(subjectId) and registerDsiStudioTemplateToSubject(subjectId)
+  # return registerDsiStudioTemplateToSubject(subjectId)
+  return reconstructImage(subjectId) and\
+    trackFibres(subjectId)
+    # generateSrcFile(subjectId) and \
+    # reconstructImage(subjectId) and\
+    # trackFibres(subjectId) and \
+    # # registerDsiStudioTemplateToSubject(subjectId)
   # return trackFibres(subjectId)
+
+
+def getDsiStudioTemplateIntoStandardSpace(subjectId: str) -> bool:
+  # TODO.
+  # One option is:
+  # /home/reece/dsi-studio/dsi_studio --action=reg --from=/home/reece/dsi-studio/atlas/ICBM152_adult/ICBM152_adult.T1W.nii.gz --to=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/T1w.nii.gz  --output_warp=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/dsistudioTemplate2standard.nii.gz --output=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/ignoreme.nii.gz
+
+  # Then:
+  # /home/reece/dsi-studio/dsi_studio --action=reg --apply_warp=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/T1w/Diffusion/template_1m0.nii.gz --warp=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/dsistudioTemplate2standard.nii.gz.map.gz --output=/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/templateTrackWarped.nii.gz
+
+  # Alternatively, get fMRI into diffusion space
+  # wb_command -surface-apply-warpfield /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/fsaverage_LR32k/100307.L.pial.32k_fs_LR.surf.gii  /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/xfms/acpc_dc2standard.nii.gz  /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/output.surf.gii -fnirt /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/xfms/standard2acpc_dc.nii.gz
+  return True
+  
 
 def matlabProcessDiffusion(subjectId: str) -> bool:
   
@@ -190,9 +253,9 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
                   subjectHiResSurface_right,
                   ]
   
-  localFilesToExist: "list[Path]" = [
-     (subjectFolder / 'T1w' / config.DIFFUSION_FOLDER / '1m0.trk'),
-    ] + [(subjectFolder / config.NATIVEORMNI152FOLDER / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
+  localFilesToExist: "list[Path]" = [\
+    (subjectFolder / 'T1w' / config.DIFFUSION_FOLDER / ('1m'+str(currentIteration)+'.trk')) for currentIteration in range(0, config.DSI_STUDIO_ITERATION_COUNT, 1)] + [\
+      (subjectFolder / config.NATIVEORMNI152FOLDER / subjectId / 'label' / 'label_type2' / label) for label in anatomicalLabelsToExist]
 
   # Ensure, if required, the downsampled meshes already exist.
   if(config.USE_PRESET_DOWNSAMPLED_MESH):
@@ -209,6 +272,6 @@ def matlabProcessDiffusion(subjectId: str) -> bool:
   return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,
-                      f'-batch "batch_process \'{config.matLabDriveAndPathToSubjects}\' \'{subjectId}\' {config.PIAL_SURFACE_TYPE} \'{config.DOWNSAMPLE_SURFACE}\' \'{config.DOWNSAMPLE_RATE}\' \'{config.USE_PRESET_DOWNSAMPLED_MESH}\' \'{subjectLowResSurfacePath_left.resolve(strict=False)}\' \'{subjectLowResSurfacePath_right.resolve(strict=False)}\'"',
+                      f'-batch "batch_process \'{config.matLabDriveAndPathToSubjects}\' \'{subjectId}\' {config.PIAL_SURFACE_TYPE} \'{config.DOWNSAMPLE_SURFACE}\' \'{config.DOWNSAMPLE_RATE}\' \'{config.DSI_STUDIO_ITERATION_COUNT}\' \'{config.USE_PRESET_DOWNSAMPLED_MESH}\' \'{subjectLowResSurfacePath_left.resolve(strict=False)}\' \'{subjectLowResSurfacePath_right.resolve(strict=False)}\'"',
                       ],
               cwd=config.matlabScriptsFolder)

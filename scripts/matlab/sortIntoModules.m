@@ -10,6 +10,7 @@ function [modules, Q1] = sortIntoModules(adjacencyMatrix, gamma)
     %M  = 1:n;                   % initial community affiliations
     Q0 = -1; Q1 = 0;            % initialize modularity values
     while Q1-Q0>1e-5           % while modularity increases
+        disp("Performing community detection...");
         Q0 = Q1;                % perform community detection
         [modules, Q1] = community_louvain(adjacencyMatrix, gamma);
     end

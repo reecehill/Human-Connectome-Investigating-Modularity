@@ -46,7 +46,7 @@ trkEP_full=[];
 for i=1:str2double(nTrackIterations)
     nTracksWithTwoUnknownEndpoints = 0;
     nTracksWithOneUnknownEndpoint = 0;
-    whiteMatterEndpointLabelIDs =[];
+    %whiteMatterEndpointLabelIDs =[];
 
     %Read .trk meta and coordinates.
     [rawTrkHeader, rawtrkCoords_tkReg] = trk_read([pathToFile,'/T1w/Diffusion/1m',num2str(0+i-1),'.trk']);
@@ -102,8 +102,8 @@ for i=1:str2double(nTrackIterations)
         end
         trkstartp = round(trkMatrix_crs_terminals(1:3,1)); %rename for readability
         trkendp = round(trkMatrix_crs_terminals(1:3,end)); %rename for readability
-        trkstartp = boundByAtlasDimensions([trkstartp], atlasDim);
-        trkendp = boundByAtlasDimensions([trkendp], atlasDim);
+        trkstartp = boundByAtlasDimensions(trkstartp, atlasDim);
+        trkendp = boundByAtlasDimensions(trkendp, atlasDim);
 
         storeTrkStartP(:, k) = [trkstartp; 1]; % store endpoint in matrix for visualisation.
         storeTrkStartCoords(:, k) = [trkMatrix_registered_ras(1:3,1); 1]; % store endpoint in matrix for visualisation.
@@ -151,10 +151,10 @@ for i=1:str2double(nTrackIterations)
             
             if(tmp(1,3) == 0)
                 if(ismember(tmp(1),whiteMatterIndices))
-                    whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
+                    %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
                 end
                 if(ismember(tmp(2),whiteMatterIndices))
-                    whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
+                    %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
                 end
             end
         else
@@ -172,7 +172,7 @@ for i=1:str2double(nTrackIterations)
                     nTracksWithOneUnknownEndpoint = nTracksWithOneUnknownEndpoint + 1;
                     tmp(1,3)=checkInNeighbourVoxels_withsubcortical(atlas,trkendp);
                     if(tmp(1,3) == 0)
-                           whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
+                           %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
                     end
                 catch
                     disp("Error: checkInNeighbourVoxels_withsubcortical [1]...")
@@ -186,7 +186,7 @@ for i=1:str2double(nTrackIterations)
                     nTracksWithOneUnknownEndpoint = nTracksWithOneUnknownEndpoint + 1;
                     tmp(1,3)=checkInNeighbourVoxels_withsubcortical(atlas,trkstartp);
                     if(tmp(1,3) == 0)
-                           whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
+                           %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
                     end
                 catch
                     disp("Error: checkInNeighbourVoxels_withsubcortical [2]...")
@@ -199,8 +199,8 @@ for i=1:str2double(nTrackIterations)
                     nTracksWithTwoUnknownEndpoints = nTracksWithTwoUnknownEndpoints + 1;
                     tmp(1,3)=checkInNeighbourVoxels_withsubcortical(atlas,trkstartp) && checkInNeighbourVoxels_withsubcortical(atlas,trkendp);
                     if(tmp(1,3) == 0)
-                           whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
-                           whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
+                           %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(1)]);
+                           %whiteMatterEndpointLabelIDs = unique([whiteMatterEndpointLabelIDs; tmp(2)]);
                     end
                 catch
                     disp("Error: checkInNeighbourVoxels_withsubcortical [3]...")

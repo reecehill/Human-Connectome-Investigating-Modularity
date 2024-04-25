@@ -112,7 +112,7 @@ def trackFibres(subjectId: str) -> bool:
     createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
     
 
-    refFile = getFile(localOnly=True,localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "aparc+aseg.nii.gz" )
+    refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "aparc+aseg.nii.gz" )
     copiedRefFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / ("automated_"+"aparc+aseg.nii.gz")
     copy2(refFile, copiedRefFile)
     refFile = copiedRefFile
@@ -149,6 +149,7 @@ def trackFibres(subjectId: str) -> bool:
                         # f'--ref={refFileMni152}',
                         f'--template_track={destinationFile_template}',
                         # f'--t1t2={refFile}',
+                        f'--check_ending=1',
                         f'--ref={refFile}'
                         ]
     # Limit tracks to only those that pass through the precentral gyri.
@@ -205,14 +206,10 @@ def registerSubjectT1ToMNIT1(subjectId: str) -> bool:
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  # return registerDsiStudioTemplateToSubject(subjectId)
-  return reconstructImage(subjectId) and\
+  return \
     trackFibres(subjectId)
     # generateSrcFile(subjectId) and \
     # reconstructImage(subjectId) and\
-    # trackFibres(subjectId) and \
-    # # registerDsiStudioTemplateToSubject(subjectId)
-  # return trackFibres(subjectId)
 
 
 def getDsiStudioTemplateIntoStandardSpace(subjectId: str) -> bool:
@@ -226,7 +223,6 @@ def getDsiStudioTemplateIntoStandardSpace(subjectId: str) -> bool:
   # Alternatively, get fMRI into diffusion space
   # wb_command -surface-apply-warpfield /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/fsaverage_LR32k/100307.L.pial.32k_fs_LR.surf.gii  /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/xfms/acpc_dc2standard.nii.gz  /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/output.surf.gii -fnirt /home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/MNINonLinear/xfms/standard2acpc_dc.nii.gz
   return True
-  
 
 def matlabProcessDiffusion(subjectId: str) -> bool:
   

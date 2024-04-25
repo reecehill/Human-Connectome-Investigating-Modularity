@@ -4,6 +4,7 @@
 /logs
 /UoN_project_key
 /data/subjects/*
+*.asv
 !**/.gitkeep
 /awsconfig 
 /tmp

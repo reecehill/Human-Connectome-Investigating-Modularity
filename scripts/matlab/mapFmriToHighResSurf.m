@@ -1,4 +1,9 @@
-function mapFmriToHighResSurf(pathToFile, subjectId, downsample, type, hiResFmriFolder, fMriScalarFile, fMriClusterFile, fMriLoResSurf_L, fMriLoResSurf_R)
+function mapFmriToHighResSurf(pathToFile, subjectId, downsample, ...
+    type, ...
+    fMriLSurf_input, fMriRSurf_input, ...
+    fMriLSurf_output, fMriRSurf_output,...
+    fMriScalarPath_input, fMriClusterPath_input, ...
+    fMriScalarOutputFolder, fMriModulesOutputFolder)
 % HCP Dataset has fMRI data in 32k nodes per hemisphere only. This function
 % therefore maps the 32k node data to the higher-res surface.
 % No interpolation is performed, so this is suitable with module numbers/labels only.
@@ -33,10 +38,10 @@ elseif strcmp(downsample,'no')
     structuralNodes_R = grpvertex;
 end
 
-surf_32k_L = gifti(fMriLoResSurf_L);
-surf_32k_R = gifti(fMriLoResSurf_R);
-fMriValues = ft_read_cifti(fMriScalarFile, 'readdata',true,'mapname','array','cortexleft',fMriLoResSurf_L,'cortexright',fMriLoResSurf_R);
-fMriClusters = ft_read_cifti(fMriClusterFile, 'readdata',true,'mapname','array','cortexleft',fMriLoResSurf_L,'cortexright',fMriLoResSurf_R);
+surf_32k_L = gifti(fMriLSurf_input);
+surf_32k_R = gifti(fMriRSurf_input);
+fMriValues = ft_read_cifti(fMriScalarPath_input, 'readdata',true,'mapname','array','cortexleft',fMriLSurf_input,'cortexright',fMriRSurf_input);
+fMriClusters = ft_read_cifti(fMriClusterPath_input, 'readdata',true,'mapname','array','cortexleft',fMriLSurf_input,'cortexright',fMriRSurf_input);
 
 
 fMriValues_L = fMriValues.dscalar(fMriValues.brainstructure==1,:);
@@ -57,8 +62,8 @@ hi_surf_L.vertices = structuralNodes_L;
 hi_surf_R = surf_32k_R;
 hi_surf_R.faces = structuralFaces_R;
 hi_surf_R.vertices = structuralNodes_R;
-save(hi_surf_L, [hiResFmriFolder,'/L.surf.gii']);
-save(hi_surf_R, [hiResFmriFolder,'/R.surf.gii']);
+save(hi_surf_L, fMriLSurf_output);
+save(hi_surf_R, fMriRSurf_output);
 
 
 %% Store fMRI values in structural space as new cifti
@@ -72,7 +77,7 @@ for fMriBlockIndex = 1:length(fMriValues.mapname)
     hi_fMriValues.brainstructure = ones(size(hi_fMriValues.dscalar,1),1);
     hi_fMriValues.brainstructure(length(hi_fMriValues_L)+1:end)=2;
     hi_fMriValues.brainstructurelabel = hi_fMriValues.brainstructurelabel(1,1:2);
-    ft_write_cifti(strjoin([hiResFmriFolder,'/',fMriValues.mapname(fMriBlockIndex)],''), hi_fMriValues, 'parameter', 'dscalar','writesurface',false);
+    ft_write_cifti(strjoin([fMriScalarOutputFolder,'/automated.variableNodes.',fMriValues.mapname(fMriBlockIndex)],''), hi_fMriValues, 'parameter', 'dscalar','writesurface',false);
 end
 
 %% Store fMRI clusters in structural space as new cifti
@@ -86,7 +91,7 @@ for fMriBlockIndex = 1:length(fMriClusters.mapname)
     hi_fMriClusters.brainstructure = ones(size(hi_fMriClusters.clusters,1),1);
     hi_fMriClusters.brainstructure(length(hi_fMriClusters_L)+1:end)=2;
     hi_fMriClusters.brainstructurelabel = hi_fMriClusters.brainstructurelabel(1,1:2);
-    ft_write_cifti(strjoin([hiResFmriFolder,'/',fMriClusters.mapname(fMriBlockIndex),'.clusters'],''), hi_fMriClusters, 'parameter', 'clusters','writesurface',false);
+    ft_write_cifti(strjoin([fMriModulesOutputFolder,'/automated.variableNodes.',fMriClusters.mapname(fMriBlockIndex),'.clusters'],''), hi_fMriClusters, 'parameter', 'clusters','writesurface',false);
 end
 
 

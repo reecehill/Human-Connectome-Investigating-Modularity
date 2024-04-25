@@ -10,4 +10,5 @@ def runMatlab(subjectId: str, conditionIndex: int =1, visualiseData: bool =False
               cwd=config.matlabScriptsFolder)
 
 def matlabProcessMapping(subjectId: str) -> bool:
-  return runMatlab(subjectId)
+        return True
+        return runMatlab(subjectId)

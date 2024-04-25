@@ -51,78 +51,188 @@ def matlabSortFmriVoxelsIntoModules(subjectId: str, binaryThreshold: float) -> b
               cwd=config.matlabScriptsFolder)  
 
 def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
+  # Map low-resolution fMRI data to high-resolution (e.g., 32k to 164k node mesh)
+  # TODO: It makes sense that this is done only with labelled data (e.g., modules).
+  
   subjectFolder = config.SUBJECTS_DIR / subjectId
 
-  fMriScalarPath = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriAsModulesPath = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
+  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriModulesPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
+
+  fMriScalarPath_outputFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"].replace("$subjectId$",subjectId))
+  fMriModulesPath_outputFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"].replace("$subjectId$",subjectId))
+
   
-  subjectLowResSurfacePath_left = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectLowResSurfacePath_right = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
+  subjectLeftSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRightSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
+
+  subjectLeftSurfacePath_output = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRightSurfacePath_output = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
+                                                                         
   
   remoteFilesToExist: "list[Path]" = [
-                    fMriScalarPath,
-                    subjectLowResSurfacePath_left,
-                    subjectLowResSurfacePath_right
+                    fMriScalarPath_input,
+                    subjectLeftSurfacePath_input,
+                    subjectRightSurfacePath_input
                     ]
   localFilesToExist: "list[Path]" = [
-                    fMriAsModulesPath
+                    fMriModulesPath_input
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
-  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"]], createParents=True, throwErrorIfExists=False)
+  createDirectories(directoryPaths=[
+    subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"],
+    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"],
+    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"],
+    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"],
+    ], createParents=True, throwErrorIfExists=False)
 
   return call(cmdLabel="MATLAB",
               cmd=[
                       config.MATLAB,
-                      f'-batch "mapFmriToHighResSurf {config.matLabDriveAndPathToSubjects} {subjectId} {config.DOWNSAMPLE_SURFACE} {config.PIAL_SURFACE_TYPE} \'{(subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"]).resolve(strict=False)}\' \'{fMriScalarPath}\' \'{fMriAsModulesPath}\' \'{subjectLowResSurfacePath_left}\' \'{subjectLowResSurfacePath_right}\'"',
+                      f'-batch "mapFmriToHighResSurf {config.matLabDriveAndPathToSubjects} {subjectId} {config.DOWNSAMPLE_SURFACE} {config.PIAL_SURFACE_TYPE}  \'{subjectLeftSurfacePath_input}\' \'{subjectRightSurfacePath_input}\' \'{subjectLeftSurfacePath_output}\' \'{subjectRightSurfacePath_output}\' \'{fMriScalarPath_input}\' \'{fMriModulesPath_input}\' \'{fMriScalarPath_outputFolder}\' \'{fMriModulesPath_outputFolder}\'"',
                       ],
               cwd=config.matlabScriptsFolder)   
 
-def convertFmriToClusters(subjectId: str) -> bool:
-  # This function levies wb_command -cifti-find-clusters to detect fMRI clusters.
-  # https://humanconnectome.org/software/workbench-command/-cifti-find-clusters
+def findClustersFromFmri(subjectId: str) -> bool:
+  # This function levies wb_command -cifti-to-roi to create ROI.
+  # https://humanconnectome.org/software/workbench-command/-cifti-label-to-roi
+
   g.logger.info("Finding clusters within functional data (scalar)")
   subjectFolder = config.SUBJECTS_DIR / subjectId
+  labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
+  labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
+  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  g.logger.info("Ensuring files files exist")
+  filesToExist = [
+                    labelledLFile,
+                    labelledRFile,
+                    ]
+  _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
+  call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-gifti-label-to-roi',
+                      labelledLFile.resolve(),
+                      maskOfLLabel.resolve(),
+                      '-name',
+                      'L_precentral',
+                      ]) 
+  call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-gifti-label-to-roi',
+                      labelledRFile.resolve(),
+                      maskOfRLabel.resolve(),
+                      '-name',
+                      'R_precentral',
+                      ]) 
 
-  fMriScalarPath = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriAsModulesPath = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
-  subjectLowResSurfacePath_left = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectLowResSurfacePath_right = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  
+  # This function levies wb_command -cifti-find-clusters to detect fMRI clusters.
+  # https://humanconnectome.org/software/workbench-command/-cifti-find-clusters
+
+  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriModulesPath_output = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
+
+  subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   
   g.logger.info("Ensuring files files exist")
   filesToExist = [
-                    fMriScalarPath,
-                    subjectLowResSurfacePath_left,
-                    subjectLowResSurfacePath_right
+                    fMriScalarPath_input,
+                    subjectLSurfacePath_input,
+                    subjectRSurfacePath_input
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+  # _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in [fMriModulesPath_output]]
   
   return call(cmdLabel="wb_command",
               cmd=[
                       config.WB_COMMAND,
                       '-cifti-find-clusters',
-                      fMriScalarPath.resolve(),
+                      fMriScalarPath_input.resolve(),
                       '1.5',
                       '2',
                       'inf',
                       'inf',
                       'COLUMN',
-                      fMriAsModulesPath.resolve(),
+                      fMriModulesPath_output.resolve(),
                       '-left-surface',
-                      subjectLowResSurfacePath_left.resolve(),
+                      subjectLSurfacePath_input.resolve(),
+                      '-corrected-areas',
+                      maskOfLLabel.resolve(),
                       '-right-surface',
-                      subjectLowResSurfacePath_right.resolve(),
+                      subjectRSurfacePath_input.resolve(),
+                      '-corrected-areas',
+                      maskOfRLabel.resolve(),
+                      '-size-ratio',
+                      '1',
+                      '1',
                       '-distance',
                       '20',
                       '-inf',
                       ])   
+def transformFmriIntoDiffusionSpace(subjectId: str) -> bool:
+  # Function uses non-linear spatial transforms to move fMRI data from fMRI to a common space.
+  # For HCP data, this moves fMRI from MNI space to T1w space.
+
+  g.logger.info("Transforming fMRI surface to a different space.")
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+
+  subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  
+  outputSurfFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"]
+  subjectLSurfacePath_output = outputSurfFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["L_HEMISPHERE_PATH"]
+  subjectRSurfacePath_output = outputSurfFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["R_HEMISPHERE_PATH"]
+  acpcdc2StandardTransform = subjectFolder / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["ACPC_DC2STANDARD"]
+  standard2AcpcdcTransform = subjectFolder / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["STANDARD2ACPC_DC"]
+  g.logger.info("Ensuring files files exist")
+  filesToExist = [
+                    subjectLSurfacePath_input,
+                    subjectRSurfacePath_input,
+                    acpcdc2StandardTransform,
+                    standard2AcpcdcTransform,
+                    ]
+  _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+  createDirectories([outputSurfFolder], createParents=True, throwErrorIfExists=False)
+  warpLeftHemisphereSuccess = call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-surface-apply-warpfield',
+                      subjectLSurfacePath_input.resolve(),
+                      acpcdc2StandardTransform.resolve(),
+                      subjectLSurfacePath_output.resolve(),
+                      '-fnirt',
+                      standard2AcpcdcTransform.resolve(),
+                      ],
+              )
+  warpRightHemisphereSuccess = call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-surface-apply-warpfield',
+                      subjectRSurfacePath_input.resolve(),
+                      acpcdc2StandardTransform.resolve(),
+                      subjectRSurfacePath_output.resolve(),
+                      '-fnirt',
+                      standard2AcpcdcTransform.resolve(),
+                      ],
+              )
+  return warpLeftHemisphereSuccess and warpRightHemisphereSuccess
+
 
 def matlabProcessFunctional(subjectId: str) -> bool:
   # This function takes fMRI data and returns a binarised surface.
   # TODO: Folder naming scheme is remnant of SPM.
   
-  return (convertFmriToClusters(subjectId=subjectId) and
-          matlabMapLowToHighResFmriData(subjectId=subjectId))
+  return (
+          findClustersFromFmri(subjectId=subjectId)
+          # matlabMapLowToHighResFmriData(subjectId=subjectId) and
+          # transformFmriIntoDiffusionSpace(subjectId=subjectId)
+  )
   return (matlabMapLowToHighResFmriData(subjectId=subjectId))
   firstLevelFolder =  config.SUBJECTS_DIR / subjectId / "1stlevel"
   createDirectories(directoryPaths=[firstLevelFolder], createParents=True, throwErrorIfExists=False)

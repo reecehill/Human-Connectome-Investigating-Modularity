@@ -1,6 +1,12 @@
 
-function output=checkInNeighbourVoxels_withsubcortical(atlas,endpoints)
-% Check for anatomical labels in neighbouring voxels;
+function neighbouringCellsAreSubcortical=checkInNeighbourVoxels_withsubcortical(atlas,endpoints)
+% This function returns whether a voxel has neighbouring voxels labelled as
+% subcortical structures.
+
+% A voxel is considered a neighbour if it shares a face, edge or corner (26
+% voxels).
+% E.g., if this were a binary image we could consider bwlabeln with
+% dimensions set to 26: https://uk.mathworks.com/help/images/ref/bwlabeln.html
 
 valsToCheck=[...
     endpoints(1)+1,endpoints(2)+1,endpoints(3)+1;...
@@ -34,24 +40,25 @@ valsToCheck=[...
 %     endpoints(1)+1,endpoints(2)+1,endpoints(3)+1;...
 %     endpoints(1)-1,endpoints(2)-1,endpoints(3)-1;];
 
-% MATLAB indices start from 1 only.
-valsToCheck(valsToCheck<1)=1;
-valsToCheck(valsToCheck>255)=255;
-% chk=zeros(26,1);
+% Avoid checking neighbouring voxels outside of image boundary (i.e., dont
+% check for indices of -1, or greater than the image itself). Note that
+% voxels out the boundary by just one, are gracefully moved inside without
+% error.
+valsToCheck = boundByAtlasDimensions(valsToCheck', atlas.dim)';
+
 chk=zeros(26,1);
-for i=1:1:length(valsToCheck)
-    valsToCheck1 = valsToCheck(i,1);
-    valsToCheck2 = valsToCheck(i,2);
-    valsToCheck3 = valsToCheck(i,3);
-   chk(i)=atlas.anatomy(valsToCheck1, valsToCheck2, valsToCheck3);
+for i=1:length(valsToCheck)
+    chk(i,1)=atlas.anatomy(valsToCheck(i,1), valsToCheck(i,2), valsToCheck(i,3));
 end
 
 % chk=unique(chk);
-chk( ((chk>=7 & chk<=26) | (chk>=47 & chk<=58) | (chk>=1000 & chk<3000)) & chk~=2000 & chk~=14 & chk~=15 & chk~=24 )=nan;
-output=+sum(isnan(chk))>0;
-
-
-
+chk( ((chk>=7 & chk<=26) | (chk>=47 & chk<=58) | (chk>=1000 & chk<3000)) ...
+    & chk~=2000 ...
+    & chk~=14 ...
+    & chk~=15 ...
+    & chk~=24 )=nan;
+nOfNaNS=+sum(isnan(chk));
+neighbouringCellsAreSubcortical = nOfNaNS>0;
 
 end
         

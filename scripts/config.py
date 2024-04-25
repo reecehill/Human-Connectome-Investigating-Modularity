@@ -26,8 +26,8 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 0:streamline (default), 1:rk4 
 """
 DSI_STUDIO_TRACKING_METHOD = 0
-DSI_STUDIO_ITERATION_COUNT = 20 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 50000
+DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
+DSI_STUDIO_FIBRE_COUNT = 1000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -55,7 +55,7 @@ DSI_STUDIO_USE_ROI = False
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
-GENERATE_LABELS = True
+GENERATE_LABELS = False
 RUN_DSI_STUDIO = True
 RUN_MATLAB_DIFFUSION = True
 RUN_MATLAB_FUNCTIONAL = True
@@ -87,7 +87,14 @@ IMAGES = {
       "DATA": {
         "FOLDER": "MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat", # (string) Relative to the main (root) folder of each subject
         "PATH": "$subjectId$_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii" # (string) .dscalar.nii (cifti) format with same number of faces/nodes (i.e., be compatible with) the low_res surface. Path relative to IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]. 
-      }
+      },
+      "LABEL": {
+        "FOLDER": "MNINonLinear/fsaverage_LR32k/",
+        "L_PATH": "$subjectId$.L.aparc.32k_fs_LR.label.gii",
+        "R_PATH": "$subjectId$.R.aparc.32k_fs_LR.label.gii",
+        "L_MASK": "L.precentral.shape.gii", # When selecting a label, this is the name of the resulting mask file.
+        "R_MASK": "R.precentral.shape.gii", # When selecting a label, this is the name of the resulting mask file.
+      }, 
     },
     "HIGH_RES": {
       "SURFACE": {
@@ -100,8 +107,27 @@ IMAGES = {
         "PATH": "$subjectId$_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii" # (string) .dscalar.nii (cifti) format with same number of faces/nodes (i.e., be compatible with) the high_res surface. Path relative to IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"]. 
       }
     },
+    "COMMON_RES": { # For a mesh that is common to all imaging modalities, based on structural data.
+      "SURFACE": {
+        "FOLDER": "T1w/", # (string) Relative to the main (root) folder of each subject
+        "L_HEMISPHERE_PATH": "automated.L.pial.variableNodes.surf.gii", # Relative to IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"]
+        "R_HEMISPHERE_PATH": "automated.R.pial.variableNodes.surf.gii", # Relative to IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"]
+      },
+      "DATA": {
+        "FOLDER": "T1w/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/", # (string) Relative to the main (root) folder of each subject. Will be created at runtime.
+        "SCALAR_FOLDER": "scalar/", # (string) .dscalar.nii (cifti) format with same number of faces/nodes (i.e., be compatible with) as COMMON_RES surface. Path relative to IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"]. 
+        "MODULES_FOLDER": "clusters/" # (string) .dscalar.nii (cifti) format with same number of faces/nodes (i.e., be compatible with) the COMMON_RES surface. Path relative to IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"]. 
+        }
+    },
   },
   "DIFFUSION" : {} # TODO: #Not used
+}
+TRANSFORMS = {
+  "INTRA_SUBJECT" : {
+    "FOLDER": "MNINonLinear/xfms", # (string) Relative to the main (root) folder of each subject
+    "ACPC_DC2STANDARD" : "acpc_dc2standard.nii.gz", # Nifti file format
+    "STANDARD2ACPC_DC": "standard2acpc_dc.nii.gz", # Nifti file format
+  }
 }
 
 FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0". 

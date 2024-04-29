@@ -11,6 +11,6 @@ disp('Sorting DWI data into modules...');
 disp("Left hemisphere:")
 
 [leftOptimalGamma] = findOptimalGamma(pathToParticipants, subjectId, ...
-    roiStructuralData.leftHemisphere.adjacencyMatrix, 0.6, 1.4, visualiseData)
+    roiStructuralData.leftHemisphere.adjacencyMatrix, 0.6, 1.4, visualiseData);
 
 end

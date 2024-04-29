@@ -143,11 +143,11 @@ def trackFibres(subjectId: str) -> bool:
                         f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
                         f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
                         f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',
-                        # f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
+                        f'--smoothing={config.DSI_STUDIO_SMOOTHING}',
                         f'--min_length={config.DSI_STUDIO_MIN_LENGTH}',
                         f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                         # f'--ref={refFileMni152}',
-                        f'--template_track={destinationFile_template}',
+                        # f'--template_track={destinationFile_template}',
                         # f'--t1t2={refFile}',
                         f'--check_ending=1',
                         f'--ref={refFile}'

@@ -5,7 +5,7 @@ function findStructuralModularity(pathToParticipants,subject,conditionIndex,visu
     adj_matrix = matfile([pathToParticipants '/' subject '/matrices.mat']).adj_matrix;
     load([pathToParticipants '/' subject '/labelSRF.mat'],"nvl","nvr","nfl","nfr","glpfaces","glpvertex","grpfaces","grpvertex","faceROIidL","faceROIidR","subROIid","filenames","subfilenames");
     load([pathToParticipants '/' subject '/edgeList.mat'], "lpcentroids","rpcentroids","subCoor");
-    load([pathToParticipants '/' subject '/MNIcoor.mat'],"Coor_MNI152");
+    %load([pathToParticipants '/' subject '/MNIcoor.mat'],"Coor_MNI152");
     %load([pathToParticipants '/' subject '/1stlevel/fMRIModules_000' num2str(conditionIndex) '.mat'], "fmriModules");
 
 %% Integrate/handle labels into dataset.

@@ -26,8 +26,8 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 0:streamline (default), 1:rk4 
 """
 DSI_STUDIO_TRACKING_METHOD = 0
-DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 1000
+DSI_STUDIO_ITERATION_COUNT = 10 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
+DSI_STUDIO_FIBRE_COUNT = 1000000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -157,8 +157,8 @@ logUsingSSH: bool = False
 
 
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
-spmDirectoryPath: str = "/gpfs01/software/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
-dsiStudioPath: str = "/gpfs01/software/imaging/dsi-studio/20221110/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
+spmDirectoryPath: str = "/gpfs01/software/imaging/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
+dsiStudioPath: str = "/gpfs01/software/imaging/dsi-studio/20240424/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
 #matlabPath: str = "/gpfs01/software/matlab_r2021a" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 #wbCommandPath: str = "/gpfs01/software/" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.

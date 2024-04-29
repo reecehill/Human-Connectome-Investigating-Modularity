@@ -53,13 +53,14 @@ rpCentroidsThirdCol = rpcentroids(:,3);
 subCoorFirstCol = subCoor(:,1);
 subCoorSecCol = subCoor(:,2);
 subCoorThirdCol = subCoor(:,3);
+allPoints = [lpcentroids; rpcentroids; subCoor];
 disp('Building Remote connection elist:\n');
 buildRemote = 1;
 if(buildRemote == 1)
 
     startps = trkEP(:, 1:3);
     endps = trkEP(:,4:6);
-    milestones = round(nbTracts * (0:0.1:1));
+    milestones = [1, round(nbTracts * (0.1:0.1:1))];
     parfor k=1:nbTracts
         if ismember(k,milestones)
             disp((k/nbTracts)*100+"%");
@@ -70,24 +71,16 @@ if(buildRemote == 1)
             % nearest centroids on the resampled/original mesh (downsampled dependent).
             startp=startps(k,:);
             endp=endps(k,:);
-            dsl=(lpCentroidsFirstCol-startp(1)).^2 + (lpCentroidsSecCol-startp(2)).^2 + (lpCentroidsThirdCol-startp(3)).^2 ;
-            dsr=(rpCentroidsFirstCol-startp(1)).^2 + (rpCentroidsSecCol-startp(2)).^2 + (rpCentroidsThirdCol-startp(3)).^2 ;
-            del=(lpCentroidsFirstCol-endp(1)).^2 + (lpCentroidsSecCol-endp(2)).^2 + (lpCentroidsThirdCol-endp(3)).^2 ;
-            der=(rpCentroidsFirstCol-endp(1)).^2 + (rpCentroidsSecCol-endp(2)).^2 + (rpCentroidsThirdCol-endp(3)).^2 ;
-            dss=(subCoorFirstCol-startp(1)).^2 + (subCoorSecCol-startp(2)).^2 + (subCoorThirdCol-startp(3)).^2 ;
-            des =(subCoorFirstCol-endp(1)).^2 + (subCoorSecCol-endp(2)).^2 + (subCoorThirdCol-endp(3)).^2 ;
-
-            endpoints=[del;der;des];
-            startpoints=[dsl;dsr;dss];
-            [C,I]=min([endpoints,startpoints]);
-            edgeListRemote(k,:)=[I,sqrt(C),k];
+            [indexOfClosestPoint_start, distFromQueryPointToData_start] = dsearchn(allPoints,startp);
+            [indexOfClosestPoint_end,distFromQueryPointToData_end] = dsearchn(allPoints,endp);
+            edgeListRemote(k,:) = [indexOfClosestPoint_end, indexOfClosestPoint_start,distFromQueryPointToData_end,distFromQueryPointToData_start,k];
         end
     end
     disp("Done building remote edge list");
     toc
     edgeListRemote(edgeListRemote(:,5)==0,:)=[];
 end
-% columns 1:2 are the edges to which they connect, columns 3:4 are the
+% columns 1:2 are the nodes to which they connect, columns 3:4 are the
 % distance from the pial surface, column 5 is the track ID.
 
 %% get local connection -- downsample or no downsample

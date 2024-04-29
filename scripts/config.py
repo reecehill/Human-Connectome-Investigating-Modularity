@@ -8,8 +8,8 @@ from includes.automated import *
 # import includes.all_subjects
 
 
-# CPU_THREADS = multiprocessing.cpu_count()
-CPU_THREADS = 10
+CPU_THREADS = multiprocessing.cpu_count() - 2
+# CPU_THREADS = 10
 
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
 NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space first. 
@@ -158,7 +158,7 @@ logUsingSSH: bool = False
 
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "/gpfs01/software/imaging/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
-dsiStudioPath: str = "/gpfs01/software/imaging/dsi-studio/20240424/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
+dsiStudioPath: str = "/software/imaging/dsi-studio/20240424/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
 #matlabPath: str = "/gpfs01/software/matlab_r2021a" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 #wbCommandPath: str = "/gpfs01/software/" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.

@@ -26,8 +26,8 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 0:streamline (default), 1:rk4 
 """
 DSI_STUDIO_TRACKING_METHOD = 0
-DSI_STUDIO_ITERATION_COUNT = 10 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 1000000
+DSI_STUDIO_ITERATION_COUNT = 2 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
+DSI_STUDIO_FIBRE_COUNT = 100000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -41,12 +41,12 @@ DSI_STUDIO_RANDOM_SEED = 0 # specify whether a timer is used for generating seed
 DSI_STUDIO_STEP_SIZE = 0.625
 DSI_STUDIO_TURNING_ANGLE = 60
 DSI_STUDIO_SMOOTHING = 0
-DSI_STUDIO_MIN_LENGTH = 1
+DSI_STUDIO_MIN_LENGTH = 10
 DSI_STUDIO_MAX_LENGTH = 300
 DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 #DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
-DSI_STUDIO_USE_ROI = False
+DSI_STUDIO_USE_ROI = True
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -127,7 +127,7 @@ IMAGES = {
       "MASKS": {
       "ALL_LABELS": "aparc+aseg.nii.gz",
       "LEFT": "lh_precentral.mask.nii.gz",
-      "RIGHT": "lh_precentral.mask.nii.gz",
+      "RIGHT": "rh_precentral.mask.nii.gz",
       "ROI_INVERSED": "none_roi.mask.nii.gz",
       }
     }

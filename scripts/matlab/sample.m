@@ -19,25 +19,65 @@ load('../../data/subjects/100610/trsfmTrk.mat');
 %load('../../data/subjects/100610/MNIcoor.mat');
 
 allFileNames = [filenames; subfilenames']';
-plottedLabels=allFileNames(faceROI_all);
+plottedLabels=allFileNames([faceROIidL; faceROIidR; subROIid]);
 [~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
 [~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
 positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
 plottedLabelsFinal_all = sort(positionOfMiddleLabel);
 
+positionOfHemisphere_L = [1 1];
+positionOfHemisphere_R = [length(faceROIidL) length(faceROIidL)];
+roi_L = find(plottedLabels == "lh.L_precentral.label");
+roi_R = find(plottedLabels == "rh.R_precentral.label");
+positionOfROI_L = [min(roi_L) min(roi_L)];
+positionOfROI_R = [min(roi_R) min(roi_R)];
+
 figure;
 title("Adjacency matrix: matrices.mat")
 spy(adj_matrix);
 hold on;
-set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
-set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabelsFinal_all));
+grid on;
+rectangle('Position',[positionOfHemisphere_L, length(faceROIidL),length(faceROIidL)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[positionOfHemisphere_R, length(faceROIidR),length(faceROIidR)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[positionOfROI_L, length(roi_L),length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[positionOfROI_R, length(roi_R),length(roi_R)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
 
-% showTicksPer=100000;
-% xticks(1:(showTicksPer/50):length(plottedLabels));
-% yticks(1:(showTicksPer/50):length(plottedLabels));
-% xticklabels(plottedLabels(1:(showTicksPer/50):end));
-% yticklabels(plottedLabels(1:(showTicksPer/50):end));
-savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
+% set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
+% set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabelsFinal_all));
+
+showTicksPer=100000;
+xticks(1:(showTicksPer/50):length(plottedLabels));
+yticks(1:(showTicksPer/50):length(plottedLabels));
+xticklabels(plottedLabels(1:(showTicksPer/50):end));
+yticklabels(plottedLabels(1:(showTicksPer/50):end));
+
+%% Plot ROI region only
+figure;
+title("Only Precentral gyri (left and right)");
+hold on;
+grid on;
+indicesInROI = [roi_L,roi_R];
+labelsInROI = plottedLabels(indicesInROI);
+rectangle('Position',[[1 1], length(roi_L),length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[[length(roi_L) length(roi_L)], length(roi_R),length(roi_R)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+spy(adj_matrix(indicesInROI,indicesInROI));
+showTicksPer=100000;
+xticks(1:(showTicksPer/50):length(labelsInROI));
+yticks(1:(showTicksPer/50):length(labelsInROI));
+xticklabels(labelsInROI(1:(showTicksPer/50):end));
+yticklabels(labelsInROI(1:(showTicksPer/50):end));
+
+figure;
+title("Weighted");
+% Convert sparse matrix to full
+roiMatrix = full(adj_matrix(indicesInROI,indicesInROI));
+xs = 1:1:length
+
+
+roiMatrix = adj_remote_wei(indicesInROI,indicesInROI);
+
+
+%savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
 
 
 %t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');

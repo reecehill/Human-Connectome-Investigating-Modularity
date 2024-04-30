@@ -55,7 +55,7 @@ subCoorSecCol = subCoor(:,2);
 subCoorThirdCol = subCoor(:,3);
 allPoints = [lpcentroids; rpcentroids; subCoor];
 disp('Building Remote connection elist:\n');
-buildRemote = 1;
+buildRemote = 0;
 if(buildRemote == 1)
 
     startps = trkEP(:, 1:3);

@@ -151,8 +151,8 @@ def trackFibres(subjectId: str) -> bool:
                         f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                         # f'--ref={refFileMni152}',
                         # f'--template_track={destinationFile_template}',
-                        f'--check_ending={config.DSI_STUDIO_CHECK_ENDING}',
-                        f'--ref={refFile}'
+                        f'--check_ending=0',
+                        f'--ref={refFile}',
                         ]
     # Limit tracks to only those that pass through the precentral gyri.
     if (config.DSI_STUDIO_USE_ROI):
@@ -167,9 +167,13 @@ def trackFibres(subjectId: str) -> bool:
           roiFile = rhRoiFilePath
         else:
           roiFile = lhRoiFilePath
-          
-        roiCmd = f'--end={roiFile}:1 --nend={noneRoiFilePath}:1'
-        cmd.append(roiCmd)
+        
+        cmd = cmd + [
+          f'--lim={roiFile.resolve(strict=True)},dilation',
+          # f'--seed={roiFile.resolve(strict=True)}',
+          # f'--end2={roiFile.resolve(strict=True)},dilation',
+        # f'--nend={noneRoiFilePath.resolve(strict=True)},dilation'
+        ]
     
     g.logger.info("Running DSI Studio: tracking fibres.")
 

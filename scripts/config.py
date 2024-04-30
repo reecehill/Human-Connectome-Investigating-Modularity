@@ -32,6 +32,7 @@ DSI_STUDIO_FIBRE_COUNT = 1000000
 DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
 DSI_STUDIO_FA_THRESH = 0
+DSI_STUDIO_CHECK_ENDING = 0
 DSI_STUDIO_OTSU_THRESH = 0.6
 DSI_STUDIO_INITIAL_DIREC = 0 # initial propagation direction 0:primary fiber, 1:random, 2:all fiber orientations
 DSI_STUDIO_SEED_PLAN = 0 # specify the seeding strategy 0:subvoxel random, 1:voxelwise center
@@ -120,7 +121,17 @@ IMAGES = {
         }
     },
   },
-  "DIFFUSION" : {} # TODO: #Not used
+  "DIFFUSION" : {}, # TODO: #Not used
+  "T1w": {
+    "STANDARD_RES": {
+      "MASKS": {
+      "ALL_LABELS": "aparc+aseg.nii.gz",
+      "LEFT": "lh_precentral.mask.nii.gz",
+      "RIGHT": "lh_precentral.mask.nii.gz",
+      "ROI_INVERSED": "none_roi.mask.nii.gz",
+      }
+    }
+  }
 }
 TRANSFORMS = {
   "INTRA_SUBJECT" : {

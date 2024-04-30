@@ -124,6 +124,9 @@ def trackFibres(subjectId: str) -> bool:
     createDirectories(directoryPaths=[destinationFolder, destinationFolder/ 'dsistudio'], createParents=True, throwErrorIfExists=False)
     
     refFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "T1w_restore_brain.nii.gz" )
+
+  if (config.DSI_STUDIO_USE_ROI):
+    createRoiFiles(subjectId)
     
   iterationSuccess: list[bool] = []
   for currentIteration in range(0, config.DSI_STUDIO_ITERATION_COUNT, 1):
@@ -133,13 +136,13 @@ def trackFibres(subjectId: str) -> bool:
     cmd = [config.DSI_STUDIO,
                         '--action=trk',
                         f'--source={sourceFile}',
-                        f'--random_seed={str(currentIteration)}', #Set seed for reproducability
+                        f'--random_seed={str(currentIteration*100)}', #Set seed for reproducability
                         f'--thread_count={config.CPU_THREADS}',
                         # f'--output={destinationFolder / "dsistudio"}',
                         f'--output={destinationFile}',
                         f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',
                         f'--seed_count={config.DSI_STUDIO_SEED_COUNT}',
-                        # f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
+                        f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
                         f'--fa_threshold={config.DSI_STUDIO_FA_THRESH}',
                         f'--step_size={config.DSI_STUDIO_STEP_SIZE}',
                         f'--turning_angle={config.DSI_STUDIO_TURNING_ANGLE}',
@@ -148,19 +151,25 @@ def trackFibres(subjectId: str) -> bool:
                         f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                         # f'--ref={refFileMni152}',
                         # f'--template_track={destinationFile_template}',
-                        # f'--t1t2={refFile}',
-                        f'--check_ending=1',
+                        f'--check_ending={config.DSI_STUDIO_CHECK_ENDING}',
                         f'--ref={refFile}'
                         ]
     # Limit tracks to only those that pass through the precentral gyri.
     if (config.DSI_STUDIO_USE_ROI):
       if(config.NORMALISE_TO_MNI152):
-        roiFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.DSI_STUDIO_ANNOTATED_IMG )
-        copiedRoiFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / str("automated_"+config.DSI_STUDIO_ANNOTATED_IMG).replace('+','_')
-        roiFile = copy2(roiFile, copiedRoiFile)
-    
-        # roiCmd = f'--end={roiFile}:ctx-lh-precentral,dilation,dilation,smoothing --end2={roiFile}:ctx-lh-precentral,dilation,dilation,smoothing'
-        # cmd.append(roiCmd)
+        lhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
+        rhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
+        noneRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ROI_INVERSED"]
+
+        if(config.DSI_STUDIO_ITERATION_COUNT %2 > 0):
+          g.logger.warning("DSI Studio configuration has both ROI enabled AND an odd iteraction count. Note that with this setup, a hemisphere will be sampled more than the other. It is advised if ROI are enabled, DSI_STUDIO_ITERATION_COUNT be a multiple of 2.")
+        if(currentIteration % 2 == 0):
+          roiFile = rhRoiFilePath
+        else:
+          roiFile = lhRoiFilePath
+          
+        roiCmd = f'--end={roiFile}:1 --nend={noneRoiFilePath}:1'
+        cmd.append(roiCmd)
     
     g.logger.info("Running DSI Studio: tracking fibres.")
 
@@ -168,6 +177,45 @@ def trackFibres(subjectId: str) -> bool:
               cmd=cmd))
   return all(iterationSuccess)
 
+def createRoiFiles(subjectId: str) -> bool:
+  lhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
+  rhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
+  noneRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ROI_INVERSED"]
+  labelledFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ALL_LABELS"]
+  
+  lhRoiFileSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_binarize",
+                "--i",
+                labelledFilePath.resolve(),
+                "--o",
+                lhRoiFilePath.resolve(),
+                "--match",
+                "1024"
+                ])
+  rhRoiFileSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_binarize",
+                "--i",
+                labelledFilePath.resolve(),
+                "--o",
+                rhRoiFilePath.resolve(),
+                "--match",
+                "2024",
+                ])
+  
+  noneRoiFileSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_binarize",
+                "--i",
+                labelledFilePath.resolve(),
+                "--o",
+                noneRoiFilePath.resolve(),
+                "--match",
+                "1024 2024",
+                "--inv",
+                ])
+  return lhRoiFileSuccess and rhRoiFileSuccess and noneRoiFileSuccess
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
   # TODO: Is mov correctly set in non-MNI152 settings?

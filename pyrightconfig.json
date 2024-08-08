@@ -6,7 +6,8 @@
     "**/__pycache__",
     "scripts/src/experimental",
     "scripts/src/typestubs",
-    "scripts/src/**/*"
+    "scripts/src/**/*",
+    "logs/**/*"
   ],
 
   "ignore": [],
@@ -21,19 +22,19 @@
   "reportMissingImports": true,
   "reportMissingTypeStubs": true,
 
-  "pythonVersion": "3.8",
+  "pythonVersion": "3.6",
   "pythonPlatform": "Linux",
 
   "executionEnvironments": [
     {
       "root": "src/web",
-      "pythonVersion": "3.8",
-      "pythonPlatform": "Windows",
+      "pythonVersion": "3.6",
+      "pythonPlatform": "Linux",
       "extraPaths": ["src/service_libs"]
     },
     {
       "root": "src/sdk",
-      "pythonVersion": "3.8",
+      "pythonVersion": "3.6",
       "extraPaths": ["src/backend"]
     },
     {

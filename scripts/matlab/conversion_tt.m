@@ -51,6 +51,7 @@ for i=1:str2double(nTrackIterations)
     %Read .trk meta and coordinates.
     [rawTrkHeader, rawtrkCoords_tkReg] = trk_read([pathToFile,'/T1w/Diffusion/1m',num2str(0+i-1),'.trk']);
 
+%     trkCoords_ras = rawtrkCoords_tkReg;
     rawTrkLen=length(rawtrkCoords_tkReg);
     trk_len=zeros(rawTrkLen,1,'single');
     trk_type=zeros(rawTrkLen,3,'single');
@@ -63,6 +64,7 @@ for i=1:str2double(nTrackIterations)
     milestones = round(rawTrkLen * (0:0.1:1));
     tic;
     disp("Looping through each track and converting into endpoints.");
+
     parfor k=1:rawTrkLen
         if ismember(k,milestones)
             disp((k/rawTrkLen)*100+"%");
@@ -73,6 +75,7 @@ for i=1:str2double(nTrackIterations)
         trkMatrix_crs(:,2) = (-1 * trkMatrix_crs(:,2)) + atlasDim(2); %flip Y.
         % Define the endpoints of the track.
         trkMatrix_crs_terminals = [trkMatrix_crs(1,:)'  trkMatrix_crs(end,:)'; 1 1;];
+
 
         %% Transform track coordinates from CRS into Scanner RAS space
         % Get track coordinates from CRS into Scanner RAS space.
@@ -125,7 +128,7 @@ for i=1:str2double(nTrackIterations)
         % 1: trkstartp anatomical label ID
         % 2: trkendp anatomical label ID
         % 3: neighbouring voxels are in grey matter. (e.g., terminating within
-        % subcortical structures).
+        % subcortical structures). 1 = "ends in grey matter".
         tmp=NaN(1,3);
         try
             tmp(1:2)=[atlas.anatomy(trkstartp(1),trkstartp(2),trkstartp(3)),atlas.anatomy(trkendp(1),trkendp(2),trkendp(3))];
@@ -273,9 +276,9 @@ if(1 == 0)
     saveas(gcf,[pathToFile,'/tracts_aparc_xyz.png']);
     hold on;
 
-    mycifti = ft_read_cifti([pathToFile,'/T1w/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2.feat/100610_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii']);
-    mygifti_L = gifti([pathToFile,'/T1w/fsaverage_LR32k/100610.L.pial.32k_fs_LR.surf.gii']);
-    mygifti_R = gifti([pathToFile,'/T1w/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii']);
+    mycifti = ft_read_cifti([pathToFile,'/T1w/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2.feat/100307_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii']);
+    mygifti_L = gifti([pathToFile,'/T1w/fsaverage_LR32k/100307.L.pial.32k_fs_LR.surf.gii']);
+    mygifti_R = gifti([pathToFile,'/T1w/fsaverage_LR32k/100307.R.pial.32k_fs_LR.surf.gii']);
     figure;
     title("Tracts and Aparc and fmri in coordinates (xyz)")
     hold on;
@@ -289,8 +292,8 @@ if(1 == 0)
     % NB: vertices coords are in SurfaceRAS. Therefore, to go from aparc (CRS)
     % to this, we must use "type 1".
     mygifti_L.faces(mygifti_L.faces>1) = 1;
-    plotsurf(mygifti_L_vertices_transformed(:,1:3), mygifti_L.faces, mycifti.x100610_tfmri_motor_level2_lf_hp200_s2(mycifti.brainstructure==1));
-    plotsurf(mygifti_R_vertices_transformed(:,1:3), mygifti_R.faces, mycifti.x100610_tfmri_motor_level2_lf_hp200_s2(mycifti.brainstructure==2));
+    plotsurf(mygifti_L_vertices_transformed(:,1:3), mygifti_L.faces, mycifti.x100307_tfmri_motor_level2_lf_hp200_s2(mycifti.brainstructure==1));
+    plotsurf(mygifti_R_vertices_transformed(:,1:3), mygifti_R.faces, mycifti.x100307_tfmri_motor_level2_lf_hp200_s2(mycifti.brainstructure==2));
     scatter3(atlasCoords_tkReg(1:1:end,1),atlasCoords_tkReg(1:1:end,2),atlasCoords_tkReg(1:1:end,3), 'DisplayName', "atlasCoords_{tkReg}");
     scatter3(trkCoords_tkReg(1:1:end,1),(trkCoords_tkReg(1:1:end,2)),trkCoords_tkReg(1:1:end,3), 'DisplayName', "trkCoords_{tkReg}");
     savefig([pathToFile,'//tracts_aparc_fmri_xyz.fig']);

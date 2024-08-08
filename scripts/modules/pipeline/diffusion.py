@@ -67,7 +67,7 @@ def reconstructImage(subjectId: str) -> bool:
                         f'--source={sourceFile}',
                         f'--align_acpc=0',
                         f'--align_to={refFile}',
-                        f'--motion_correction=0',
+                        f'--motion_correction=1',
                         f'--template=0',
                         # f'--save_nii={processedFile}',
                         f'--method={method}',
@@ -75,6 +75,7 @@ def reconstructImage(subjectId: str) -> bool:
                         f'--thread_count={threadCount}',
                         f'--output={destinationFile}',
                         f'--param0=1.25',
+                        f'--record_odf=1',
                         f'--dti_no_high_b=1',
                         f'--check_btable=1',
                         f'--other_output=all',
@@ -116,6 +117,13 @@ def trackFibres(subjectId: str) -> bool:
     copiedRefFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / ("automated_"+"aparc+aseg.nii.gz")
     copy2(refFile, copiedRefFile)
     refFile = copiedRefFile
+
+    # Needed when using bedpostX reconstructed images. As --other_slices
+    t1wFile = getFile(localPath=config.DATA_DIR / 'subjects' / subjectId / "T1w" / "T1w_acpc_dc_restore_brain.nii.gz" )
+    copiedT1wFile = config.DATA_DIR / 'subjects' / subjectId / "T1w" / ("automated_reg_"+"T1w_acpc_dc_restore_brain.nii.gz")
+    copy2(t1wFile, copiedT1wFile)
+    t1wFile = copiedT1wFile
+    
   else:
     sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.gqi.1.25.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
 
@@ -131,15 +139,15 @@ def trackFibres(subjectId: str) -> bool:
   iterationSuccess: list[bool] = []
   for currentIteration in range(0, config.DSI_STUDIO_ITERATION_COUNT, 1):
     destinationFile: str = str(destinationFolder / ('1m'+str(currentIteration)+'.trk') )
-    destinationFile_template: str = str(destinationFolder / ('template_'+'1m'+str(currentIteration)+'.trk') )
-  
+    # destinationFile_template: str = str(destinationFolder / ('template_'+'1m'+str(currentIteration)+'.trk') )
+
+    
     cmd = [config.DSI_STUDIO,
                         '--action=trk',
                         f'--source={sourceFile}',
                         f'--random_seed={str(currentIteration*100)}', #Set seed for reproducability
                         f'--thread_count={config.CPU_THREADS}',
                         # f'--output={destinationFolder / "dsistudio"}',
-                        f'--output={destinationFile}',
                         f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',
                         f'--seed_count={config.DSI_STUDIO_SEED_COUNT}',
                         f'--method={config.DSI_STUDIO_TRACKING_METHOD}',
@@ -151,40 +159,67 @@ def trackFibres(subjectId: str) -> bool:
                         f'--max_length={config.DSI_STUDIO_MAX_LENGTH}',
                         # f'--ref={refFileMni152}',
                         # f'--template_track={destinationFile_template}',
-                        f'--check_ending=0',
+                        f'--check_ending={config.DSI_STUDIO_CHECK_ENDING}',
                         f'--ref={refFile}',
                         ]
+
+    if(config.DSI_STUDIO_USE_RECONST == False):
+      cmd = cmd + [
+                 f'--other_slices={Path(t1wFile).resolve(True)}'
+      ]
+
     # Limit tracks to only those that pass through the precentral gyri.
+    lhTractFile: str = destinationFile.replace("/1m","/"+"L_"+"1m")
+    rhTractFile: str = destinationFile.replace("/1m","/"+"R_"+"1m")
     if (config.DSI_STUDIO_USE_ROI):
       if(config.NORMALISE_TO_MNI152):
         lhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
         rhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
-        noneRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ROI_INVERSED"]
 
-        if(config.DSI_STUDIO_ITERATION_COUNT %2 > 0):
-          g.logger.warning("DSI Studio configuration has both ROI enabled AND an odd iteraction count. Note that with this setup, a hemisphere will be sampled more than the other. It is advised if ROI are enabled, DSI_STUDIO_ITERATION_COUNT be a multiple of 2.")
-        if(currentIteration % 2 == 0):
-          roiFile = rhRoiFilePath
-        else:
-          roiFile = lhRoiFilePath
-        
-        cmd = cmd + [
-          f'--lim={roiFile.resolve(strict=True)},dilation',
-          # f'--seed={roiFile.resolve(strict=True)}',
+        #Run command on left hemisphere.
+        lhCmd = cmd.copy()
+        lhCmd = lhCmd + [
+           f'--tip_iteration=16',
+           f'--output={lhTractFile}',
+          # f'--lim={roiFile.resolve(strict=True)},dilation',
+          f'--seed={lhRoiFilePath.resolve(strict=True)}',
           # f'--end2={roiFile.resolve(strict=True)},dilation',
-        # f'--nend={noneRoiFilePath.resolve(strict=True)},dilation'
+          f'--nend={lhRoiFilePath.resolve(strict=True)},negate'
         ]
-    
-    g.logger.info("Running DSI Studio: tracking fibres.")
+        iterationSuccess.append(call(cmdLabel="DSIStudio",
+              cmd=lhCmd))
 
-    iterationSuccess.append(call(cmdLabel="DSIStudio",
+        #Run command on right hemisphere.
+        rhCmd = cmd.copy()
+        rhCmd = rhCmd + [
+           f'--tip_iteration=16',
+           f'--output={rhTractFile}',
+          # f'--lim={roiFile.resolve(strict=True)},dilation',
+          f'--seed={rhRoiFilePath.resolve(strict=True)}',
+          # f'--end2={roiFile.resolve(strict=True)},dilation',
+          f'--nend={rhRoiFilePath.resolve(strict=True)},negate'
+        ]
+        iterationSuccess.append(call(cmdLabel="DSIStudio",
+              cmd=rhCmd))
+
+        del cmd
+        
+        iterationSuccess.append(mergeTracts(sourceFile, lhTractFile, rhTractFile, destinationFile))
+    else:
+      cmd = cmd + [
+        f'--output={destinationFile}',
+      ]
+      iterationSuccess.append(call(cmdLabel="DSIStudio",
               cmd=cmd))
+      
+  g.logger.info("Running DSI Studio: tracking fibres.")
   return all(iterationSuccess)
 
 def createRoiFiles(subjectId: str) -> bool:
   lhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
   rhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
-  noneRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ROI_INVERSED"]
+  inversedLhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT_INVERSED"]
+  inversedRhRoiFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT_INVERSED"]
   labelledFilePath = config.DATA_DIR / 'subjects' / subjectId / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ALL_LABELS"]
   
   lhRoiFileSuccess = call(cmdLabel="Freesurfer",
@@ -208,18 +243,29 @@ def createRoiFiles(subjectId: str) -> bool:
                 "2024",
                 ])
   
-  noneRoiFileSuccess = call(cmdLabel="Freesurfer",
+  lhInversedRoiFileSuccess = call(cmdLabel="Freesurfer",
               cmd=[
                 "mri_binarize",
                 "--i",
                 labelledFilePath.resolve(),
                 "--o",
-                noneRoiFilePath.resolve(),
+                inversedLhRoiFilePath.resolve(),
                 "--match",
-                "1024 2024",
+                "1024",
                 "--inv",
                 ])
-  return lhRoiFileSuccess and rhRoiFileSuccess and noneRoiFileSuccess
+  rhInversedRoiFileSuccess = call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_binarize",
+                "--i",
+                labelledFilePath.resolve(),
+                "--o",
+                inversedRhRoiFilePath.resolve(),
+                "--match",
+                "2024",
+                "--inv",
+                ])
+  return lhRoiFileSuccess and rhRoiFileSuccess and lhInversedRoiFileSuccess and rhInversedRoiFileSuccess
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
   # TODO: Is mov correctly set in non-MNI152 settings?
@@ -256,12 +302,23 @@ def registerSubjectT1ToMNIT1(subjectId: str) -> bool:
                       '--noedit',
                       ])
 
+def mergeTracts(sourceFile: Path, lhTractFile: str, rhTractFile: str, destinationFile: str) -> bool:
+  # dsi_studio --action=ana --source=avg.mean.fib.gz --tract=Tracts1.tt.gz,Tract2.tt.gz --output=Tracts1.txt
+  cmd = [config.DSI_STUDIO,
+                        '--action=ana',
+                        f'--source={sourceFile}',
+                        f'--tract={lhTractFile},{rhTractFile}',
+                        f'--output={destinationFile}',
+                        ]
+  return call(cmdLabel="DSIStudio",
+              cmd=cmd)
 
 def runDsiStudio(subjectId: str) -> bool:
   return \
     trackFibres(subjectId)
     # generateSrcFile(subjectId) and \
-    # reconstructImage(subjectId) and\
+    # reconstructImage(subjectId) and \
+
 
 
 def getDsiStudioTemplateIntoStandardSpace(subjectId: str) -> bool:

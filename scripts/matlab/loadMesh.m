@@ -1,5 +1,5 @@
-function [glpfaces, grpfaces, glpvertex, grpvertex, filenames, subfilenames, ROIfacevert, nbROI] = loadMesh(pathToLMesh,pathToRMesh,pathToFile,subjectId,type)
-[ROIfacevert, filenames, subfilenames, nbROI] = getROIByFaceVertex(pathToFile,subjectId);
+function [glpfaces, grpfaces, glpvertex, grpvertex, filenames, subfilenames, ROIfacevert] = loadMesh(pathToLMesh,pathToRMesh,pathToFile,subjectId,type)
+[ROIfacevert, filenames, subfilenames] = getROIByFaceVertex(pathToFile,subjectId);
 if(type==1)
     disp('load lh(rh).pial.surf.gii as surface')
     giftilh=gifti(pathToLMesh); % ... surf.gii

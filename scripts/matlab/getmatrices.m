@@ -1,26 +1,39 @@
-function [adj_local,adj_remote_bin,adj_remote_wei,adj_remote_len,lo_adj_wei,adj_matrix,lo_adj_cortical_wei,faceROI_all,faceROI_cortical]=getmatrices(pathToFile, downsample)
+function [...
+    adj_local,...
+    adj_remote_bin,...
+    adj_remote_wei,...
+    adj_remote_len,...
+    lo_adj_wei,...
+    adj_matrix,...
+    lo_adj_cortical_wei,...
+    hi_faceROI_all,...
+    lo_faceROI_all,...
+    hi_faceROI_cortical,...
+    lo_faceROI_cortical...
+    ]=getmatrices(pathToFile, downsample)
+
 gcp;
 display('step4: get finally connectivity matrices')
 disp('loading labelSRF.mat')
-load([pathToFile,'/labelSRF.mat'])
+load([pathToFile,'/labelSRF.mat'],...
+    'lo_faceROIidL', 'lo_faceROIidR',...
+    'hi_faceROIidL', 'hi_faceROIidR',...
+        'lo_glpfaces', 'lo_grpfaces',...
+        'hi_glpfaces', 'hi_grpfaces',...
+        'lo_subCoor',...
+        'hi_subCoor',...
+        'lo_subROIid',...
+        'hi_subROIid',...
+        'filenames'...
+                );
+
 disp('loading edgeList.mat')
 load([pathToFile,'/edgeList.mat'])
 disp('loading trsfmTrk.mat');
 load([pathToFile,'/trsfmTrk.mat']);
 
-
-%% get lengths of data
-if strcmp(downsample,'no') % method for no downsample
-    %nfllen=length(glpfaces); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
-    %nfrlen=length(grpfaces); % as above, but right hemisphere.
-    nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
-    nbFaces=size(grpfaces,1)+size(glpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
-else
-    %nfllen=length(nfl); % number of (indexes for each triangle's angle, left hemisphere) - downsampled version
-    %nfrlen=length(nfr); % as above, but right hemisphere.
-    nsublen = size(subCoor,1); % number of (co-ordinates of all sub-cortical regions)
-    nbFaces=size(nfr,1)+size(nfl,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
-end
+nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+nbFaces=size(hi_glpfaces,1)+size(hi_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
 
 
 %% make local connection matrix
@@ -30,7 +43,6 @@ adj_local=sparse( ...
     ones(length(edgeListLocal(:,1)),1), ...
     nbFaces, ...
     nbFaces);
-
 
 %% make binary connection matrix
 disp('making adj_remote_bin')
@@ -60,28 +72,43 @@ for i=1:lenx
 adj_remote_len(x(i),y(i))=adj_remote_len(x(i),y(i))./adj_remote_wei(x(i),y(i));
 end
 
+hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid+length(filenames)];
+hi_faceROI_cortical = [hi_faceROIidL(:,1); hi_faceROIidR(:,1)];
+
 %% make lo res matrix(68 corticals + 14 subcortical + rh/lh.cerebellum + brain-stem = 85)
 disp('making lo_adj include all regions')
 lo_adj_wei=zeros(85,85);
-max(faceROIidL);
-faceROI_all=[faceROIidL;faceROIidR+(length(filenames)/2);subROIid+length(filenames)];
-ROIlen = max(faceROI_all);
+%highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
+lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_subROIid+length(filenames)];
+ROIlen = max(lo_faceROI_all);
+
+% Attempting to speed up making lo_adj_matrix
+% sets = {unique(faceROI_all), unique(faceROI_all)};
+% [i j] = ndgrid(sets{:});
+% cartProd = [j(:) i(:)];
+% for jloc=cartProd(:,1)
+%     ilocs = cartProd(,2)
+%     lo_adj_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
+% 
+
 for i=1:ROIlen
-    ilocs=find(faceROI_all==i);
+    ilocs=find(lo_faceROI_all==i);
     parfor j=1:ROIlen
-        jlocs=find(faceROI_all==j);
+        jlocs=find(lo_faceROI_all==j);
         lo_adj_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
     end 
 end
 
+
+
 disp('making lo_adj only include cortical regions')
 lo_adj_cortical_wei=zeros(68,68);
-faceROI_cortical=[faceROIidL;faceROIidR+(length(filenames)/2)];
-ROIlen = max(faceROI_cortical);
+lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
+ROIlen = max(lo_faceROI_cortical);
 for i=1:ROIlen
-    ilocs=find(faceROI_cortical==i);
+    ilocs=find(lo_faceROI_cortical==i);
     parfor j=1:ROIlen
-        jlocs=find(faceROI_cortical==j);
+        jlocs=find(lo_faceROI_cortical==j);
         lo_adj_cortical_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
     end 
 end

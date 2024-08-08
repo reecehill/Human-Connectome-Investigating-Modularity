@@ -52,10 +52,10 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
   if(userSubmitted is None or userSubmitted is ""):
     pathToExecutable =  \
-      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
+      which(executable) or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
-      getoutput(f"find $HOME -wholename '*/{executableAlias}/*' -name '{executable}' -type f -executable") or \
-      which(executable)
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
+      getoutput(f"find $HOME -wholename '*/{executableAlias}/*' -name '{executable}' -type f -executable") 
     # If the pathToExecutable is a string and contains data after being stripped of white space. 
     if (isinstance(pathToExecutable, str) and pathToExecutable.strip()):
       return Path(pathToExecutable).resolve(strict=True)

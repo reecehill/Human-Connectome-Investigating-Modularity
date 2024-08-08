@@ -10,27 +10,60 @@ ft_hastoolbox('spm12',1);
 ft_hastoolbox('iso2mesh',1);
 ft_hastoolbox('gifti',1);
 
-adj_matrix = matfile('../../data/subjects/100610/matrices.mat').adj_matrix;
+adj_matrix = matfile('../../data/subjects/100307/matrices.mat').adj_matrix;
 %adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
-load('../../data/subjects/100610/edgeList.mat');
-load('../../data/subjects/100610/labelSRF.mat');
-load('../../data/subjects/100610/matrices.mat');
-load('../../data/subjects/100610/trsfmTrk.mat');
+load('../../data/subjects/100307/edgeList.mat');
+load('../../data/subjects/100307/labelSRF.mat');
+load('../../data/subjects/100307/matrices.mat');
+load('../../data/subjects/100307/trsfmTrk.mat');
 %load('../../data/subjects/100610/MNIcoor.mat');
 
-allFileNames = [filenames; subfilenames']';
-plottedLabels=allFileNames([faceROIidL; faceROIidR; subROIid]);
-[~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
-[~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
-positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
-plottedLabelsFinal_all = sort(positionOfMiddleLabel);
+figure;
+title("Adjacency matrix: matrices.mat")
+allFileNames = filenames;
+plottedLabelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid];
+spy(adj_matrix);
+hold on;
+grid on;
+plottedLabelsNames=allFileNames(plottedLabelIds);
+showTicksPer=1000000;
+xticks(1:(showTicksPer/50):length(plottedLabelsNames));
+yticks(1:(showTicksPer/50):length(plottedLabelsNames));
+xticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
+yticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
+
+allFileNames = filenames;
+plottedLabelIds=[hi_faceROIidL; hi_faceROIidR; hi_subROIid];
+[plottedLabelIdsSorted, I] =sort(plottedLabelIds,'descend');
+newMatrix = sparse(length([hi_faceROIidL; hi_faceROIidR; hi_subROIid]), length([hi_faceROIidL; hi_faceROIidR; hi_subROIid]));
+newMatrix(edgeListRemote(:,1), edgeListRemote(:,2)) = 1;
+newMatrix(edgeListRemote(:,2), edgeListRemote(:,1)) = 1;
+newMatrix = newMatrix + adj_local;
+figure;
+spy(newMatrix(I,I));
+hold on;
+grid on;
+plottedLabelsNames=allFileNames(plottedLabelIdsSorted);
+showTicksPer=100000;
+xticks(1:(showTicksPer/50):length(plottedLabelsNames));
+yticks(1:(showTicksPer/50):length(plottedLabelsNames));
+xticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
+yticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
+
+
+% [~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
+% [~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
+% positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
+% plottedLabelsFinal_all = sort(positionOfMiddleLabel);
 
 positionOfHemisphere_L = [1 1];
-positionOfHemisphere_R = [length(faceROIidL) length(faceROIidL)];
-roi_L = find(plottedLabels == "lh.L_precentral.label");
-roi_R = find(plottedLabels == "rh.R_precentral.label");
-positionOfROI_L = [min(roi_L) min(roi_L)];
-positionOfROI_R = [min(roi_R) min(roi_R)];
+positionOfHemisphere_R = [length(faceROIidR) length(faceROIidR)];
+roi_L = find(plottedLabels == 26);
+roi_R = find(plottedLabels == 61);
+[~, beginningOfROI_L] =  min(roi_L);
+[~, beginningOfROI_R] =  min(roi_R);
+positionOfROI_L = [beginningOfROI_L beginningOfROI_L];
+positionOfROI_R = [beginningOfROI_R beginningOfROI_R];
 
 figure;
 title("Adjacency matrix: matrices.mat")
@@ -39,7 +72,7 @@ hold on;
 grid on;
 rectangle('Position',[positionOfHemisphere_L, length(faceROIidL),length(faceROIidL)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
 rectangle('Position',[positionOfHemisphere_R, length(faceROIidR),length(faceROIidR)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
-rectangle('Position',[positionOfROI_L, length(roi_L),length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[positionOfROI_L, length(roi_L), length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
 rectangle('Position',[positionOfROI_R, length(roi_R),length(roi_R)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
 
 % set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));

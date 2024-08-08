@@ -1,4 +1,5 @@
 anatomicalLabelsToExist: "list[str]" = [
+  
 'lh.L_unknown.label',
 'lh.L_bankssts.label',
 'lh.L_caudalanteriorcingulate.label',
@@ -24,7 +25,9 @@ anatomicalLabelsToExist: "list[str]" = [
 'lh.L_pericalcarine.label',
 'lh.L_postcentral.label',
 'lh.L_posteriorcingulate.label',
+
 'lh.L_precentral.label',
+
 'lh.L_precuneus.label',
 'lh.L_rostralanteriorcingulate.label',
 'lh.L_rostralmiddlefrontal.label',
@@ -59,7 +62,9 @@ anatomicalLabelsToExist: "list[str]" = [
 'rh.R_pericalcarine.label',
 'rh.R_postcentral.label',
 'rh.R_posteriorcingulate.label',
+
 'rh.R_precentral.label',
+
 'rh.R_precuneus.label',
 'rh.R_rostralanteriorcingulate.label',
 'rh.R_rostralmiddlefrontal.label',

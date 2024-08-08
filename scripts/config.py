@@ -21,18 +21,14 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
 """
 DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
-
-"""
-0:streamline (default), 1:rk4 
-"""
-DSI_STUDIO_TRACKING_METHOD = 0
-DSI_STUDIO_ITERATION_COUNT = 2 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 100000
+DSI_STUDIO_TRACKING_METHOD = 0 # 0:streamline (default), 1:rk4 
+DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
+DSI_STUDIO_FIBRE_COUNT = 10000000
 #DSI_STUDIO_FIBRE_COUNT = 1000
-DSI_STUDIO_USE_RECONST = True # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
+DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
 DSI_STUDIO_FA_THRESH = 0
-DSI_STUDIO_CHECK_ENDING = 0
+DSI_STUDIO_CHECK_ENDING = 1
 DSI_STUDIO_OTSU_THRESH = 0.6
 DSI_STUDIO_INITIAL_DIREC = 0 # initial propagation direction 0:primary fiber, 1:random, 2:all fiber orientations
 DSI_STUDIO_SEED_PLAN = 0 # specify the seeding strategy 0:subvoxel random, 1:voxelwise center
@@ -58,8 +54,8 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = True
-RUN_MATLAB_DIFFUSION = True
-RUN_MATLAB_FUNCTIONAL = True
+RUN_MATLAB_DIFFUSION = False
+RUN_MATLAB_FUNCTIONAL = False
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------
@@ -70,10 +66,10 @@ MATLAB_CALCULATE_STATS = False
 # [START] PROCESSING PARAMETERS
 # ----------
 #NUMBER_OF_TRACTS = 10000000
-NUMBER_OF_TRACTS = 100000 # Not implemented.
+NUMBER_OF_TRACTS = 500000 # Not implemented.
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 1 or 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
 USE_PRESET_DOWNSAMPLED_MESH = 1 # (int) If 1, the below downsamples meshes will be imported as a low-res mesh. If 0 (false), they will be created by the downsample_rate of the pial surface.
 # IMPORTANT: Filenames may use the $subjectId$ placeholder to dynamically insert subject's id.
@@ -128,6 +124,8 @@ IMAGES = {
       "ALL_LABELS": "aparc+aseg.nii.gz",
       "LEFT": "lh_precentral.mask.nii.gz",
       "RIGHT": "rh_precentral.mask.nii.gz",
+      "LEFT_INVERSED": "inversed_lh_precentral.mask.nii.gz",
+      "RIGHT_INVERSED": "inversed_rh_precentral.mask.nii.gz",
       "ROI_INVERSED": "none_roi.mask.nii.gz",
       }
     }
@@ -192,4 +190,5 @@ DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsi_studio", executableAlias="dsi-studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
 WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbCommandPath)
+
 # FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 try:
+  from shutil import copy
   import logging.config
   from logging import Logger 
   import config
@@ -30,5 +31,6 @@ class LoggerClass:
     self.logger.info("Logger is instantiated.")
     self.logger.error("Logger is instantiated.")
     self.logger.info("Logs are saved to: " + config.LOGS_DIR.__str__())
-    
+    copy(config.SCRIPTS_DIR / "config.py", config.LOGS_DIR / "config.py.txt")
+    self.logger.info("A copy of parameters are saved to: " + config.LOGS_DIR.__str__())
     return self.logger

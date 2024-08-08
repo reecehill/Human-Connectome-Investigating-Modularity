@@ -315,9 +315,9 @@ def mergeTracts(sourceFile: Path, lhTractFile: str, rhTractFile: str, destinatio
 
 def runDsiStudio(subjectId: str) -> bool:
   return \
+    generateSrcFile(subjectId) and \
+    reconstructImage(subjectId) and \
     trackFibres(subjectId)
-    # generateSrcFile(subjectId) and \
-    # reconstructImage(subjectId) and \
 
 
 

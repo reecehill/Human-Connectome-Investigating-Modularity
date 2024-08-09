@@ -32,9 +32,13 @@ load([pathToFile,'/edgeList.mat'])
 disp('loading trsfmTrk.mat');
 load([pathToFile,'/trsfmTrk.mat']);
 
-nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
-nbFaces=size(hi_glpfaces,1)+size(hi_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
-
+if strcmp(downsample,'no') % method for no downsample
+    nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    nbFaces=size(hi_glpfaces,1)+size(hi_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+else
+    nsublen = size(lo_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    nbFaces=size(lo_glpfaces,1)+size(lo_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
+end
 
 %% make local connection matrix
 adj_local=sparse( ...
@@ -50,6 +54,8 @@ disp('making adj_remote_bin')
 adj_remote_bin=sparse(double(edgeListRemote(:,1)),double(edgeListRemote(:,2)),ones(length(edgeListRemote(:,1)),1),nbFaces,nbFaces);
 adj_remote_bin=adj_remote_bin+adj_remote_bin';
 adj_remote_bin(adj_remote_bin>0)=1;
+
+
 %% make adj_remote_wei
 disp('making adj_remote_wei')
 
@@ -58,6 +64,7 @@ adj_remote_wei=adj_remote_wei+adj_remote_wei';
 
 %% make adj_matrix combining local and long rang connction matrix
 adj_matrix = adj_remote_bin + adj_local;
+adj_matrix_wei = adj_matrix;
 adj_matrix(adj_matrix>0) = 1;
 
 

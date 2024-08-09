@@ -19,62 +19,59 @@ load('../../data/subjects/100307/trsfmTrk.mat');
 %load('../../data/subjects/100610/MNIcoor.mat');
 
 figure;
-title("Adjacency matrix: matrices.mat")
-allFileNames = filenames;
-plottedLabelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid];
-spy(adj_matrix);
+title("Weighted adjacency matrix - Remote + Local");
+subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral)");
+allFileNames = [filenames subfilenames];
+plottedLabelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR))+hi_subROIid];
+plottedLabelsNames=allFileNames(plottedLabelIds);
+[plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
+plottedLabelIdsSorted=plottedLabelIds(I);
 hold on;
 grid on;
-plottedLabelsNames=allFileNames(plottedLabelIds);
+cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',10);
+c = colorbar;
+c.Label.String = 'Number of connections';
+hold on;
+grid on;
+plottedLabelsNames=plottedLabelNamesSorted;
 showTicksPer=1000000;
 xticks(1:(showTicksPer/50):length(plottedLabelsNames));
 yticks(1:(showTicksPer/50):length(plottedLabelsNames));
 xticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
 yticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
 
-allFileNames = filenames;
-plottedLabelIds=[hi_faceROIidL; hi_faceROIidR; hi_subROIid];
-[plottedLabelIdsSorted, I] =sort(plottedLabelIds,'descend');
-newMatrix = sparse(length([hi_faceROIidL; hi_faceROIidR; hi_subROIid]), length([hi_faceROIidL; hi_faceROIidR; hi_subROIid]));
-newMatrix(edgeListRemote(:,1), edgeListRemote(:,2)) = 1;
-newMatrix(edgeListRemote(:,2), edgeListRemote(:,1)) = 1;
-newMatrix = newMatrix + adj_local;
-figure;
-spy(newMatrix(I,I));
-hold on;
-grid on;
-plottedLabelsNames=allFileNames(plottedLabelIdsSorted);
-showTicksPer=100000;
-xticks(1:(showTicksPer/50):length(plottedLabelsNames));
-yticks(1:(showTicksPer/50):length(plottedLabelsNames));
-xticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
-yticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
+
+hemisphereL_start = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"lh."))), 1, "first" );
+hemisphereL_end = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"lh."))), 1, "last" );
+hemisphereL_length = hemisphereL_end-hemisphereL_start;
+hemisphereR_start = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"rh."))), 1, "first" );
+hemisphereR_end = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"rh."))), 1, "last" );
+hemisphereR_length = hemisphereR_end-hemisphereR_start;
+miscellaneous_start = 1;
+miscellaneous_end = hemisphereL_start-1;
+miscellaneous_length = miscellaneous_end-miscellaneous_start;
+
+roi = "lh.L_precentral";
+roiIds = find(contains(allFileNames,roi));
+roiL_start = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "first" );
+roiL_end = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "last" );
+roiL_length = roiL_end-roiL_start;
+roi = "rh.R_precentral";
+roiIds = find(contains(allFileNames,roi));
+roiR_start = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "first" );
+roiR_end = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "last" );
+roiR_length = roiR_end-roiR_start;
 
 
-% [~, positionOfFirstLabel, ~] = unique(plottedLabels, "first");
-% [~, positionOfLastLabel, ~] = unique(plottedLabels, "last");
-% positionOfMiddleLabel = floor(mean([positionOfFirstLabel positionOfLastLabel], 2));
-% plottedLabelsFinal_all = sort(positionOfMiddleLabel);
-
-positionOfHemisphere_L = [1 1];
-positionOfHemisphere_R = [length(faceROIidR) length(faceROIidR)];
-roi_L = find(plottedLabels == 26);
-roi_R = find(plottedLabels == 61);
-[~, beginningOfROI_L] =  min(roi_L);
-[~, beginningOfROI_R] =  min(roi_R);
-positionOfROI_L = [beginningOfROI_L beginningOfROI_L];
-positionOfROI_R = [beginningOfROI_R beginningOfROI_R];
-
-figure;
-title("Adjacency matrix: matrices.mat")
-spy(adj_matrix);
-hold on;
-grid on;
-rectangle('Position',[positionOfHemisphere_L, length(faceROIidL),length(faceROIidL)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
-rectangle('Position',[positionOfHemisphere_R, length(faceROIidR),length(faceROIidR)], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.01]);
-rectangle('Position',[positionOfROI_L, length(roi_L), length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
-rectangle('Position',[positionOfROI_R, length(roi_R),length(roi_R)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
-
+rectangle('Position',[[hemisphereL_start, hemisphereL_start], hemisphereL_length, hemisphereL_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
+rectangle('Position',[[hemisphereR_start, hemisphereR_start], hemisphereR_length, hemisphereR_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
+rectangle('Position',[[miscellaneous_start, miscellaneous_start], miscellaneous_length, miscellaneous_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
+rectangle('Position',[[roiL_start, roiL_start], roiL_length, roiL_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+rectangle('Position',[[roiR_start roiR_start], roiR_length, roiR_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+roiLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4]);
+hLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05]);
+spyLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1]);
+legend([hLine, roiLine, spyLine],'Hemispheres','Precentral Gyri','Edge');
 % set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
 % set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabelsFinal_all));
 
@@ -89,10 +86,17 @@ figure;
 title("Only Precentral gyri (left and right)");
 hold on;
 grid on;
+roi = "precentral";
+roiIds = find(contains(allFileNames,roi));
 indicesInROI = [roi_L,roi_R];
+roiL_start = find(ismember(hi_faceROIidL(:,1),roiIds), 1, "first" );
+roiL_length = length(find(ismember(hi_faceROIidL(:,1),roiIds)));
+roiR_start = find(ismember(hi_faceROIidR(:,1),roiIds), 1, "first" );
+roiR_length = length(find(ismember(hi_faceROIidL(:,1),roiIds)));
+
 labelsInROI = plottedLabels(indicesInROI);
-rectangle('Position',[[1 1], length(roi_L),length(roi_L)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
-rectangle('Position',[[length(roi_L) length(roi_L)], length(roi_R),length(roi_R)], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[[roiL_start roiL_start], roiL_length,roiL_length], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
+rectangle('Position',[[roiR_start roiR_start], roiR_length,roiR_length], 'FaceColor', [1 0 0 0.4], 'EdgeColor', [0 0 0 0.01]);
 spy(adj_matrix(indicesInROI,indicesInROI));
 showTicksPer=100000;
 xticks(1:(showTicksPer/50):length(labelsInROI));

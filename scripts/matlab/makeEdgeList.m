@@ -1,8 +1,6 @@
 function [...
     edgeListRemote,...
-    edgeListLocal,...
-    lpcentroids,...
-    rpcentroids...
+    edgeListLocal...
     ]=makeEdgeList(pathToFile,downsample)
 disp("------");
 disp("Start of edgeList.m")
@@ -24,54 +22,73 @@ disp('step3: check if there are fibres connected between node pairs')
 %% load the data that was output by loadLabels.m
 disp('loading labelSRF.mat');
 fileToLoad=[pathToFile,'/labelSRF.mat'];
-load(fileToLoad, "hi_glpfaces", "hi_glpvertex", "hi_grpfaces", "hi_grpvertex", "lo_glpfaces", "lo_grpfaces", "lo_glpvertex", "lo_grpvertex", "lo_subCoor"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+load(fileToLoad, "filenames","lo_faceROIidL","lo_faceROIidR","hi_faceROIidL","hi_faceROIidR", "hi_glpfaces", "hi_glpvertex", "hi_grpfaces", "hi_grpvertex", "lo_glpfaces", "lo_grpfaces", "lo_glpvertex", "lo_grpvertex", "lo_subCoor", "hi_subCoor", "hi_centroidsL", "hi_centroidsR","lo_centroidsL", "lo_centroidsR"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
 
 %% load the data that was output by conversion.m
 disp('loading trsfmTrk.mat');
 fileToLoad=[pathToFile,'/trsfmTrk.mat'];
-load(fileToLoad, "trk_type", "trkEP"); %"trk_len": not used
+load(fileToLoad, "trk_type", "trkEP_full"); %"trk_len": not used
 %% get lengths of data
 
-nbTracts=length(trkEP);
+nbTracts=length(trkEP_full);
 %% get centres of triangles
 disp('computing centroids');
+restrictToRoi = true;
+
 if strcmp(downsample,'no') % method for no downsample
-    lpcentroids=meshcentroid(hi_glpvertex,hi_glpfaces);
-    rpcentroids=meshcentroid(hi_grpvertex,hi_grpfaces);
-    % nbFaces=size(hi_grpfaces,1)+size(hi_glpfaces,1);
+    %allCentroids is just allPoints but not filtered.
+    allCentroids = [...
+        hi_centroidsL; ...
+        hi_centroidsR;...
+        hi_subCoor];
 else
-    lpcentroids=meshcentroid(lo_glpvertex,lo_glpfaces);
-    rpcentroids=meshcentroid(lo_grpvertex,lo_grpfaces);
-    % nbFaces=size(lo_grpfaces,1)+size(lo_glpfaces,1);
+    allCentroids = [...
+        lo_centroidsL; ...
+        lo_centroidsR;...
+        lo_subCoor];
+end
+%Add index to fourth column.
+allCentroids(:,4) = 1:1:length(allCentroids);
+
+if(restrictToRoi)
+    roi = "precentral";
+    roiIds = find(contains(filenames,roi));
+    if strcmp(downsample,'no') % method for no downsample
+        selectedFacesL = find(ismember(hi_faceROIidL(:,1),roiIds));
+        selectedFacesR = find(ismember(hi_faceROIidR(:,1),roiIds));
+        allPoints = allCentroids([selectedFacesL; length(hi_faceROIidL)+selectedFacesR],:);
+    else
+        selectedFacesL = find(ismember(lo_faceROIidL(:,1),roiIds));
+        selectedFacesR = find(ismember(lo_faceROIidR(:,1),roiIds));
+        allPoints = allCentroids([selectedFacesL; length(hi_faceROIidL)+selectedFacesR; lo_subCoor],:);
+    end
+else
+    allPoints = allCentroids;
 end
 
+
+
 %% make edge list for remote connections
-edgeListRemote=zeros(nbTracts,5,'single');
+edgeListRemote=zeros(nbTracts,4,'single');
 % parfor k=1:nbTracts
 tic
-lpCentroidsFirstCol = lpcentroids(:,1);
-lpCentroidsSecCol = lpcentroids(:,2);
-lpCentroidsThirdCol = lpcentroids(:,3);
-rpCentroidsFirstCol = rpcentroids(:,1);
-rpCentroidsSecCol = rpcentroids(:,2);
-rpCentroidsThirdCol = rpcentroids(:,3);
-subCoorFirstCol = lo_subCoor(:,1);
-subCoorSecCol = lo_subCoor(:,2);
-subCoorThirdCol = lo_subCoor(:,3);
-allPoints = [lpcentroids; rpcentroids; lo_subCoor];
 disp('Building Remote connection elist:\n');
 buildRemote = 1;
 if(buildRemote == 1)
-    startps = trkEP(:, 1:3);
-    endps = trkEP(:,4:6);
-    [indexOfClosestPoints_start, distFromQueryPointToData_start] = knnsearch(allPoints,startps,'K',1,'Distance','euclidean');
-    [indexOfClosestPoints_end, distFromQueryPointToData_end] = knnsearch(allPoints,endps,'K',1,'Distance','euclidean');
-    edgeListRemote = [indexOfClosestPoints_end, indexOfClosestPoints_start, distFromQueryPointToData_end,distFromQueryPointToData_start];
+    startps = trkEP_full(:, 1:3);
+    endps = trkEP_full(:,4:6);
+    [indexOfClosestAllPoints_start, distFromQueryPointToData_start] = knnsearch(allPoints(:,1:3),startps,'K',1,'Distance','euclidean');
+    [indexOfClosestAllPoints_end, distFromQueryPointToData_end] = knnsearch(allPoints(:,1:3),endps,'K',1,'Distance','euclidean');
+
+    indexOfAllCentroids_start = allCentroids(allPoints(indexOfClosestAllPoints_start,4),4);
+    indexOfAllCentroids_end = allCentroids(allPoints(indexOfClosestAllPoints_end,4),4);
+
+    edgeListRemote = [indexOfAllCentroids_end, indexOfAllCentroids_start, distFromQueryPointToData_end,distFromQueryPointToData_start];
+
     edgeListRemote(:,5) = 1:1:length(edgeListRemote);
-    edgeListRemote(edgeListRemote(:,5)==0,:)=[];
+
     disp("Done building remote edge list");
     toc
-    
 end
 % columns 1:2 are the nodes to which they connect, columns 3:4 are the
 % distance from the pial surface, column 5 is the track ID.

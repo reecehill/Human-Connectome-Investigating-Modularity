@@ -270,8 +270,8 @@ def createRoiFiles(subjectId: str) -> bool:
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
   # TODO: Is mov correctly set in non-MNI152 settings?
   targ = getFile(config.SCRIPTS_DIR / 'matlab' / 'toolboxes' / 'DsiStudio' / 'atlas' / 'ICBM152_adult' /'ICBM152_adult.T1W.nii.gz', localOnly=True)
-  mov = getFile(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'automated_T1w_restore_brain.nii.gz')
-  reg = str(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'register.dat')
+  mov = getFile(config.DATA_DIR / 'subjects' / subjectId / 'MNINonLinear' / 'T1w_restore_brain.nii.gz')
+  reg = str(config.DATA_DIR / 'subjects' / subjectId / config.NATIVEORMNI152FOLDER / 'register_t1w_to_mninonlinear.dat')
   return call(cmdLabel="createRegisterDatFile",
               cmd=[
                       "tkregister2",
@@ -315,9 +315,10 @@ def mergeTracts(sourceFile: Path, lhTractFile: str, rhTractFile: str, destinatio
 
 def runDsiStudio(subjectId: str) -> bool:
   return \
-    generateSrcFile(subjectId) and \
-    reconstructImage(subjectId) and \
-    trackFibres(subjectId)
+      registerDsiStudioTemplateToSubject(subjectId)
+    # generateSrcFile(subjectId) and \
+    # reconstructImage(subjectId) and \
+    # trackFibres(subjectId) and \
 
 
 

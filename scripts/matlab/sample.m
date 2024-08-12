@@ -16,31 +16,35 @@ load('../../data/subjects/100307/edgeList.mat');
 load('../../data/subjects/100307/labelSRF.mat');
 load('../../data/subjects/100307/matrices.mat');
 load('../../data/subjects/100307/trsfmTrk.mat');
-%load('../../data/subjects/100610/MNIcoor.mat');
+
 
 figure;
 title("Weighted adjacency matrix - Remote + Local");
 subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral)");
 allFileNames = [filenames subfilenames];
-plottedLabelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR))+hi_subROIid];
+downsample=true;
+if(downsample)
+    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_subROIid];
+else
+    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_subROIid];
+end
+indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
+plottedLabelIds = labelIds(indicesOfLabelledFaces);
 plottedLabelsNames=allFileNames(plottedLabelIds);
 [plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
 plottedLabelIdsSorted=plottedLabelIds(I);
 hold on;
 grid on;
-cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',10);
 c = colorbar;
 c.Label.String = 'Number of connections';
 hold on;
 grid on;
 plottedLabelsNames=plottedLabelNamesSorted;
-showTicksPer=1000000;
+showTicksPer=100000;
 xticks(1:(showTicksPer/50):length(plottedLabelsNames));
 yticks(1:(showTicksPer/50):length(plottedLabelsNames));
 xticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
 yticklabels(plottedLabelsNames(1:(showTicksPer/50):end));
-
-
 hemisphereL_start = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"lh."))), 1, "first" );
 hemisphereL_end = find(ismember(plottedLabelIdsSorted(:,1),find(contains(allFileNames,"lh."))), 1, "last" );
 hemisphereL_length = hemisphereL_end-hemisphereL_start;
@@ -50,36 +54,34 @@ hemisphereR_length = hemisphereR_end-hemisphereR_start;
 miscellaneous_start = 1;
 miscellaneous_end = hemisphereL_start-1;
 miscellaneous_length = miscellaneous_end-miscellaneous_start;
-
 roi = "lh.L_precentral";
 roiIds = find(contains(allFileNames,roi));
-roiL_start = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "first" );
-roiL_end = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "last" );
+roiL_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+roiL_start = min(roiL_ids);
+roiL_end = max(roiL_ids);
 roiL_length = roiL_end-roiL_start;
 roi = "rh.R_precentral";
 roiIds = find(contains(allFileNames,roi));
-roiR_start = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "first" );
-roiR_end = find(ismember(plottedLabelIdsSorted(:,1),roiIds), 1, "last" );
+roiR_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+roiR_start = min(roiR_ids);
+roiR_end = max(roiR_ids);
 roiR_length = roiR_end-roiR_start;
-
-
 rectangle('Position',[[hemisphereL_start, hemisphereL_start], hemisphereL_length, hemisphereL_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
 rectangle('Position',[[hemisphereR_start, hemisphereR_start], hemisphereR_length, hemisphereR_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
 rectangle('Position',[[miscellaneous_start, miscellaneous_start], miscellaneous_length, miscellaneous_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
 rectangle('Position',[[roiL_start, roiL_start], roiL_length, roiL_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
 rectangle('Position',[[roiR_start roiR_start], roiR_length, roiR_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+
+cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',10);
 roiLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4]);
 hLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05]);
 spyLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1]);
 legend([hLine, roiLine, spyLine],'Hemispheres','Precentral Gyri','Edge');
-% set(gca, 'Ytick',plottedLabelsFinal_all,'YTickLabel',plottedLabels(plottedLabelsFinal_all));
-% set(gca, 'Xtick',plottedLabelsFinal_all,'XTickLabel',plottedLabels(plottedLabelsFinal_all));
 
-showTicksPer=100000;
-xticks(1:(showTicksPer/50):length(plottedLabels));
-yticks(1:(showTicksPer/50):length(plottedLabels));
-xticklabels(plottedLabels(1:(showTicksPer/50):end));
-yticklabels(plottedLabels(1:(showTicksPer/50):end));
+figure;
+title("Left ROI only")
+hold on;
+cspy(adj_matrix_wei(I(roiL_ids),I(roiL_ids)),'ColorMap','jet','MarkerSize',10);
 
 %% Plot ROI region only
 figure;
@@ -103,32 +105,6 @@ xticks(1:(showTicksPer/50):length(labelsInROI));
 yticks(1:(showTicksPer/50):length(labelsInROI));
 xticklabels(labelsInROI(1:(showTicksPer/50):end));
 yticklabels(labelsInROI(1:(showTicksPer/50):end));
-
-figure;
-title("Weighted");
-% Convert sparse matrix to full
-roiMatrix = full(adj_matrix(indicesInROI,indicesInROI));
-xs = 1:1:length
-
-
-roiMatrix = adj_remote_wei(indicesInROI,indicesInROI);
-
-
-%savefig('../../data/subjects/100610/adjmatrix_reduction_164k.fig');
-
-
-%t1_r = niftiread('../../data/subjects/100610/T1w/T1w_acpc_dc.nii.gz');
-t1_r_mni152 = niftiread('../../data/subjects/100610/MNINonLinear/T1w_restore_brain.nii.gz');
-
-%diff_r = niftiread('../../data/subjects/100610/T1w/Diffusion/data.nii.gz');
-diff_r_mni152 = '?'
-
-l=SurfStatReadSurf(['../../data/subjects/100610/MNINonLinear/100610/surf/lh.pial']);
-r=SurfStatReadSurf(['../../data/subjects/100610/MNINonLinear/100610/surf/rh.pial']);
-
-left_pial_59k = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.pial.32k_fs_LR.surf.gii');
-left_pial_labels =  gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.L.aparc.32k_fs_LR.label.gii');
-right_pial_59k = gifti('../../data/subjects/100610/MNINonLinear/fsaverage_LR32k/100610.R.pial.32k_fs_LR.surf.gii');
 
 
 %% Plot fMRI and structural/diffusion data over each other

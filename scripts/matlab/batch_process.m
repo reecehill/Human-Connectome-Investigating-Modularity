@@ -1,4 +1,5 @@
-function batch_process(pathToFile,subject,type,downsample,rate,nTrackIterations,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R)
+function batch_process(pathToFile,subject,type,downsample,...
+    rate,nTrackIterations,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R)
 % pathToFile: path to all data folders
 % subjects: the list of subjects
 % type: two types of surface data:

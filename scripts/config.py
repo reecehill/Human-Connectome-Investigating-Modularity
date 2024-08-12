@@ -23,7 +23,7 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 DSI_STUDIO_TRACKING_METHOD = 0 # 0:streamline (default), 1:rk4 
 DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 10000000
+DSI_STUDIO_FIBRE_COUNT = 50000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -54,8 +54,8 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = True
-RUN_MATLAB_DIFFUSION = False
-RUN_MATLAB_FUNCTIONAL = False
+RUN_MATLAB_DIFFUSION = True
+RUN_MATLAB_FUNCTIONAL = True
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------
@@ -65,8 +65,6 @@ MATLAB_CALCULATE_STATS = False
 # ----------
 # [START] PROCESSING PARAMETERS
 # ----------
-#NUMBER_OF_TRACTS = 10000000
-NUMBER_OF_TRACTS = 500000 # Not implemented.
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 1 or 2 (int) is unsupported.
 DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.

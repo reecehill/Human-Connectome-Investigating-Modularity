@@ -1,7 +1,4 @@
 function [modules, Q1] = sortIntoModules(adjacencyMatrix, gamma)
- addpath('toolboxes/FieldTrip');
- ft_defaults;
- ft_hastoolbox('bct',1);
  disp('Running louvain algorithm...')
     %% attempt module detection
     % Iterative community finetuning.
@@ -12,7 +9,7 @@ function [modules, Q1] = sortIntoModules(adjacencyMatrix, gamma)
     while Q1-Q0>1e-5           % while modularity increases
         disp("Performing community detection...");
         Q0 = Q1;                % perform community detection
-        [modules, Q1] = community_louvain(adjacencyMatrix, gamma);
+        [modules, Q1] = community_louvain_optimised(adjacencyMatrix, gamma);
     end
 
 end

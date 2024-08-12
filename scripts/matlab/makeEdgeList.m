@@ -2,6 +2,9 @@ function [...
     edgeListRemote,...
     edgeListLocal...
     ]=makeEdgeList(pathToFile,downsample)
+% NOTE: This function can only make one edgeList per run. If you want an
+% edgeList for low-resolution, then it must be ran with such parameter.
+% (Other functions may make both lo_ and hi_glpfaces, for instance.
 disp("------");
 disp("Start of edgeList.m")
 tic
@@ -51,16 +54,17 @@ end
 allCentroids(:,4) = 1:1:length(allCentroids);
 
 if(restrictToRoi)
+    % NOTE: Incompatible with subcortical ROIs.
     roi = "precentral";
     roiIds = find(contains(filenames,roi));
     if strcmp(downsample,'no') % method for no downsample
         selectedFacesL = find(ismember(hi_faceROIidL(:,1),roiIds));
         selectedFacesR = find(ismember(hi_faceROIidR(:,1),roiIds));
-        allPoints = allCentroids([selectedFacesL; length(hi_faceROIidL)+selectedFacesR],:);
+        allPoints = allCentroids([selectedFacesL; length(hi_faceROIidL)+selectedFacesR],1:4);
     else
         selectedFacesL = find(ismember(lo_faceROIidL(:,1),roiIds));
         selectedFacesR = find(ismember(lo_faceROIidR(:,1),roiIds));
-        allPoints = allCentroids([selectedFacesL; length(hi_faceROIidL)+selectedFacesR; lo_subCoor],:);
+        allPoints = allCentroids([selectedFacesL; length(lo_faceROIidL)+selectedFacesR],1:4);
     end
 else
     allPoints = allCentroids;

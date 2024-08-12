@@ -3,6 +3,7 @@ function [...
     adj_remote_bin,...
     adj_remote_wei,...
     adj_remote_len,...
+    adj_matrix_wei,...
     lo_adj_wei,...
     adj_matrix,...
     lo_adj_cortical_wei,...
@@ -31,6 +32,11 @@ disp('loading edgeList.mat')
 load([pathToFile,'/edgeList.mat'])
 disp('loading trsfmTrk.mat');
 load([pathToFile,'/trsfmTrk.mat']);
+
+hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid+length(filenames)];
+hi_faceROI_cortical = [hi_faceROIidL(:,1); hi_faceROIidR(:,1)];
+lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_subROIid+length(filenames)];
+lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
 
 if strcmp(downsample,'no') % method for no downsample
     nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
@@ -64,7 +70,7 @@ adj_remote_wei=adj_remote_wei+adj_remote_wei';
 
 %% make adj_matrix combining local and long rang connction matrix
 adj_matrix = adj_remote_bin + adj_local;
-adj_matrix_wei = adj_matrix;
+adj_matrix_wei = adj_remote_wei + adj_local;
 adj_matrix(adj_matrix>0) = 1;
 
 
@@ -79,14 +85,11 @@ for i=1:lenx
 adj_remote_len(x(i),y(i))=adj_remote_len(x(i),y(i))./adj_remote_wei(x(i),y(i));
 end
 
-hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid+length(filenames)];
-hi_faceROI_cortical = [hi_faceROIidL(:,1); hi_faceROIidR(:,1)];
+
 
 %% make lo res matrix(68 corticals + 14 subcortical + rh/lh.cerebellum + brain-stem = 85)
 disp('making lo_adj include all regions')
 lo_adj_wei=zeros(85,85);
-%highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
-lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_subROIid+length(filenames)];
 ROIlen = max(lo_faceROI_all);
 
 % Attempting to speed up making lo_adj_matrix
@@ -106,11 +109,8 @@ for i=1:ROIlen
     end 
 end
 
-
-
 disp('making lo_adj only include cortical regions')
 lo_adj_cortical_wei=zeros(68,68);
-lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
 ROIlen = max(lo_faceROI_cortical);
 for i=1:ROIlen
     ilocs=find(lo_faceROI_cortical==i);

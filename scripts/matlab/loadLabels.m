@@ -155,7 +155,7 @@ elseif strcmp(downsample,'yes')
 
     elseif(strcmp(presetDownsampledSurface,'1'))
         disp("Getting preset downsampled surface: "+presetDownsampledSurface);
-        [lo_glpfaces, lo_grpfaces, lo_glpvertex, lo_grpvertex, filenames, subfilenames, lo_ROIfacevert, nbROI] = loadMesh(presetDownsampledSurface_L,presetDownsampledSurface_R,pathToFile,subjectId,type);
+        [lo_glpfaces, lo_grpfaces, lo_glpvertex, lo_grpvertex, filenames, subfilenames, lo_ROIfacevert] = loadMesh(presetDownsampledSurface_L,presetDownsampledSurface_R,pathToFile,subjectId,type);
         [lo_glpvertex,lo_glpfaces]=meshcheckrepair(lo_glpvertex,lo_glpfaces,opt);
         [lo_grpvertex,lo_grpfaces]=meshcheckrepair(lo_grpvertex,lo_grpfaces,opt);
         
@@ -235,7 +235,7 @@ clear lo_faceROIidRsorted
                 disp(num2str(nLoFaces\k))
             end
 
-            currentface=hi_face_centroids(k,:); %current face's centroid coordinates
+            currentface=lo_face_centroids(k,:); %current face's centroid coordinates
             %Euclidean distances (vector double) between current face and all mesh centroids
             ds=((currentface(:,1)-hi_face_centroids(:,1)).^2 + (currentface(:,2)-hi_face_centroids(:,2)).^2 + (currentface(:,3)-hi_face_centroids(:,3)).^2 );
 
@@ -252,7 +252,7 @@ clear lo_faceROIidRsorted
             end
         end
         if(missingAnatomLabel>0)
-            disp(missingAnatomLabel+" faces with an unknown/missing scalar value encountered. It is possibly subcortical, so skipped.");
+            disp(missingAnatomLabel+" faces with an unknown/missing scalar value encountered. It is possibly subcortical, but set as unknown.");
         end
     end
 

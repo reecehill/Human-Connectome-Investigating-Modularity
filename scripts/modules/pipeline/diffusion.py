@@ -315,10 +315,10 @@ def mergeTracts(sourceFile: Path, lhTractFile: str, rhTractFile: str, destinatio
 
 def runDsiStudio(subjectId: str) -> bool:
   return \
-    trackFibres(subjectId)
-      # registerDsiStudioTemplateToSubject(subjectId)
-    # generateSrcFile(subjectId) and \
-    # reconstructImage(subjectId) and \
+    generateSrcFile(subjectId) and \
+    reconstructImage(subjectId) and \
+    trackFibres(subjectId) and \
+    registerDsiStudioTemplateToSubject(subjectId)
 
 
 

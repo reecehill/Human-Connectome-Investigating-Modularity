@@ -52,7 +52,7 @@ DSI_STUDIO_USE_ROI = True
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
-GENERATE_LABELS = False
+GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 RUN_MATLAB_DIFFUSION = True
 RUN_MATLAB_FUNCTIONAL = True

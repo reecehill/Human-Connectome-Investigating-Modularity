@@ -4,6 +4,8 @@ function [...
     adj_remote_wei,...
     adj_remote_len,...
     adj_matrix_wei,...
+    adj_matrix_wei_roiL,...
+    adj_matrix_wei_roiR,...
     lo_adj_wei,...
     adj_matrix,...
     lo_adj_cortical_wei,...
@@ -25,7 +27,8 @@ load([pathToFile,'/labelSRF.mat'],...
         'hi_subCoor',...
         'lo_subROIid',...
         'hi_subROIid',...
-        'filenames'...
+        'filenames',...
+        'subfilenames'...
                 );
 
 disp('loading edgeList.mat')
@@ -39,12 +42,29 @@ lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_subROIid+length(filen
 lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
 
 if strcmp(downsample,'no') % method for no downsample
+    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_subROIid];
     nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
     nbFaces=size(hi_glpfaces,1)+size(hi_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
 else
+    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_subROIid];
     nsublen = size(lo_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
     nbFaces=size(lo_glpfaces,1)+size(lo_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
 end
+
+%% Get ROI faceIds so ROI-specific matrices can be created.
+indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
+plottedLabelIds = labelIds(indicesOfLabelledFaces);
+allFileNames = [filenames subfilenames];
+plottedLabelsNames=allFileNames(plottedLabelIds);
+[~, I] =sort(string(plottedLabelsNames), 'ascend');
+plottedLabelIdsSorted=plottedLabelIds(I);
+roi = "lh.L_precentral";
+roiIds = find(contains(allFileNames,roi));
+roiL_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+roi = "rh.R_precentral";
+roiIds = find(contains(allFileNames,roi));
+roiR_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+
 
 %% make local connection matrix
 adj_local=sparse( ...
@@ -84,6 +104,10 @@ lenx=length(x);
 for i=1:lenx
 adj_remote_len(x(i),y(i))=adj_remote_len(x(i),y(i))./adj_remote_wei(x(i),y(i));
 end
+
+%% Making ROI-specific matrices
+adj_matrix_wei_roiL = adj_matrix_wei(I(roiL_ids),I(roiL_ids));
+adj_matrix_wei_roiR = adj_matrix_wei(I(roiR_ids),I(roiR_ids));
 
 
 

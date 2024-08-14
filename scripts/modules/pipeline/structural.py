@@ -1,7 +1,6 @@
 import os
 import modules.globals as g
 import config
-from pathlib import Path
 from modules.file_directory.file_directory import createDirectories
 from modules.hcp_data_manager.downloader import getFile
 from modules.subprocess_caller.call import *

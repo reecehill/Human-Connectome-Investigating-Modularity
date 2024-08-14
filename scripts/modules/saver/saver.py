@@ -3,13 +3,14 @@
 from pathlib import Path
 #import shutil
 #import scripts.modules.file_directory.shutil_ported as shutil
-from ..file_directory import shutil_ported as shutil
+# from ..file_directory import shutil_ported as shutil
+import shutil
 from typing import Any, Optional
 import subprocess
 from modules.saver.streamToLogger import StreamToLogger
 from .. import globals as g
 import config
-
+from typing import cast
 class SaverClass:
     def __init__(self, user: str, host: str, pathToKey: str) -> None:
         self.connection: subprocess.Popen[Any]
@@ -51,7 +52,7 @@ class SaverClass:
             return [f for f in files if f in filesToIgnore]
                     
         # Copy project directory tree
-        shutil.copytree(src=str(config.BASE_DIR), dirs_exist_ok=False, dst=rawPath, symlinks=False, ignore=ignoreAllFiles) 
+        shutil.copytree(src=str(config.BASE_DIR), dirs_exist_ok=False, dst=rawPath, symlinks=False, ignore=ignoreAllFiles)  # type: ignore
         
 
         for filePathToCompress in filePathsToCompress:
@@ -60,21 +61,23 @@ class SaverClass:
                 destPath = str(Path(str(rawPath) + destPathFromRoot).resolve())
                 if(filePathToCompress.is_file()):
                     g.logger.info(f"Copying file '{str(filePathToCompress)}' to {destPath}'")
-                    shutil.copy2(src=str(filePathToCompress), dst=destPath, follow_symlinks=True)
+                    shutil.copy2(src=str(filePathToCompress), dst=destPath, follow_symlinks=True) # type: ignore
                 elif(filePathToCompress.is_dir()):
                     g.logger.info(f"Copying directory '{str(filePathToCompress)}' to {destPath}'")
-                    shutil.copytree(src=filePathToCompress, dst=destPath, dirs_exist_ok=True, ignore=ignoreDefaultFiles) 
+                    shutil.copytree(src=filePathToCompress, dst=destPath, dirs_exist_ok=True, ignore=ignoreDefaultFiles) # type: ignore
                     #shutil.copytree(src=filePathToCompress, dst=destPath, ignore=ignoreDefaultFiles) 
                 else:
                     g.logger.error('Specified path is neither file nor directory: ' + str(filePathToCompress))
         
-        archivePath = shutil.make_archive(
+        archivePath = cast(str, 
+                           shutil.make_archive( # type: ignore
             base_name=f"{(config.UPLOADS_DIR / 'compressed' / str(self.uploadRunCount)).resolve(strict=False)}",
             format="zip",
             root_dir=str(rawPath),
             base_dir='./',
             logger=g.logger,
-            )
+            ) 
+                           )
         
         return archivePath
 
@@ -105,7 +108,7 @@ class SaverClass:
             raise
 
     def saveToServer(self, fileToUploadPath : Path) -> None:
-        if bool(g.logUsingSSH) == True:
+        if bool(config.logUsingSSH) == True:
             try:
                 self.rsyncCmd = [
                 "scp",

@@ -5,6 +5,7 @@
 import multiprocessing
 from typing import Optional
 from includes.automated import *
+
 # import includes.all_subjects
 
 
@@ -48,14 +49,26 @@ DSI_STUDIO_USE_ROI = True
 # ----------
 
 # ----------
+# [START] NETWORKX PARAMETERS
+# ----------
+NETWORKX_GAMMA_START = 0.78
+NETWORKX_GAMMA_END = 0.8
+NETWORKX_GAMMA_STEP = 0.2
+NETWORKX_ITERATION_COUNT = 2
+# ----------
+# [END] NETWORKX PARAMETERS
+# ----------
+
+# ----------
 # [START] PIPELINE PARAMETERS
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
-GENERATE_LABELS = True
-RUN_DSI_STUDIO = True
-RUN_MATLAB_DIFFUSION = True
-RUN_MATLAB_FUNCTIONAL = True
+GENERATE_LABELS = False
+RUN_DSI_STUDIO = False
+RUN_MATLAB_DIFFUSION = False
+RUN_MATLAB_FUNCTIONAL = False
+RUN_NETWORKX= True
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------

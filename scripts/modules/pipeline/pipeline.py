@@ -1,5 +1,5 @@
 import config
-from modules.pipeline import data, structural, diffusion, functional, mapper, statistics
+from modules.pipeline import data, structural, diffusion, functional, modularity, statistics
 
 def runPipeline() -> None:
   # (1) RETRIEVE BRAIN SCAN TREE DIRECTORY.
@@ -21,8 +21,8 @@ def runPipeline() -> None:
   # (5) RUN MATLAB: Process functional data
   if(config.RUN_MATLAB_FUNCTIONAL): [functional.matlabProcessFunctional(subjectId) for subjectId in config.ALL_SUBJECTS]
 
-  # (6) RUN MATLAB: Map functional and diffusion data
-  # if(config.RUN_MATLAB_MAPPING): [mapper.matlabProcessMapping(subjectId) for subjectId in config.ALL_SUBJECTS]
+  # (6) RUN NetworkX: Calculate modularity
+  if(config.RUN_NETWORKX): [modularity.findModularity(subjectId) for subjectId in config.ALL_SUBJECTS]
 
   # (7) GET STATISTICS
   if(config.MATLAB_CALCULATE_STATS): [statistics.matlabGetStatistics(subjectId) for subjectId in config.ALL_SUBJECTS]

@@ -54,11 +54,12 @@ def reconstructImage(subjectId: str) -> bool:
       
       refFile = copy2(refFile, copiedRefFile)
     else:
+      refFile = "NOT-SET" #TODO
       # TODO: Does this need to change if not mni?
       destinationFile: str = str(destinationFolder / 'data.src.gz.gqi.1.25.fib.gz')
     
     
-    processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
+    # processedFile: str = str(destinationFolder / 'data_proc.nii.gz')
     g.logger.info("Running DSI Studio: reconstructing image (.fib.gz).")
     return call(cmdLabel="DSIStudio",
                 cmd=[
@@ -125,6 +126,7 @@ def trackFibres(subjectId: str) -> bool:
     t1wFile = copiedT1wFile
     
   else:
+    t1wFile="NOT-SET-TODO" #TODO
     sourceFile = Path(config.DATA_DIR / 'subjects' / subjectId / 'T1w' / config.DIFFUSION_FOLDER / ('data.src.gz.gqi.1.25.fib.gz' if config.DSI_STUDIO_USE_RECONST else 'automated.fib') ).resolve(strict=True)
 
     # The destination file need not exist locally already, but its folders must.

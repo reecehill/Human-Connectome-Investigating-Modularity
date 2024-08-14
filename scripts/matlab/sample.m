@@ -20,7 +20,7 @@ load('../../data/subjects/100307/trsfmTrk.mat');
 
 figure;
 title("Weighted adjacency matrix - Remote + Local");
-subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral)");
+subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by labels (ascend)");
 allFileNames = [filenames subfilenames];
 downsample=true;
 if(downsample)
@@ -82,6 +82,51 @@ figure;
 title("Left ROI only")
 hold on;
 cspy(adj_matrix_wei(I(roiL_ids),I(roiL_ids)),'ColorMap','jet','MarkerSize',10);
+
+figure;
+title("With structural modules")
+subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by modules (ascend)");
+hold on;
+indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
+plottedLabelIds = labelIds(indicesOfLabelledFaces);
+plottedLabelsNames=allFileNames(plottedLabelIds);
+[plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
+plottedLabelIdsSorted=plottedLabelIds(I);
+[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByAllId(:,2));
+
+cspy(adj_matrix_wei(I(roiL_ids(I_strucModulesL)),I(roiL_ids(I_strucModulesL))),'ColorMap','jet','MarkerSize',10);
+for moduleId=1:max(strucModulesL_sorted)
+    moduleIds = find(strucModulesL_sorted == moduleId);
+    moduleStart = min(moduleIds);
+    moduleEnd = max(moduleIds);
+    moduleLength = moduleEnd-moduleStart;
+    rectangle('Position',[[moduleStart, moduleStart], moduleLength, moduleLength], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+end
+
+figure;
+title("With structural modules - only strongly connected nodes ")
+subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by modules (ascend)");
+hold on;
+indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
+plottedLabelIds = labelIds(indicesOfLabelledFaces);
+plottedLabelsNames=allFileNames(plottedLabelIds);
+[plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
+plottedLabelIdsSorted=plottedLabelIds(I);
+[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByAllId(:,2));
+
+adj_matrix_wei_hubs_only = sparse(size(adj_matrix_wei,1),size(adj_matrix_wei,2));
+largestWeightsInMatrix = find(adj_matrix_wei>mean(adj_matrix_wei,'all'));
+adj_matrix_wei_hubs_only(largestWeightsInMatrix) = adj_matrix_wei(largestWeightsInMatrix);
+
+cspy(adj_matrix_wei_hubs_only(I(roiL_ids(I_strucModulesL)),I(roiL_ids(I_strucModulesL))),'ColorMap','jet','MarkerSize',10);
+for moduleId=1:max(strucModulesL_sorted)
+    moduleIds = find(strucModulesL_sorted == moduleId);
+    moduleStart = min(moduleIds);
+    moduleEnd = max(moduleIds);
+    moduleLength = moduleEnd-moduleStart;
+    rectangle('Position',[[moduleStart, moduleStart], moduleLength, moduleLength], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+end
+
 
 %% Plot ROI region only
 figure;

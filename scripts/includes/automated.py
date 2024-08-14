@@ -14,7 +14,8 @@ import os
 from subprocess import getoutput
 from typing import Optional
 
-from modules.file_directory.shutil_ported import which
+# from modules.file_directory.shutil_ported import which
+from shutil import which
 
 def findAndInject(find: str, replace: str, string: str) -> str:
   return string.replace(find, replace)
@@ -57,7 +58,7 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executableAlias}/*' -name '{executable}' -type f -executable") 
     # If the pathToExecutable is a string and contains data after being stripped of white space. 
-    if (isinstance(pathToExecutable, str) and pathToExecutable.strip()):
+    if (isinstance(pathToExecutable, str) and pathToExecutable.strip()): # type: ignore # 
       return Path(pathToExecutable).resolve(strict=True)
     else:
       message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"

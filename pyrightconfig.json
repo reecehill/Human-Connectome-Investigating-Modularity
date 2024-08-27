@@ -22,7 +22,7 @@
   "reportMissingImports": true,
   "reportMissingTypeStubs": true,
 
-  "pythonVersion": "3.6",
+  "pythonVersion": "3.10",
   "pythonPlatform": "Linux",
 
   "executionEnvironments": [

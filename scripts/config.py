@@ -51,10 +51,13 @@ DSI_STUDIO_USE_ROI = True
 # ----------
 # [START] NETWORKX PARAMETERS
 # ----------
-NETWORKX_GAMMA_START = 0.78
-NETWORKX_GAMMA_END = 0.8
-NETWORKX_GAMMA_STEP = 0.2
-NETWORKX_ITERATION_COUNT = 2
+NETWORKX_ALGORITHM: str = 'leiden_communities' # asyn_fluidc, louvain_communities, leiden_communities, scan, frc_fgsn, fast_label_propagation_communities, girvan_newman, k_clique_communities, greedy_modularity_communities
+NETWORKX_GAMMA_START = 0.2
+NETWORKX_GAMMA_END = 0.6
+NETWORKX_GAMMA_STEP = 0.02
+NETWORKX_ITERATION_COUNT = 5
+NETWORKX_MAX_LEVEL: int|None = 5
+NETWORKX_FLUID_K: int = 30
 # ----------
 # [END] NETWORKX PARAMETERS
 # ----------
@@ -67,8 +70,8 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
 RUN_MATLAB_DIFFUSION = False
-RUN_MATLAB_FUNCTIONAL = False
-RUN_NETWORKX= True
+RUN_MATLAB_FUNCTIONAL = True
+RUN_NETWORKX= False
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------
@@ -89,8 +92,8 @@ IMAGES = {
     "LOW_RES": {
       "SURFACE": {
         "FOLDER": "MNINonLinear/fsaverage_LR32k", # (string) Relative to the main (root) folder of each subject
-        "L_HEMISPHERE_PATH": "$subjectId$.L.pial.32k_fs_LR.surf.gii", # Relative to IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
-        "R_HEMISPHERE_PATH": "$subjectId$.R.pial.32k_fs_LR.surf.gii", # Relative to IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
+        "L_HEMISPHERE_PATH": "$subjectId$.L.pial_MSMAll.32k_fs_LR.surf.gii", # Relative to IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
+        "R_HEMISPHERE_PATH": "$subjectId$.R.pial_MSMAll.32k_fs_LR.surf.gii", # Relative to IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
       },
       "DATA": {
         "FOLDER": "MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat", # (string) Relative to the main (root) folder of each subject
@@ -100,8 +103,12 @@ IMAGES = {
         "FOLDER": "MNINonLinear/fsaverage_LR32k/",
         "L_PATH": "$subjectId$.L.aparc.32k_fs_LR.label.gii",
         "R_PATH": "$subjectId$.R.aparc.32k_fs_LR.label.gii",
-        "L_MASK": "L.precentral.shape.gii", # When selecting a label, this is the name of the resulting mask file.
-        "R_MASK": "R.precentral.shape.gii", # When selecting a label, this is the name of the resulting mask file.
+        "CIFTI_PATH": "$subjectId$.aparc.32k_fs_LR.dlabel.nii",
+        "L_SHAPE": "$subjectId$.L.shape.gii",
+        "R_SHAPE": "$subjectId$.R.shape.gii",
+        "L_MASK": "L.precentral.dscalar.nii", # When selecting a label, this is the name of the resulting mask file.
+        "R_MASK": "R.precentral.dscalar.nii", # When selecting a label, this is the name of the resulting mask file.
+        "LR_MASK": "LR.precentral.dscalar.nii", # When selecting a label, this is the name of the resulting mask file.
       }, 
     },
     "HIGH_RES": {

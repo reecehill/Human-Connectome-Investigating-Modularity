@@ -9,13 +9,26 @@ ft_defaults;
 ft_hastoolbox('spm12',1);
 ft_hastoolbox('iso2mesh',1);
 ft_hastoolbox('gifti',1);
-
+close all;
 adj_matrix = matfile('../../data/subjects/100307/matrices.mat').adj_matrix;
 %adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
 load('../../data/subjects/100307/edgeList.mat');
 load('../../data/subjects/100307/labelSRF.mat');
 load('../../data/subjects/100307/matrices.mat');
 load('../../data/subjects/100307/trsfmTrk.mat');
+load('../../data/subjects/100307/optimal_modules.mat');
+assignModulesToStructuralFaces('../../data/subjects','100307','yes')
+load('../../data/subjects/100307/modulesByFace.mat');
+
+O = ft_read_cifti('../../data/subjects/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii');
+O = O.x100307_tfmri_motor_level2_cue_hp200_s2_msmall(:,1);
+O(isnan(O)==1,:) = [];
+
+example_cifti = ft_read_cifti(in_PFM);
+example_cifti.dtseries = example_cifti.dtseries(:,1); example_cifti.hdr.dim(6) = 1; example_cifti.time = 1;
+M = zeros(91282,1); M(O>prctile(O,89.0449)) = 1;
+example_cifti.dtseries(isnan(example_cifti.dtseries(:,1))==0,1) = M;
+ft_write_cifti('Results/mask',example_cifti,'parameter','dscalar');
 
 
 figure;
@@ -73,26 +86,37 @@ rectangle('Position',[[roiL_start, roiL_start], roiL_length, roiL_length], 'Face
 rectangle('Position',[[roiR_start roiR_start], roiR_length, roiR_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
 
 cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',10);
-roiLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4]);
-hLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05]);
-spyLine = line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1]);
-legend([hLine, roiLine, spyLine],'Hemispheres','Precentral Gyri','Edge');
+legends = [];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1])];
+legend(legends,'Hemispheres','Precentral Gyri','Edge');
 
 figure;
 title("Left ROI only")
+c = colorbar;
+c.Label.String = 'Number of connections';
 hold on;
 cspy(adj_matrix_wei(I(roiL_ids),I(roiL_ids)),'ColorMap','jet','MarkerSize',10);
 
 figure;
 title("With structural modules")
 subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by modules (ascend)");
+c = colorbar;
+c.Label.String = 'Number of connections';
 hold on;
 indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
 plottedLabelIds = labelIds(indicesOfLabelledFaces);
 plottedLabelsNames=allFileNames(plottedLabelIds);
 [plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
 plottedLabelIdsSorted=plottedLabelIds(I);
-[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByAllId(:,2));
+[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByROIId(:,2));
+legends = [];
+legendText = {};
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1])];
+legendText = [legendText; 'Precentral Gyri'; 'Hemispheres'; 'Edge'];
 
 cspy(adj_matrix_wei(I(roiL_ids(I_strucModulesL)),I(roiL_ids(I_strucModulesL))),'ColorMap','jet','MarkerSize',10);
 for moduleId=1:max(strucModulesL_sorted)
@@ -101,21 +125,74 @@ for moduleId=1:max(strucModulesL_sorted)
     moduleEnd = max(moduleIds);
     moduleLength = moduleEnd-moduleStart;
     rectangle('Position',[[moduleStart, moduleStart], moduleLength, moduleLength], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+    legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.1])];
+    legendText = [legendText; ['Module #',num2str(moduleId)]];
 end
+legend(legends,legendText{:});
+
+
+%% Load in gifti data from fMRI
+mycifti = ft_read_cifti(['../../data/subjects','/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii']);
+verticesL_rawfMRIvalues = mycifti.x100307_tfmri_motor_level2_avg_lf_hp200_s2_msmall(mycifti.brainstructure==1,:);
+% Assign vertices values to face centroids (meaned).
+face_fMRI_nodeValues(:,:) = verticesL_rawfMRIvalues(lo_grpfaces(:,:));
+face_fMRIValuesL = mean(face_fMRI_nodeValues,2, "omitnan");
+face_fMRIValuesL_sorted = face_fMRIValuesL(I(roiL_ids(strucModulesL_sorted)));
+% Convert fMRI values into something that can be plotted
+
+
+fMRIvalues_matrix = speye(length(face_fMRIValuesL_sorted), length(face_fMRIValuesL_sorted));
+%TODO: This shouldnt be necessary.
+face_fMRIValuesL_sorted_thresholded=face_fMRIValuesL_sorted>1;
+fMRIvalues_matrix(fMRIvalues_matrix>0) = face_fMRIValuesL_sorted_thresholded(I_strucModulesL);
+
+strucValues_matrix = speye(length(face_fMRIValuesL_sorted), length(face_fMRIValuesL_sorted));
+strucValues_matrix(strucValues_matrix>0) = modulesByFace.left_structural_modulesByROIId(I_strucModulesL,2);
+figure; 
+ax = gca;
+ax(2) = copyobj(ax(1), ax(1).Parent);
+linkaxes([ax(1),ax(2)])
+title("Modules of fMRI and Structural along diagonal")
+hold on;
+cspy(strucValues_matrix, 'ColorMap', 'jet', 'Levels', max(strucValues_matrix,[],'all'), 'MarkerSize',40, 'Marker', '.', 'Parent', ax(1));
+hold on;
+axes(ax(2));
+cspy(fMRIvalues_matrix, 'ColorMap','copper','Levels', max(fMRIvalues_matrix,[],'all'), 'MarkerSize',20, 'Marker', '.', 'Parent', ax(2));
+hold on;
+set(ax(1), 'Colormap', jet);
+set(ax(2), 'Colormap', copper);
+ax(2).Visible = 'off';
+ax(2).XTick = [];
+ax(2).YTick = [];
+colormap(ax(1), jet(max(strucValues_matrix,[],'all')));
+colormap(ax(2), copper(max(fMRIvalues_matrix,[],'all')));
+c1 = colorbar(ax(1),'Position',[.05 .11 .0675 .815], 'Limits', [min(strucValues_matrix,[],'all'),max(strucValues_matrix,[],'all')]);
+c1.Label.String = 'Module id (structural)';
+c2 = colorbar(ax(2),'Position',[.88 .11 .0675 .815], 'Limits', [min(fMRIvalues_matrix,[],'all'),max(fMRIvalues_matrix,[],'all')]);
+c2.Label.String = 'Module id (functional)';
+set([ax(1),ax(2)],'Position',[.17 .11 .685 .815]);
 
 figure;
 title("With structural modules - only strongly connected nodes ")
 subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by modules (ascend)");
 hold on;
+legends = [];
+legendText = {};
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05])];
+legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1])];
+legendText = [legendText; 'Precentral Gyri'; 'Hemispheres'; 'Edge'];
+
 indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
 plottedLabelIds = labelIds(indicesOfLabelledFaces);
 plottedLabelsNames=allFileNames(plottedLabelIds);
 [plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
 plottedLabelIdsSorted=plottedLabelIds(I);
-[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByAllId(:,2));
-
-adj_matrix_wei_hubs_only = sparse(size(adj_matrix_wei,1),size(adj_matrix_wei,2));
-largestWeightsInMatrix = find(adj_matrix_wei>mean(adj_matrix_wei,'all'));
+[strucModulesL_sorted, I_strucModulesL]= sort(modulesByFace.left_structural_modulesByROIId(:,2));
+c = colorbar;
+c.Label.String = 'Number of connections';
+adj_matrix_wei_hubs_only = sparse(length(adj_matrix_wei), length(adj_matrix_wei));
+largestWeightsInMatrix = find(adj_matrix_wei>(0.1*max(adj_matrix_wei,[],'all')));
 adj_matrix_wei_hubs_only(largestWeightsInMatrix) = adj_matrix_wei(largestWeightsInMatrix);
 
 cspy(adj_matrix_wei_hubs_only(I(roiL_ids(I_strucModulesL)),I(roiL_ids(I_strucModulesL))),'ColorMap','jet','MarkerSize',10);
@@ -125,7 +202,10 @@ for moduleId=1:max(strucModulesL_sorted)
     moduleEnd = max(moduleIds);
     moduleLength = moduleEnd-moduleStart;
     rectangle('Position',[[moduleStart, moduleStart], moduleLength, moduleLength], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
+    legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.1])];
+    legendText = [legendText; ['Module #',num2str(moduleId)]];
 end
+legend(legends,legendText{:});
 
 
 %% Plot ROI region only
@@ -155,7 +235,7 @@ yticklabels(labelsInROI(1:(showTicksPer/50):end));
 %% Plot fMRI and structural/diffusion data over each other
 openfig('../../data/subjects/100610/tracts_aparc_xyz.fig');
 hold on;
-mycifti = ft_read_cifti('../../data/subjects/100610/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2.feat/100610_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii')
+mycifti = ft_read_cifti('../../data/subjects/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.clusters.dscalar.nii')
 scatter3(mycifti.pos(:,1), mycifti.pos(:,2), mycifti.pos(:,3), [], mycifti.x100610_tfmri_motor_level2_lf_hp200_s2);
 
 

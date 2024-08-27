@@ -156,8 +156,8 @@ elseif strcmp(downsample,'yes')
     elseif(strcmp(presetDownsampledSurface,'1'))
         disp("Getting preset downsampled surface: "+presetDownsampledSurface);
         [lo_glpfaces, lo_grpfaces, lo_glpvertex, lo_grpvertex, filenames, subfilenames, lo_ROIfacevert] = loadMesh(presetDownsampledSurface_L,presetDownsampledSurface_R,pathToFile,subjectId,type);
-        [lo_glpvertex,lo_glpfaces]=meshcheckrepair(lo_glpvertex,lo_glpfaces,opt);
-        [lo_grpvertex,lo_grpfaces]=meshcheckrepair(lo_grpvertex,lo_grpfaces,opt);
+        %[lo_glpvertex,lo_glpfaces]=meshcheckrepair(lo_glpvertex,lo_glpfaces,opt);
+        %[lo_grpvertex,lo_grpfaces]=meshcheckrepair(lo_grpvertex,lo_grpfaces,opt);
         
         highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
         lowestLhLabelId = find(contains(filenames,'lh.'), 1, 'first' );

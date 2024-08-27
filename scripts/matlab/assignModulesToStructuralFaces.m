@@ -77,7 +77,7 @@ for moduleSetIndex=1:length(moduleSets)
         modulesByFace.([moduleName{:},'_modulesByAllId'])(module_allIds,2) = moduleIndex;
         
     end
-    modulesByFace.([moduleName{:},'_modulesByAllId'])(modulesByFace.([moduleName{:},'_modulesByAllId'])(:,2)==0,:) = [];
+    %modulesByFace.([moduleName{:},'_modulesByAllId'])(modulesByFace.([moduleName{:},'_modulesByAllId'])(:,2)==0,:) = [];
 end
 
 

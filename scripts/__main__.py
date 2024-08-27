@@ -176,7 +176,7 @@ if __name__ == "__main__":
         else:
             from os import getenv
             from dotenv import load_dotenv # type: ignore
-            k = cast(bool,load_dotenv(str(BASE_DIR / '.env')))
+            k: bool = load_dotenv(str(BASE_DIR / '.env'))
             user = getenv('DEFAULT_USER') or "ENV_ERROR"
             host = getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"

@@ -95,46 +95,41 @@ def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
                       ],
               cwd=config.matlabScriptsFolder)   
 
-def findClustersFromFmri(subjectId: str) -> bool:
-  # This function levies wb_command -cifti-to-roi to create ROI.
-  # https://humanconnectome.org/software/workbench-command/-cifti-label-to-roi
+def getClusterThresholdForMap(subjectId: str, mapName: str, hemisphere: str) -> float:
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+  percentilesCsvFile: Path = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / f"{hemisphere}.fMRI_percentiles_modified.csv"
 
-  g.logger.info("Finding clusters within functional data (scalar)")
+  filesToExist = [
+                    percentilesCsvFile
+                    ]
+  _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in filesToExist]
+
+  
+  with open(percentilesCsvFile.resolve().__str__()) as csvfile:
+      csvreader = csv.reader(csvfile, dialect='excel-tab', skipinitialspace=True, strict=True)
+      for row in csvreader:
+        # If the map name is found in desired maps list...
+        if(row[0].lower().__contains__(mapName.lower())):
+          # Return its corresponding threshold.
+          return float(row[-1])
+  # If no map name is found in desired maps list...
+  g.logger.info("Error: unable to find map's threshold by name: "+mapName)
+  return float('nan')
+
+def createRoiScalarFiles(subjectId: str) -> bool:
   subjectFolder = config.SUBJECTS_DIR / subjectId
   labelledCiftiFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["CIFTI_PATH"].replace("$subjectId$",subjectId))
-  labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
-  labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
-  shapeLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
-  shapeRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
-  
   maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
   maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
   maskOfLRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["LR_MASK"]
-  g.logger.info("Ensuring files files exist")
+
   filesToExist = [
-                    labelledCiftiFile,
+                    labelledCiftiFile
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
-  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
-  call(cmdLabel="wb_command",
-              cmd=[
-                      config.WB_COMMAND,
-                      '-gifti-label-to-roi',
-                      labelledLFile.resolve(),
-                      shapeLFile.resolve(),
-                      '-name',
-                      'L_precentral',
-                      ]) 
-  call(cmdLabel="wb_command",
-              cmd=[
-                      config.WB_COMMAND,
-                      '-gifti-label-to-roi',
-                      labelledRFile.resolve(),
-                      shapeRFile.resolve(),
-                      '-name',
-                      'R_precentral',
-                      ]) 
-  call(cmdLabel="wb_command",
+
+  return all([
+      call(cmdLabel="wb_command",
               cmd=[
                       config.WB_COMMAND,
                       '-cifti-label-to-roi',
@@ -144,8 +139,8 @@ def findClustersFromFmri(subjectId: str) -> bool:
                       'L_precentral',
                       '-map',
                       '100307_aparc'
-                      ]) 
-  call(cmdLabel="wb_command",
+                      ]),
+      call(cmdLabel="wb_command",
               cmd=[
                       config.WB_COMMAND,
                       '-cifti-label-to-roi',
@@ -155,8 +150,8 @@ def findClustersFromFmri(subjectId: str) -> bool:
                       'R_precentral',
                       '-map',
                       '100307_aparc'
-                      ]) 
-  call(cmdLabel="wb_command",
+                      ]),
+      call(cmdLabel="wb_command",
               cmd=[
                       config.WB_COMMAND,
                       '-cifti-merge',
@@ -168,132 +163,291 @@ def findClustersFromFmri(subjectId: str) -> bool:
                       '-cifti',
                       maskOfRLabel.resolve(),                      
                       ]) 
+  ])
+
+def createRoiShapeFiles(subjectId: str) -> bool:
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+  labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
+  labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
+  shapeLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
+  shapeRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
+
+  filesToExist = [
+                    labelledLFile,
+                    labelledRFile
+                    ]
+  _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
+  
+  return all([
+    call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-gifti-label-to-roi',
+                      labelledLFile.resolve(),
+                      shapeLFile.resolve(),
+                      '-name',
+                      'L_precentral',
+                      ]),
+    call(cmdLabel="wb_command",
+              cmd=[
+                      config.WB_COMMAND,
+                      '-gifti-label-to-roi',
+                      labelledRFile.resolve(),
+                      shapeRFile.resolve(),
+                      '-name',
+                      'R_precentral',
+                      ])
+  ])
+
+def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriScalarPath_input_cortical =  (subjectFolder / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
+
+  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+
+  desiredMapsCiftiFiles = {
+    desiredMap
+    .replace("$subjectId$", subjectId):
+      fMriScalarPath_input.resolve().__str__()
+      .replace(".dscalar", f".{desiredMap}.dscalar")
+      .replace("$subjectId$", subjectId)
+      for desiredMap in config.DESIRED_FMRI_MAPS}
+  
+  localFilesToExist = [
+                    maskOfLLabel,
+                    maskOfRLabel
+                    ]
+  _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
+  remoteFilesToExist = [
+                    fMriScalarPath_input
+  ]
+  _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
 
 
- 
-  # This function levies wb_command -cifti-find-clusters to detect fMRI clusters.
-  # https://humanconnectome.org/software/workbench-command/-cifti-find-clusters
+  return all([
+    all([
+      # Split fMRI .dscalar file of all maps into .{map}.dscalar files that contain only one map.
+      call(cmdLabel="wb_command",
+                cmd=[
+                        config.WB_COMMAND,
+                        '-cifti-merge',
+                        desiredCiftiMapPath,
+                        '-cifti',
+                        fMriScalarPath_input,
+                        '-column',
+                        desiredMap
+                ]              
+    ) for (desiredMap, desiredCiftiMapPath) in desiredMapsCiftiFiles.items()
+        ]),
+    # Discard subcortical data from fMRI (all) maps (used to generate csv of thresholds)
+    call(cmdLabel="wb_command",
+                cmd=[
+                        config.WB_COMMAND,
+                        '-cifti-create-dense-from-template',
+                        maskOfLLabel.resolve(),
+                        fMriScalarPath_input_cortical,
+                        '-cifti',
+                        fMriScalarPath_input                   
+                        ]),
+    
+    # Discard subcortical data from fMRI ROIs
+    all([
+      call(cmdLabel="wb_command",
+                cmd=[
+                        config.WB_COMMAND,
+                        '-cifti-create-dense-from-template',
+                        maskOfLLabel.resolve(),
+                        desiredCiftiMapPath.replace('.dscalar','.ROI.dscalar'),
+                        '-cifti',
+                        desiredCiftiMapPath                   
+                        ]) for (_, desiredCiftiMapPath) in desiredMapsCiftiFiles.items()
+      ]
+        )])
+  
+
+
+def findClustersFromFmri(subjectId: str) -> bool:
+  # This function levies wb_command -cifti-to-roi to create ROI.
+  # https://humanconnectome.org/software/workbench-command/-cifti-label-to-roi
+
+  g.logger.info("Finding clusters within functional data (scalar)")
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+  
+  shapeLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
+  shapeRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
+
+  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  g.logger.info("Ensuring files files exist")
 
   fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriScalarPath_input_cortical = fMriScalarPath_input.resolve().__str__().replace(".dscalar.nii", ".L_ROI.dscalar.nii")
-  fMriModulesPath_output = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
 
   subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   
   g.logger.info("Ensuring files files exist")
-  filesToExist = [
+  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
+  remoteFilesToExist = [
                     fMriScalarPath_input,
                     subjectLSurfacePath_input,
                     subjectRSurfacePath_input
                     ]
-  _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
-  # _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in [fMriModulesPath_output]]
+  _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
+  localFilesToExist = [
+    shapeLFile,
+    shapeRFile,
+    maskOfLLabel,
+    maskOfRLabel,
+  ]
+  _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
 
-  # Discard subcortical data from fMRI
-  call(cmdLabel="wb_command",
-              cmd=[
-                      config.WB_COMMAND,
-                      '-cifti-create-dense-from-template',
-                      maskOfLLabel.resolve(),
-                      fMriScalarPath_input_cortical,
-                      '-cifti',
-                      fMriScalarPath_input.resolve()                   
-                      ]) 
+
+  cmds: list[bool] = []  
+  for hemisphere, roi in {"L": maskOfLLabel, "R": maskOfRLabel}.items():
+    for mapName in config.DESIRED_FMRI_MAPS:
+      mapName = mapName.replace("$subjectId$", subjectId)
+      ciftiRoiFile = fMriScalarPath_input.resolve().__str__().replace(".dscalar", f".{mapName}.ROI.dscalar").replace("$subjectId$", subjectId)
+      
+      threshold = getClusterThresholdForMap(subjectId, mapName, hemisphere)
+      cmds.append(
+        call(cmdLabel="wb_command",
+            cmd=[
+                # This function levies wb_command -cifti-find-clusters to detect fMRI clusters.
+                # https://humanconnectome.org/software/workbench-command/-cifti-find-clusters
+                config.WB_COMMAND,
+                '-cifti-find-clusters',
+                ciftiRoiFile,
+
+                # <surface-value-threshold> - threshold for surface data values
+                # '0.00001',
+                str(threshold),
+                
+                # <surface-minimum-area> - threshold for surface cluster area, in mm^2
+                '1',
+
+                # <volume-value-threshold> - threshold for volume data values
+                'inf',
+
+                # <volume-minimum-size> - threshold for volume cluster size, in mm^3
+                'inf',
+
+                # <direction> - which dimension to use for spatial information, ROW or COLUMN
+                'COLUMN',
+
+                # <cifti-out>
+                ciftiRoiFile.replace(".dscalar", f".{hemisphere}.clusters.dscalar" ),
+
+                # - find values less than <value-threshold>, rather than greater
+                # [-less-than],
+
+                
+                '-left-surface', #- specify the left surface to use
+                subjectLSurfacePath_input.resolve(), #- the left surface file
+                '-corrected-areas', #vertex areas to use instead of computing them from the surface
+                shapeLFile.resolve(),
+                #<area-metric> - the corrected vertex areas, as a metric
+
+                '-cifti-roi',
+                roi,
+
+                '-right-surface', #- specify the right surface to use
+                subjectRSurfacePath_input.resolve(), #- the right surface file
+
+                '-corrected-areas', #- vertex areas to use instead of computing them from the surface
+                #<area-metric> - the corrected vertex areas, as a metric
+                shapeRFile.resolve(),
+
+                #ignore clusters smaller than a given fraction of the largest cluster in the structure
+                '-size-ratio', 
+                '0.25', #- fraction of the structure's largest cluster area
+                '0', #- fraction of the structure's largest cluster volume
+
+                # '-distance', #- ignore clusters further than a given distance from the largest cluster in the structure
+                # '20',
+                # '-inf',
+              ])) 
+  return all(cmds)
+
+
+def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
+  """ 
+  This function reads the fMRI dscalar, and writes an .csv of only desired maps and the value at X percentile (CLUSTER_THRESHOLD).
+  Effectively, it also filters the 26 maps (or FSL contrasts) from:
+    1. motor
+    2. motor minus average
+    3. negative motor
+    4. average minus motor
+
+  To those specified by DESIRED_FMRI_MAPS variable, such as:
+    1. motor minus average
+
+  To yield a csv of two columns for each hemisphere (L+R): map_name, fmri_value_at_percentile.
+  """
+  g.logger.info("Creating csv that contains only the maps we want: "+''.join([desiredMap.replace("$subjectId$", subjectId) for desiredMap in config.DESIRED_FMRI_MAPS]))
+
+  subjectFolder = config.SUBJECTS_DIR / subjectId
+  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriScalarPath_input_cortical =  (subjectFolder / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
+  percentilesCsvFolder = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]
+  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+
+
+  g.logger.info("Ensuring files files exist")
+  filesToExist = [
+                    fMriScalarPath_input
+                    ]
+  _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 
   for hemisphere, roi in {"L": maskOfLLabel, "R": maskOfRLabel}.items():
-    percentilesCsvFile = fMriScalarPath_input / '..' / f"{hemisphere}.fMRI_percentiles.csv"
-    # Get percentile of fMRI data.
+    percentilesCsvFile: Path = percentilesCsvFolder / f"{hemisphere}.fMRI_percentiles_raw.csv"
+    g.logger.info("Getting "+str(config.CLUSTER_THRESHOLD)+"th percentile from each fMRI map and saving to csv file ("+percentilesCsvFile.resolve().__str__()+")")
+
+    # Get percentile of fMRI data.   
     call(cmdLabel="wb_command",
-                cmd=[
-                  config.WB_COMMAND,
-                  '-cifti-stats',
-                  fMriScalarPath_input_cortical,
-                  '-percentile',
-                  '90',
-                  '-roi',
-                  roi,
-                  '-show-map-name'
+         cmd = [
+                config.WB_COMMAND,
+                "-cifti-stats",
+                fMriScalarPath_input_cortical,
+                "-percentile",
+                str(config.CLUSTER_THRESHOLD),
+                "-roi",
+                roi,
+                "-show-map-name"
                 ],
                 saveToFile=percentilesCsvFile.resolve().__str__())
 
-    #For each map, find clusters at their percentile. 
-    # NOTE: This will calculate clusters across all maps at different percentiles!
+    # Read the raw map .csv and write a modified version that only contains the maps we want.
+    filesToExist = [
+                    percentilesCsvFile
+                    ]
+    _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in filesToExist]
     percentileValuesPerMap: Dict[str, float] = {}
+
+    #Read raw csv
     with open(percentilesCsvFile.resolve().__str__()) as csvfile:
-      csvreader = csv.reader(csvfile, delimiter=':', quotechar='|', skipinitialspace=True, strict=True)
+      csvreader = csv.reader(csvfile, dialect="excel-tab", skipinitialspace=True, strict=True)
+      desiredMapNames = [desiredFmriMap.replace("$subjectId$", subjectId) for desiredFmriMap in config.DESIRED_FMRI_MAPS]
       for row in csvreader:
-        percentileValuesPerMap[str(row[1]).strip()] = float(row[-1])
-    g.logger.info(msg=percentileValuesPerMap)
+        row[1] = str(row[1]).strip().strip(":") 
+        # If the map name is found in desired maps list...
+        if(desiredMapNames.__contains__(row[1])):
+          # Store map name and its corresponding threshold.
+          percentileValuesPerMap[row[1]] = float(row[-1])
 
+    #Write modified file
+    with open(percentilesCsvFile.resolve().__str__().replace("_raw", "_modified"), 'w', newline='') as csvfile:
+      writer = csv.writer(csvfile, dialect='excel-tab')
+      list_from_dict = [*percentileValuesPerMap.items()]
+      writer.writerows(list_from_dict)
 
-    #     
-    for thresholdIndex, threshold in percentileValuesPerMap.items():
-      if "_AVG-" not in thresholdIndex:
-        # To save time, only process the map that are AVG. 
-        continue
-      call(cmdLabel="wb_command",
-                  cmd=[
-                          config.WB_COMMAND,
-                          '-cifti-find-clusters',
-                          fMriScalarPath_input_cortical,
-
-                          # <surface-value-threshold> - threshold for surface data values
-                          # '0.00001',
-                          str(threshold),
-                          
-                          # <surface-minimum-area> - threshold for surface cluster area, in mm^2
-                          '1',
-
-                          # <volume-value-threshold> - threshold for volume data values
-                          'inf',
-
-                          # <volume-minimum-size> - threshold for volume cluster size, in mm^3
-                          'inf',
-
-                          # <direction> - which dimension to use for spatial information, ROW or COLUMN
-                          'COLUMN',
-
-                          # <cifti-out>
-                          fMriModulesPath_output.resolve().__str__().replace(".clusters", f".{thresholdIndex}.{hemisphere}.clusters" ),
-
-                          # - find values less than <value-threshold>, rather than greater
-                          # [-less-than],
-
-                          
-                          '-left-surface', #- specify the left surface to use
-                          subjectLSurfacePath_input.resolve(), #- the left surface file
-                          '-corrected-areas', #vertex areas to use instead of computing them from the surface
-                          shapeLFile.resolve(),
-                          #<area-metric> - the corrected vertex areas, as a metric
-
-                          '-cifti-roi', # TODO: This does not work.
-                          roi,
-
-                          
-                          
-                          '-right-surface', #- specify the right surface to use
-                          subjectRSurfacePath_input.resolve(), #- the right surface file
-
-                          '-corrected-areas', #- vertex areas to use instead of computing them from the surface
-                          #<area-metric> - the corrected vertex areas, as a metric
-                          shapeRFile.resolve(),
-
-                          
-
-                          
-                          #ignore clusters smaller than a given fraction of the largest cluster in the structure
-                          '-size-ratio', 
-                          '0.25', #- fraction of the structure's largest cluster area
-                          '0', #- fraction of the structure's largest cluster volume
-
-                          
-                          # '-distance', #- ignore clusters further than a given distance from the largest cluster in the structure
-                          # '20',
-                          # '-inf',
-                          ])   
-
-  return True
+    filesToExist = [
+                      Path(percentilesCsvFile.resolve().__str__().replace("_raw", "_modified"))
+                      ]
+    _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in filesToExist]
+  return all(item for item in _) # Modified .csv files have been created.
 
 def findFmriExtrema(subjectId: str) -> bool:
   subjectFolder = config.SUBJECTS_DIR / subjectId
@@ -428,7 +582,11 @@ def matlabProcessFunctional(subjectId: str) -> bool:
   # TODO: Folder naming scheme is remnant of SPM.
   
   return (
-            findFmriExtrema(subjectId=subjectId) and \
+          createRoiShapeFiles(subjectId=subjectId) and \
+          createRoiScalarFiles(subjectId=subjectId) and \
+          createFmriDenseScalarOfRoiOnly(subjectId=subjectId) and \
+          filterFmriMapsAndWriteToCsv(subjectId=subjectId) and \
+          findFmriExtrema(subjectId=subjectId) and \
           findClustersFromFmri(subjectId=subjectId)
           # matlabMapLowToHighResFmriData(subjectId=subjectId) and
           # transformFmriIntoDiffusionSpace(subjectId=subjectId)

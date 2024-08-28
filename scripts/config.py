@@ -79,6 +79,21 @@ MATLAB_CALCULATE_STATS = False
 # ----------
 
 # ----------
+# [START] FMRI PARAMETERS
+# ----------
+DESIRED_FMRI_MAPS: list[str] = [
+  '$subjectId$_tfMRI_MOTOR_level2_LF-AVG_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_RF-AVG_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_LH-AVG_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_RH-AVG_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_T-AVG_hp200_s2_MSMAll'] # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
+CLUSTER_THRESHOLD: float = 90 # fMRI values above this threshold will indicate a cluster.
+# ----------
+# [END] FMRI PARAMETERS
+# ----------
+
+
+# ----------
 # [START] PROCESSING PARAMETERS
 # ----------
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
@@ -208,5 +223,6 @@ DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
 DSI_STUDIO = getPathOfExecutable(executable="dsi_studio", executableAlias="dsi-studio", userSubmitted=dsiStudioPath)
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
 WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbCommandPath)
-
+#COMPOSITE PATHS DEPENDANT ON PREV PATHS
+FMRI_SCALAR_PATH_CORTICAL = (Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]) / IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"]).__str__().replace(".dscalar.nii", ".ROI.dscalar.nii")
 # FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

@@ -42,10 +42,10 @@ INCLUDES_DIR: Path = (SCRIPTS_DIR / "includes").resolve(strict=True)
 DATA_DIR: Path = (BASE_DIR / "data").resolve(strict=True)
 SUBJECTS_DIR: Path = (DATA_DIR / "subjects").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
-# ----------
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
 
+# ----------
 
 # ----------
 # [START] EXECUTABLE PATHS

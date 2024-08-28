@@ -20,17 +20,6 @@ load('../../data/subjects/100307/optimal_modules.mat');
 assignModulesToStructuralFaces('../../data/subjects','100307','yes')
 load('../../data/subjects/100307/modulesByFace.mat');
 
-O = ft_read_cifti('../../data/subjects/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii');
-O = O.x100307_tfmri_motor_level2_cue_hp200_s2_msmall(:,1);
-O(isnan(O)==1,:) = [];
-
-example_cifti = ft_read_cifti(in_PFM);
-example_cifti.dtseries = example_cifti.dtseries(:,1); example_cifti.hdr.dim(6) = 1; example_cifti.time = 1;
-M = zeros(91282,1); M(O>prctile(O,89.0449)) = 1;
-example_cifti.dtseries(isnan(example_cifti.dtseries(:,1))==0,1) = M;
-ft_write_cifti('Results/mask',example_cifti,'parameter','dscalar');
-
-
 figure;
 title("Weighted adjacency matrix - Remote + Local");
 subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by labels (ascend)");

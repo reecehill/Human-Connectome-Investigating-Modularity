@@ -17,7 +17,7 @@ load('../../data/subjects/100307/labelSRF.mat');
 load('../../data/subjects/100307/matrices.mat');
 load('../../data/subjects/100307/trsfmTrk.mat');
 load('../../data/subjects/100307/optimal_modules.mat');
-assignModulesToStructuralFaces('../../data/subjects','100307','yes')
+assignModulesToStructuralFaces('../../data/subjects','100307','yes');
 load('../../data/subjects/100307/modulesByFace.mat');
 
 figure;
@@ -26,9 +26,9 @@ subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted 
 allFileNames = [filenames subfilenames];
 downsample=true;
 if(downsample)
-    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_subROIid];
+    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_faceROIidSubCor];
 else
-    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_subROIid];
+    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_faceROIidSubCor];
 end
 indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
 plottedLabelIds = labelIds(indicesOfLabelledFaces);

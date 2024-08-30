@@ -58,7 +58,7 @@ def generateMni152Labels(subjectId: str) -> bool:
   g.logger.info("Running Freesurfer: generating label files in Native/MNI152 space by annotating the pial surfaces.")
   g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
   subjectDir = config.SUBJECTS_DIR / subjectId / config.NATIVEORMNI152FOLDER
-  labelDir = subjectDir / subjectId / 'label' / 'label_type2'
+  labelDir: config.Path = subjectDir / subjectId / 'label' / 'label_type2'
   surfDir = subjectDir / subjectId / 'surf'
   createDirectories(directoryPaths=[labelDir, surfDir], createParents=True, throwErrorIfExists=False)
   outputPath = (labelDir).resolve(strict=True).__str__()
@@ -66,16 +66,16 @@ def generateMni152Labels(subjectId: str) -> bool:
   # Ensure pial and annot files (both (gifti format) exist.
   filesToExist = [
                   # TODO: Do not hard code this file name?
-                  # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
-                  # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
-                  # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
-                  # (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
-                  # ]
-                  (subjectDir  / f'{subjectId}.R.pial_MSMAll.164k_fs_LR.surf.gii'), # Right surface
-                  (subjectDir  / f'{subjectId}.L.pial_MSMAll.164k_fs_LR.surf.gii'), # Left surface
-                  (subjectDir  / f'{subjectId}.R.aparc.164k_fs_LR.label.gii'), # Right annotation
-                  (subjectDir  / f'{subjectId}.L.aparc.164k_fs_LR.label.gii'), # Left annotation
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
+                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
                   ]
+                  # (subjectDir  / f'{subjectId}.R.pial_MSMAll.164k_fs_LR.surf.gii'), # Right surface
+                  # (subjectDir  / f'{subjectId}.L.pial_MSMAll.164k_fs_LR.surf.gii'), # Left surface
+                  # (subjectDir  / f'{subjectId}.R.aparc.164k_fs_LR.label.gii'), # Right annotation
+                  # (subjectDir  / f'{subjectId}.L.aparc.164k_fs_LR.label.gii'), # Left annotation
+                  # ]
   surfaceAndAnnotFiles = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 
   rhGiftiSurfaceToFreesurferSuccess = call(cmdLabel="Freesurfer",

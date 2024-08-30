@@ -23,10 +23,10 @@ load([pathToFile,'/labelSRF.mat'],...
     'hi_faceROIidL', 'hi_faceROIidR',...
         'lo_glpfaces', 'lo_grpfaces',...
         'hi_glpfaces', 'hi_grpfaces',...
-        'lo_subCoor',...
-        'hi_subCoor',...
-        'lo_subROIid',...
-        'hi_subROIid',...
+        'lo_centroidsSubCor',...
+        'hi_centroidsSubCor',...
+        'lo_faceROIidSubCor',...
+        'hi_faceROIidSubCor',...
         'filenames',...
         'subfilenames'...
                 );
@@ -36,34 +36,30 @@ load([pathToFile,'/edgeList.mat'])
 disp('loading trsfmTrk.mat');
 load([pathToFile,'/trsfmTrk.mat']);
 
-hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_subROIid+length(filenames)];
+hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_faceROIidSubCor+length(filenames)];
 hi_faceROI_cortical = [hi_faceROIidL(:,1); hi_faceROIidR(:,1)];
-lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_subROIid+length(filenames)];
+lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_faceROIidSubCor+length(filenames)];
 lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
 
 if strcmp(downsample,'no') % method for no downsample
-    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_subROIid];
-    nsublen = size(hi_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_faceROIidSubCor];
+    nsublen = size(hi_centroidsSubCor,1); % number of (co-ordinates of all sub-cortical regions)
     nbFaces=size(hi_glpfaces,1)+size(hi_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
 else
-    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_subROIid];
-    nsublen = size(lo_subCoor,1); % number of (co-ordinates of all sub-cortical regions)
+    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_faceROIidSubCor];
+    nsublen = size(lo_centroidsSubCor,1); % number of (co-ordinates of all sub-cortical regions)
     nbFaces=size(lo_glpfaces,1)+size(lo_grpfaces,1)+nsublen; % number of triangles in left hemi, right hemi, and subcortical regions.
 end
 
 %% Get ROI faceIds so ROI-specific matrices can be created.
-indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
-plottedLabelIds = labelIds(indicesOfLabelledFaces);
 allFileNames = [filenames subfilenames];
-plottedLabelsNames=allFileNames(plottedLabelIds);
-[~, I] =sort(string(plottedLabelsNames), 'ascend');
-plottedLabelIdsSorted=plottedLabelIds(I);
+
 roi = "lh.L_precentral";
 roiIds = find(contains(allFileNames,roi));
-roiL_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+roiL_ids = find(ismember(labelIds,roiIds));
 roi = "rh.R_precentral";
 roiIds = find(contains(allFileNames,roi));
-roiR_ids = find(ismember(plottedLabelIdsSorted(:,1),roiIds));
+roiR_ids = find(ismember(labelIds,roiIds));
 
 
 %% make local connection matrix
@@ -106,8 +102,8 @@ adj_remote_len(x(i),y(i))=adj_remote_len(x(i),y(i))./adj_remote_wei(x(i),y(i));
 end
 
 %% Making ROI-specific matrices
-adj_matrix_wei_roiL = adj_matrix_wei(I(roiL_ids),I(roiL_ids));
-adj_matrix_wei_roiR = adj_matrix_wei(I(roiR_ids),I(roiR_ids));
+adj_matrix_wei_roiL = adj_matrix_wei(roiL_ids,roiL_ids);
+adj_matrix_wei_roiR = adj_matrix_wei(roiR_ids,roiR_ids);
 
 
 

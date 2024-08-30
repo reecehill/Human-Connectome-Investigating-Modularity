@@ -211,7 +211,7 @@ def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
     desiredMap
     .replace("$subjectId$", subjectId):
       fMriScalarPath_input.resolve().__str__()
-      .replace(".dscalar", f".{desiredMap}.dscalar")
+      .replace(".dscalar", f"_{desiredMap}.dscalar")
       .replace("$subjectId$", subjectId)
       for desiredMap in config.DESIRED_FMRI_MAPS}
   
@@ -259,7 +259,7 @@ def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
                         config.WB_COMMAND,
                         '-cifti-create-dense-from-template',
                         maskOfLLabel.resolve(),
-                        desiredCiftiMapPath.replace('.dscalar','.ROI.dscalar'),
+                        desiredCiftiMapPath.replace('.dscalar','_ROI.dscalar'),
                         '-cifti',
                         desiredCiftiMapPath                   
                         ]) for (_, desiredCiftiMapPath) in desiredMapsCiftiFiles.items()
@@ -308,7 +308,7 @@ def findClustersFromFmri(subjectId: str) -> bool:
   for hemisphere, roi in {"L": maskOfLLabel, "R": maskOfRLabel}.items():
     for mapName in config.DESIRED_FMRI_MAPS:
       mapName = mapName.replace("$subjectId$", subjectId)
-      ciftiRoiFile = fMriScalarPath_input.resolve().__str__().replace(".dscalar", f".{mapName}.ROI.dscalar").replace("$subjectId$", subjectId)
+      ciftiRoiFile = fMriScalarPath_input.resolve().__str__().replace(".dscalar", f"_{mapName}_ROI.dscalar").replace("$subjectId$", subjectId)
       
       threshold = getClusterThresholdForMap(subjectId, mapName, hemisphere)
       cmds.append(
@@ -337,7 +337,7 @@ def findClustersFromFmri(subjectId: str) -> bool:
                 'COLUMN',
 
                 # <cifti-out>
-                ciftiRoiFile.replace(".dscalar", f".{hemisphere}.clusters.dscalar" ),
+                ciftiRoiFile.replace(".dscalar", f"_{hemisphere}_clusters.dscalar" ),
 
                 # - find values less than <value-threshold>, rather than greater
                 # [-less-than],

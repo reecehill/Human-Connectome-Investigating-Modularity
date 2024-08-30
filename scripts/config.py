@@ -70,8 +70,8 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
 RUN_MATLAB_DIFFUSION = False
-RUN_MATLAB_FUNCTIONAL = True
-RUN_NETWORKX= False
+RUN_MATLAB_FUNCTIONAL = False
+RUN_NETWORKX= True
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
 # ----------
@@ -98,7 +98,7 @@ CLUSTER_THRESHOLD: float = 90 # fMRI values above this threshold will indicate a
 # ----------
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 1 or 2 (int) is unsupported.
-DOWNSAMPLE_SURFACE = 'no' # NOTE: Anything other than 'yes' (str) is unsupported.
+DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
 DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float). 
 USE_PRESET_DOWNSAMPLED_MESH = 1 # (int) If 1, the below downsamples meshes will be imported as a low-res mesh. If 0 (false), they will be created by the downsample_rate of the pial surface.
 # IMPORTANT: Filenames may use the $subjectId$ placeholder to dynamically insert subject's id.
@@ -224,5 +224,5 @@ DSI_STUDIO = getPathOfExecutable(executable="dsi_studio", executableAlias="dsi-s
 MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
 WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbCommandPath)
 #COMPOSITE PATHS DEPENDANT ON PREV PATHS
-FMRI_SCALAR_PATH_CORTICAL = (Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]) / IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"]).__str__().replace(".dscalar.nii", ".ROI.dscalar.nii")
+FMRI_SCALAR_PATH_CORTICAL = (Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]) / IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"]).__str__().replace(".dscalar.nii", "_ROI.dscalar.nii")
 # FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)

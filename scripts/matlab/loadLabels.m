@@ -144,7 +144,7 @@ elseif strcmp(downsample,'yes')
         lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
         
         lo_facesLH = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, lo_glpfaces, lo_ROIfacevert);
-        [~,test,indicesWithLabel_L] = intersect(lo_facesLH(:,1:3),lo_glpfaces(:,1:3),'rows');
+        [~,~,indicesWithLabel_L] = intersect(lo_facesLH(:,1:3),lo_glpfaces(:,1:3),'rows','stable');
         lo_faceROIidL = lo_glpfaces;
         lo_faceROIidL(:,4) = -1;
         lo_faceROIidL(indicesWithLabel_L,4) = lo_facesLH(:,4);
@@ -153,7 +153,7 @@ elseif strcmp(downsample,'yes')
         
 
         lo_facesRH = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, lo_grpfaces, lo_ROIfacevert);
-        [~,~,indicesWithLabel_R] = intersect(lo_facesRH(:,1:3),lo_grpfaces(:,1:3),'rows');
+        [~,~,indicesWithLabel_R] = intersect(lo_facesRH(:,1:3),lo_grpfaces(:,1:3),'rows','stable');
         lo_faceROIidR = lo_grpfaces;
         lo_faceROIidR(:,4) = -1;
         lo_faceROIidR(indicesWithLabel_R,4) = lo_facesRH(:,4);

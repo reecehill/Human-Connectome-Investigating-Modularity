@@ -325,7 +325,7 @@ def findClustersFromFmri(subjectId: str) -> bool:
                 str(threshold),
                 
                 # <surface-minimum-area> - threshold for surface cluster area, in mm^2
-                '1',
+                str(config.CLUSTER_MIN_AREA),
 
                 # <volume-value-threshold> - threshold for volume data values
                 'inf',
@@ -345,8 +345,8 @@ def findClustersFromFmri(subjectId: str) -> bool:
                 
                 '-left-surface', #- specify the left surface to use
                 subjectLSurfacePath_input.resolve(), #- the left surface file
-                '-corrected-areas', #vertex areas to use instead of computing them from the surface
-                shapeLFile.resolve(),
+                # '-corrected-areas', #vertex areas to use instead of computing them from the surface
+                # shapeLFile.resolve(),
                 #<area-metric> - the corrected vertex areas, as a metric
 
                 '-cifti-roi',
@@ -355,13 +355,13 @@ def findClustersFromFmri(subjectId: str) -> bool:
                 '-right-surface', #- specify the right surface to use
                 subjectRSurfacePath_input.resolve(), #- the right surface file
 
-                '-corrected-areas', #- vertex areas to use instead of computing them from the surface
+                # '-corrected-areas', #- vertex areas to use instead of computing them from the surface
                 #<area-metric> - the corrected vertex areas, as a metric
-                shapeRFile.resolve(),
+                # shapeRFile.resolve(),
 
                 #ignore clusters smaller than a given fraction of the largest cluster in the structure
                 '-size-ratio', 
-                '0.25', #- fraction of the structure's largest cluster area
+                '0.1', #- fraction of the structure's largest cluster area
                 '0', #- fraction of the structure's largest cluster volume
 
                 # '-distance', #- ignore clusters further than a given distance from the largest cluster in the structure
@@ -453,8 +453,6 @@ def findFmriExtrema(subjectId: str) -> bool:
   subjectFolder = config.SUBJECTS_DIR / subjectId
   labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
   labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
-  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
-  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
   g.logger.info("Ensuring files files exist")
   filesToExist = [
                     labelledLFile,

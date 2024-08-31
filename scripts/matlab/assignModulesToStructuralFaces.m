@@ -103,43 +103,29 @@ end
 minModule_L = min(cat(1,moduleFacevert_L.id));
 maxModule_L = max(cat(1,moduleFacevert_L.id));
 [L_facesROI] = loopROIAndAssignLabels(minModule_L, maxModule_L, lo_glpfaces, moduleFacevert_L);
+[~,~,indicesWithModule_L] = intersect(L_facesROI(:,1:3),lo_glpfaces(:,1:3),'rows','stable');
+lo_faceModuleL = lo_glpfaces;
+lo_faceModuleL(:,4) = -1;
+lo_faceModuleL(indicesWithModule_L,4) = L_facesROI(:,4);
+lo_faceModuleL(lo_faceModuleL(:,4)==-1,4) = 0;
+lo_faceModuleL = lo_faceModuleL(:,4);
+
 
 minModule_R = min(cat(1,moduleFacevert_R.id));
 maxModule_R = max(cat(1,moduleFacevert_R.id));
 [R_facesROI] = loopROIAndAssignLabels(minModule_R, maxModule_R, lo_grpfaces, moduleFacevert_R);
+[~,~,indicesWithModule_R] = intersect(R_facesROI(:,1:3),lo_grpfaces(:,1:3),'rows','stable');
+lo_faceModuleR = lo_grpfaces;
+lo_faceModuleR(:,4) = -1;
+lo_faceModuleR(indicesWithModule_R,4) = R_facesROI(:,4);
+lo_faceModuleR(lo_faceModuleR(:,4)==-1,4) = 0;
+lo_faceModuleR = lo_faceModuleR(:,4);
+
 
 modulesByFace.left_functional_modulesByAllId(:,1) = [1:1:length(L_facesROI)];
-modulesByFace.left_functional_modulesByAllId(:,2) = L_facesROI(:,4);
+modulesByFace.left_functional_modulesByAllId(:,2) = lo_faceModuleL;
 modulesByFace.right_functional_modulesByAllId(:,1) = [1:1:length(R_facesROI)];
-modulesByFace.right_functional_modulesByAllId(:,2) = R_facesROI(:,4);
-
-
-fmriCifti_L = ft_read_cifti([pathToFile,'/',subject,'/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/',subject,'_tfMRI_MOTOR_level2_hp200_s2_MSMAll_',subject,'_tfMRI_MOTOR_level2_LF-AVG_hp200_s2_MSMAll.dscalar.nii']);
-strucCifti_mock = struct();
-strucCifti_mock.dscalar = modulesByFace.left_structural_modulesByAllId(:,2);
-strucCifti_mock.pos=[lo_glpvertex; lo_grpvertex];
-strucCifti_mock.dimord='pos';
-strucCifti_mock.tri=[lo_glpfaces; lo_grpfaces];
-%strucCifti_mock.brainstructure = strucCifti_mock.brainstructure(1:length(strucCifti_mock.pos));
-%ft_write_cifti([pathToFile,'/',subject,'/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/',subject,'_tfMRI_MOTOR_level2_hp200_s2_MSMAll_',subject,'_tfMRI_MOTOR_level2_LF-AVG_hp200_s2_MSMAll_structuralModules.dscalar.nii'], strucCifti_mock, 'parameter', 'dscalar','writesurface',false);
-
-fmriModules(:,1) = 1:1:length(fmriCifti_L.dscalar);
-fmriModules(:,2) = fmriCifti_L.dscalar;
-
-%TODO: In progress, trying to get fmri values to align with structural when
-%visualised.
-% gifti_L = gifti([pathToFile,'/',subject,'/MNINonLinear/fsaverage_LR32k/100307.L.pial_MSMAll.32k_fs_LR.surf.gii']);
-% gifti_R = gifti([pathToFile,'/',subject,'/MNINonLinear/fsaverage_LR32k/100307.R.pial_MSMAll.32k_fs_LR.surf.gii']);
-% nfl = gifti_L.faces;
-% nfr = gifti_R.faces;
-% nvl = gifti_L.vertices;
-% nvr = gifti_R.vertices;
-% totalVertices = length(nvl) + length(nvr);
-% totalVertices_downsampled = length(lo_glpvertex) + length(lo_grpvertex);
-% totalFmriDataPoints = length(fmriModules);
-% 
-% 
-% fmriModules(isnan(fmriModules)) = 0;
+modulesByFace.right_functional_modulesByAllId(:,2) = lo_faceModuleR;
 
 
 filename=[pathToFile,'/',subject,'/modulesByFace.mat'];

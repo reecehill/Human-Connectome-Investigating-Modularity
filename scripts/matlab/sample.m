@@ -119,6 +119,52 @@ for moduleId=1:max(strucModulesL_sorted)
 end
 legend(legends,legendText{:});
 
+%% Structural modules on pial surface
+graphOpts = {'FaceAlpha',0.95,'EdgeAlpha',0.04,'AlignVertexCenters','on','LineJoin','round','FaceLighting','gouraud'};
+figure;
+title("Structural modules on brain surface (precentral only) ");
+hold on;
+nModules_L = length(unique(modulesByFace.left_structural_modulesByAllId(:,2)));
+nModules_R = length(unique(modulesByFace.right_structural_modulesByAllId(:,2)));
+nModules = nModules_L + nModules_R;
+cmap = jet(nModules);
+colors_L = cmap(modulesByFace.left_structural_modulesByAllId(:,2)+1,:);
+colors_R = cmap(modulesByFace.right_structural_modulesByAllId(:,2)+1+nModules_L,:);
+roiIds_L = find(lo_faceROIidL(:,1)==25);
+roiIds_R = find(lo_faceROIidR(:,1)==60);
+plotsurf(lo_glpvertex,lo_glpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_grpvertex,lo_grpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_glpvertex,[lo_glpfaces(roiIds_L,:) modulesByFace.left_structural_modulesByAllId(roiIds_L,2)],graphOpts{:});
+plotsurf(lo_grpvertex,[lo_grpfaces(roiIds_R,:) modulesByFace.right_structural_modulesByAllId(roiIds_R,2)],graphOpts{:});
+campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
+lighting gouraud;
+camlight;
+
+figure;
+title("Functional (left foot movement) modules on brain surface (precentral only) ");
+hold on;
+nModules_L = length(unique(modulesByFace.left_functional_modulesByAllId(:,2)));
+nModules_R = length(unique(modulesByFace.right_functional_modulesByAllId(:,2)));
+nModules = nModules_L + nModules_R;
+cmap = jet(nModules+1);
+colors_L = cmap(modulesByFace.left_functional_modulesByAllId(:,2)+1,:);
+colors_R = cmap(modulesByFace.right_functional_modulesByAllId(:,2)+1+nModules_L,:);
+roiIds_L = find(lo_faceROIidL(:,1)==25);
+roiIds_R = find(lo_faceROIidR(:,1)==60);
+
+% Use flattened surface
+% [flat_lo_glpfaces, flat_lo_grpfaces, flat_lo_glpvertex, flat_lo_grpvertex, filenames, subfilenames, flat_lo_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.flat.32k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.flat.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+% plotsurf(flat_lo_glpvertex,[flat_lo_glpfaces(roiIds_L,:) modulesByFace.left_functional_modulesByAllId(roiIds_L,2)]);
+% plotsurf(flat_lo_grpvertex,[flat_lo_grpfaces(roiIds_R,:) modulesByFace.right_functional_modulesByAllId(roiIds_R,2)]);
+plotsurf(lo_glpvertex,lo_glpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_grpvertex,lo_grpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_glpvertex,[lo_glpfaces(roiIds_L,:) modulesByFace.left_functional_modulesByAllId(roiIds_L,2)],graphOpts{:});
+plotsurf(lo_grpvertex,[lo_grpfaces(roiIds_R,:) modulesByFace.right_functional_modulesByAllId(roiIds_R,2)],graphOpts{:});
+campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
+lighting gouraud;
+camlight;
+
+
 
 %% Load in gifti data from fMRI
 mycifti = ft_read_cifti(['../../data/subjects','/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii']);

@@ -51,13 +51,13 @@ DSI_STUDIO_USE_ROI = True
 # ----------
 # [START] NETWORKX PARAMETERS
 # ----------
-NETWORKX_ALGORITHM: str = 'leiden_communities' # asyn_fluidc, louvain_communities, leiden_communities, scan, frc_fgsn, fast_label_propagation_communities, girvan_newman, k_clique_communities, greedy_modularity_communities
+NETWORKX_ALGORITHM: str = 'leiden_communities' # louvain_communities, leiden_communities, scan, frc_fgsn, fast_label_propagation_communities, girvan_newman, k_clique_communities, greedy_modularity_communities
 NETWORKX_GAMMA_START = 0.2
 NETWORKX_GAMMA_END = 0.6
 NETWORKX_GAMMA_STEP = 0.02
 NETWORKX_ITERATION_COUNT = 5
 NETWORKX_MAX_LEVEL: int|None = 5
-NETWORKX_FLUID_K: int = 30
+NETWORKX_FLUID_K: int = 3
 # ----------
 # [END] NETWORKX PARAMETERS
 # ----------
@@ -70,7 +70,7 @@ EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
 RUN_MATLAB_DIFFUSION = False
-RUN_MATLAB_FUNCTIONAL = False
+RUN_MATLAB_FUNCTIONAL = True
 RUN_NETWORKX= True
 RUN_MATLAB_MAPPING = False
 MATLAB_CALCULATE_STATS = False
@@ -79,15 +79,26 @@ MATLAB_CALCULATE_STATS = False
 # ----------
 
 # ----------
+# [START] FINDING MODULARITY (NETWORKX) PARAMETERS
+# ----------
+L_MATRIX = "adj_matrix_wei_roiL" # adj_matrix_wei_roiL, adj_matrix_bin_roiL 
+R_MATRIX = "adj_matrix_wei_roiR" # adj_matrix_wei_roiR, adj_matrix_bin_roiR 
+# ----------
+# [END] FINDING MODULARITY (NETWORKX) PARAMETERS
+# ----------
+
+
+# ----------
 # [START] FMRI PARAMETERS
 # ----------
 DESIRED_FMRI_MAPS: list[str] = [
-  '$subjectId$_tfMRI_MOTOR_level2_LF-AVG_hp200_s2_MSMAll',
-  '$subjectId$_tfMRI_MOTOR_level2_RF-AVG_hp200_s2_MSMAll',
-  '$subjectId$_tfMRI_MOTOR_level2_LH-AVG_hp200_s2_MSMAll',
-  '$subjectId$_tfMRI_MOTOR_level2_RH-AVG_hp200_s2_MSMAll',
-  '$subjectId$_tfMRI_MOTOR_level2_T-AVG_hp200_s2_MSMAll'] # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
-CLUSTER_THRESHOLD: float = 90 # fMRI values above this threshold will indicate a cluster.
+  '$subjectId$_tfMRI_MOTOR_level2_LF_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_RF_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_LH_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_RH_hp200_s2_MSMAll',
+  '$subjectId$_tfMRI_MOTOR_level2_T_hp200_s2_MSMAll'] # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
+CLUSTER_THRESHOLD: float = 90 # fMRI values above this percentile will indicate a cluster.
+CLUSTER_MIN_AREA: float = 5.0 # in mm
 # ----------
 # [END] FMRI PARAMETERS
 # ----------

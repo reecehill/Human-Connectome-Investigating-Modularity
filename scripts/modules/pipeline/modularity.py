@@ -15,7 +15,7 @@ from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import itertools
 from collections import defaultdict, deque
-from cdlib import algorithms
+from cdlib import NodeClustering, algorithms
 def convertMatlabDataToPython(subjectId: str) -> bool:
   
   return True
@@ -100,14 +100,14 @@ def runLouvainAlgorithm(graph: Graph, gamma: np.float64) -> 'tuple[list[list[int
 def findModularity(subjectId: str) -> bool:
   L_optimalGamma = np.NaN
   R_optimalGamma = np.NaN
-  L_optimalModules: 'list[list[int]]' = []
-  R_optimalModules: 'list[list[int]]' = []
+  L_optimalModules: 'list[list[int]]|NodeClustering' = []
+  R_optimalModules: 'list[list[int]]|NodeClustering' = []
   
   L_graph = from_scipy_sparse_array(
-          getComputedMatrix(subjectId,"adj_matrix_wei_roiL")
+          getComputedMatrix(subjectId,config.L_MATRIX)
           )
   R_graph = from_scipy_sparse_array(
-          getComputedMatrix(subjectId,"adj_matrix_wei_roiR")
+          getComputedMatrix(subjectId,config.R_MATRIX)
           )
   g.logger.info(f"Running NetworkX: calculating modularity using: {config.NETWORKX_ALGORITHM}.")
   match config.NETWORKX_ALGORITHM:
@@ -129,8 +129,8 @@ def findModularity(subjectId: str) -> bool:
       R_optimalModules = algorithms.scan(g_original=R_graph, epsilon=0.2, mu=10).communities # type: ignore
     case 'louvain_communities': 
       # Search parameter space for gamma that yields maximal modularity.
-      L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix="adj_matrix_wei_roiL")
-      R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix="adj_matrix_wei_roiR")
+      L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
+      R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
 
       # Using the optimal gamma, find the modules arrangement.
       L_optimalModules, _ = runLouvainAlgorithm(
@@ -142,9 +142,9 @@ def findModularity(subjectId: str) -> bool:
     case 'greedy_modularity_communities':
       # Search parameter space for gamma that yields maximal modularity.
       L_optimalGamma = 0.2
-      # L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix="adj_matrix_wei_roiL")
+      # L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
       R_optimalGamma = 0.2
-      # R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix="adj_matrix_wei_roiR")
+      # R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
       
       L_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(L_graph, weight='weight', resolution=L_optimalGamma, cutoff=10,best_n=10)] # type: ignore
       R_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(R_graph, weight='weight', resolution=R_optimalGamma, cutoff=10,best_n=10)] # type: ignore
@@ -153,43 +153,9 @@ def findModularity(subjectId: str) -> bool:
       L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
       R_optimalModules_gen = nx_community.fast_label_propagation_communities(R_graph, weight='weight') # type: ignore
       R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case 'asyn_fluidc': 
-      ## LEFT HEMISPHERE
-      # Split graph into components of connectivity.
-      L_optimalModules_components_gen = nx.connected_components(L_graph) # type: ignore
-      L_optimalModules_components = [L_graph.subgraph(component).copy() for component in deque(L_optimalModules_components_gen, maxlen=len(L_graph))]
-      # Take largest component (?disregard outliers)
-      L_optimalModules_component = max(L_optimalModules_components, key=len)
-
-      # Generator of modules for largest component. 
-      L_optimalModules_gen = nx_community.asyn_fluidc(
-        L_optimalModules_component,
-        k=min(config.NETWORKX_FLUID_K,len(L_optimalModules_component)))
-
-      # Get modules.
-      L_optimalModules = [
-        list(community) for community in deque(
-          L_optimalModules_gen,
-          maxlen=len(L_graph))]
-      
-      ## RIGHT HEMISPHERE
-      # Split graph into components of connectivity.
-      R_optimalModules_components_gen = nx.connected_components(R_graph) # type: ignore
-      R_optimalModules_components = [R_graph.subgraph(component).copy() for component in deque(R_optimalModules_components_gen, maxlen=len(R_graph))]
-      # Take largest component (?disregard outliers)
-      R_optimalModules_component = max(R_optimalModules_components, key=len)
-
-      # Generator of modules for largest component. 
-      R_optimalModules_gen = nx_community.asyn_fluidc(
-        R_optimalModules_component,
-        k=min(config.NETWORKX_FLUID_K,len(R_optimalModules_component)))
-
-      # Get modules.
-      R_optimalModules = [
-        list(community) for community in deque(
-          R_optimalModules_gen,
-          maxlen=len(R_graph))]
-
+    case 'async_fluid': 
+      L_optimalModules = algorithms.async_fluid(L_graph,k=config.NETWORKX_FLUID_K)
+      R_optimalModules = algorithms.async_fluid(R_graph,k=config.NETWORKX_FLUID_K)
     case 'girvan_newman': 
       L_optimalModules_gen = nx_community.girvan_newman(L_graph) # type: ignore
       L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]

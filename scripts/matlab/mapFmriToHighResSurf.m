@@ -148,13 +148,3 @@ if(nMissingFmriData>0)
     disp(nMissingFmriData+" vertices with an unknown/missing fMRI data value encountered. They were skipped.");
 end
 end
-function [facesROI] = loopROIAndAssignLabels(ROI_startIndex, ROI_endIndex, faces)
-    facesROI={};
-    parfor roi=ROI_startIndex:ROI_endIndex
-        x=sum(ismember(faces,ROIfacevert(roi).faces(:,1)+1),2);
-        ROIfacevert(roi).ffaces=find(x>1); %by Xue
-        nbffaces=length(ROIfacevert(roi).ffaces);
-        facesROI{roi} = [faces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
-    end
-    facesROI=cat(1,facesROI{:});
-end

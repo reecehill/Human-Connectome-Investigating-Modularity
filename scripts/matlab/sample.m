@@ -19,6 +19,15 @@ load('../../data/subjects/100307/trsfmTrk.mat');
 load('../../data/subjects/100307/optimal_modules.mat');
 assignModulesToStructuralFaces('../../data/subjects','100307','yes');
 load('../../data/subjects/100307/modulesByFace.mat');
+[inflated_lo_glpfaces, inflated_lo_grpfaces, inflated_lo_glpvertex, inflated_lo_grpvertex, filenames, subfilenames, inflated_lo_ROIfacevert]  = loadMesh([pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.very_inflated_MSMAll.32k_fs_LR.surf.gii'],[pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.very_inflated_MSMAll.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+[flat_lo_glpfaces, flat_lo_grpfaces, flat_lo_glpvertex, flat_lo_grpvertex, filenames, subfilenames, flat_lo_ROIfacevert]  = loadMesh([pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.flat.32k_fs_LR.surf.gii'],[pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.flat.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
+lowestLhLabelId = find(contains(filenames,'lh.'), 1, 'first' );
+highestRhLabelId = find(contains(filenames,'rh.'), 1, 'last' );
+lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
+[~,flat_lo_faceToNodeMapLH] = loopROIAndAssignLabels(lowestLhLabelId, highestLhLabelId, flat_lo_glpfaces, flat_lo_ROIfacevert);
+[~,flat_lo_faceToNodeMapRH] = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, flat_lo_grpfaces, flat_lo_ROIfacevert);
+  
 
 figure;
 title("Weighted adjacency matrix - Remote + Local");
@@ -120,20 +129,20 @@ end
 legend(legends,legendText{:});
 
 %% Structural modules on pial surface
-graphOpts = {'FaceAlpha',0.95,'EdgeAlpha',0.04,'AlignVertexCenters','on','LineJoin','round','FaceLighting','gouraud'};
+graphOpts = {'FaceAlpha',1,'EdgeAlpha',0.04,'AlignVertexCenters','on','LineJoin','round','FaceLighting','gouraud'};
 figure;
 title("Structural modules on brain surface (precentral only) ");
 hold on;
 nModules_L = length(unique(modulesByFace.left_structural_modulesByAllId(:,2)));
 nModules_R = length(unique(modulesByFace.right_structural_modulesByAllId(:,2)));
 nModules = nModules_L + nModules_R;
-cmap = jet(nModules);
+cmap = lines(nModules);
 colors_L = cmap(modulesByFace.left_structural_modulesByAllId(:,2)+1,:);
 colors_R = cmap(modulesByFace.right_structural_modulesByAllId(:,2)+1+nModules_L,:);
 roiIds_L = find(lo_faceROIidL(:,1)==25);
 roiIds_R = find(lo_faceROIidR(:,1)==60);
-plotsurf(lo_glpvertex,lo_glpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
-plotsurf(lo_grpvertex,lo_grpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_glpvertex,lo_glpfaces(~ismember(1:end,roiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_grpvertex,lo_grpfaces(~ismember(1:end,roiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
 plotsurf(lo_glpvertex,[lo_glpfaces(roiIds_L,:) modulesByFace.left_structural_modulesByAllId(roiIds_L,2)],graphOpts{:});
 plotsurf(lo_grpvertex,[lo_grpfaces(roiIds_R,:) modulesByFace.right_structural_modulesByAllId(roiIds_R,2)],graphOpts{:});
 campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
@@ -146,25 +155,190 @@ hold on;
 nModules_L = length(unique(modulesByFace.left_functional_modulesByAllId(:,2)));
 nModules_R = length(unique(modulesByFace.right_functional_modulesByAllId(:,2)));
 nModules = nModules_L + nModules_R;
-cmap = jet(nModules+1);
+cmap = lines(nModules+1);
 colors_L = cmap(modulesByFace.left_functional_modulesByAllId(:,2)+1,:);
 colors_R = cmap(modulesByFace.right_functional_modulesByAllId(:,2)+1+nModules_L,:);
 roiIds_L = find(lo_faceROIidL(:,1)==25);
 roiIds_R = find(lo_faceROIidR(:,1)==60);
 
-% Use flattened surface
-% [flat_lo_glpfaces, flat_lo_grpfaces, flat_lo_glpvertex, flat_lo_grpvertex, filenames, subfilenames, flat_lo_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.flat.32k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.flat.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
-% plotsurf(flat_lo_glpvertex,[flat_lo_glpfaces(roiIds_L,:) modulesByFace.left_functional_modulesByAllId(roiIds_L,2)]);
-% plotsurf(flat_lo_grpvertex,[flat_lo_grpfaces(roiIds_R,:) modulesByFace.right_functional_modulesByAllId(roiIds_R,2)]);
-plotsurf(lo_glpvertex,lo_glpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
-plotsurf(lo_grpvertex,lo_grpfaces,'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_glpvertex,lo_glpfaces(~ismember(1:end,roiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(lo_grpvertex,lo_grpfaces(~ismember(1:end,roiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
 plotsurf(lo_glpvertex,[lo_glpfaces(roiIds_L,:) modulesByFace.left_functional_modulesByAllId(roiIds_L,2)],graphOpts{:});
 plotsurf(lo_grpvertex,[lo_grpfaces(roiIds_R,:) modulesByFace.right_functional_modulesByAllId(roiIds_R,2)],graphOpts{:});
 campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
 lighting gouraud;
 camlight;
 
+%% Inflated image
+figure;
+title("Functional (left foot movement) modules on brain surface (precentral only) - inflated");
+hold on;
+nModules_L = length(unique(modulesByFace.left_functional_modulesByAllId(:,2)));
+nModules_R = length(unique(modulesByFace.right_functional_modulesByAllId(:,2)));
+nModules = nModules_L + nModules_R;
+cmap = lines(nModules+1);
+colors_L = cmap(modulesByFace.left_functional_modulesByAllId(:,2)+1,:);
+colors_R = cmap(modulesByFace.right_functional_modulesByAllId(:,2)+1+nModules_L,:);
+roiIds_L = find(lo_faceROIidL(:,1)==25);
+roiIds_R = find(lo_faceROIidR(:,1)==60);
 
+% Use flattened surface
+[inflated_lo_glpfaces, inflated_lo_grpfaces, inflated_lo_glpvertex, inflated_lo_grpvertex, filenames, subfilenames, inflated_lo_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.very_inflated_MSMAll.32k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.very_inflated_MSMAll.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+plotsurf(inflated_lo_glpvertex,inflated_lo_glpfaces(~ismember(1:end,roiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(inflated_lo_grpvertex,inflated_lo_grpfaces(~ismember(1:end,roiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(inflated_lo_glpvertex,[inflated_lo_glpfaces(roiIds_L,:) modulesByFace.left_functional_modulesByAllId(roiIds_L,2)]);
+plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(roiIds_R,:) modulesByFace.right_functional_modulesByAllId(roiIds_R,2)]);
+
+campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
+lighting gouraud;
+camlight;
+
+figure;
+title("Structural modules on brain surface (precentral only) - inflated");
+hold on;
+nModules_L = length(unique(modulesByFace.left_structural_modulesByAllId(:,2)));
+nModules_R = length(unique(modulesByFace.right_structural_modulesByAllId(:,2)));
+nModules = nModules_L + nModules_R;
+cmap = lines(nModules+1);
+colors_L = cmap(modulesByFace.left_structural_modulesByAllId(:,2)+1,:);
+colors_R = cmap(modulesByFace.right_structural_modulesByAllId(:,2)+1+nModules_L,:);
+roiIds_L = find(lo_faceROIidL(:,1)==25);
+roiIds_R = find(lo_faceROIidR(:,1)==60);
+
+% Use flattened surface
+[inflated_lo_glpfaces, inflated_lo_grpfaces, inflated_lo_glpvertex, inflated_lo_grpvertex, filenames, subfilenames, inflated_lo_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.very_inflated_MSMAll.32k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.very_inflated_MSMAll.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+plotsurf(inflated_lo_glpvertex,inflated_lo_glpfaces(~ismember(1:end,roiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(inflated_lo_grpvertex,inflated_lo_grpfaces(~ismember(1:end,roiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
+plotsurf(inflated_lo_glpvertex,[inflated_lo_glpfaces(roiIds_L,:) modulesByFace.left_structural_modulesByAllId(roiIds_L,2)]);
+plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(roiIds_R,:) modulesByFace.right_structural_modulesByAllId(roiIds_R,2)]);
+
+campos(1.0e+03 * [-1.1603    0.2411    0.5211]);
+lighting gouraud;
+camlight;
+
+%% Superimpose functional onto structural data
+figure;
+title("Structural and functional modules (left foot) on brain surface (precentral only) - inflated");
+hold on;
+nModules_L = length(unique(modulesByFace.left_structural_modulesByAllId(:,2)));
+nModules_R = length(unique(modulesByFace.right_structural_modulesByAllId(:,2)));
+nModules = nModules_L + nModules_R;
+cmap = lines(nModules+1);
+colors_L = cmap(modulesByFace.left_structural_modulesByAllId(:,2)+1,:);
+colors_R = cmap(modulesByFace.right_structural_modulesByAllId(:,2)+1+nModules_L,:);
+roiIds_L = find(lo_faceROIidL(:,1)==25);
+roiIds_R = find(lo_faceROIidR(:,1)==60);
+
+plotsurf(inflated_lo_glpvertex,inflated_lo_glpfaces(~ismember(1:end,roiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0],'DisplayName','Left Hemisphere');
+plotsurf(inflated_lo_grpvertex,inflated_lo_grpfaces(~ismember(1:end,roiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0],'DisplayName','Right Hemisphere');
+
+nStrucModules_L = length(unique(modulesByFace.left_structural_modulesByAllId(:,2)));
+nStrucModules_R = length(unique(modulesByFace.right_structural_modulesByAllId(:,2)));
+nFuncModules_L = length(unique(modulesByFace.left_functional_modulesByAllId(:,2)));
+nFuncModules_R = length(unique(modulesByFace.right_functional_modulesByAllId(:,2)));
+
+
+colormap_lines = lines(nStrucModules_L + nFuncModules_L + nStrucModules_R + nFuncModules_R);
+
+colorIndex = 1;
+for strucModuleIndex=1:nStrucModules_L
+    faceIndicesOfModule = find(modulesByFace.left_structural_modulesByAllId(:,2) == strucModuleIndex);
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    plotsurf(inflated_lo_glpvertex,[inflated_lo_glpfaces(faceIndicesOfModule,:) modulesByFace.left_structural_modulesByAllId(faceIndicesOfModule,2)],'DisplayName',['Structural Module: #',num2str(strucModuleIndex)], 'FaceColor', moduleColor);
+end
+for strucModuleIndex=1:nStrucModules_R
+    faceIndicesOfModule = find(modulesByFace.right_structural_modulesByAllId(:,2) == strucModuleIndex);
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(faceIndicesOfModule,:) modulesByFace.right_structural_modulesByAllId(faceIndicesOfModule,2)],'DisplayName',['Structural Module: #',num2str(strucModuleIndex)], 'FaceColor', moduleColor);
+end
+
+for funcModuleIndex=1:nFuncModules_L
+    faceIndicesOfModule = modulesByFace.left_functional_modulesByAllId(:,2) == funcModuleIndex;
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    edgesOfModules = surfedge(inflated_lo_glpfaces(faceIndicesOfModule,:));
+    plotedges(inflated_lo_glpvertex(:,1:3), edgesOfModules, 'linewidth',10, 'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off', 'Color', moduleColor);
+end
+for funcModuleIndex=1:nFuncModules_R
+    faceIndicesOfModule = modulesByFace.right_functional_modulesByAllId(:,2) == funcModuleIndex;
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    edgesOfModules = surfedge(inflated_lo_grpfaces(faceIndicesOfModule,:));
+    plotedges(inflated_lo_grpvertex(:,1:3), edgesOfModules, 'linewidth',10, 'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off', 'Color', moduleColor);
+end
+campos(1.0e+03 * [1.0518    0.1297    0.7534]);
+lighting gouraud;
+material dull
+camlight;
+legend;
+zoom on;
+axis off
+ax = gca;
+ax.Clipping = "off";
+
+
+%% Superimposed modules on flat surface
+figure;
+title("Structural and functional modules (left foot) on brain surface (precentral only) - flat");
+hold on;
+
+nodeStrucModules_L = mapFaceValuesToNodes(modulesByFace.left_structural_modulesByAllId(:,2),flat_lo_glpvertex,flat_lo_faceToNodeMapLH);
+nodeStrucModules_R = mapFaceValuesToNodes(modulesByFace.right_structural_modulesByAllId(:,2),flat_lo_grpvertex,flat_lo_faceToNodeMapRH);
+nodeFuncModules_L = mapFaceValuesToNodes(modulesByFace.left_functional_modulesByAllId(:,2),flat_lo_glpvertex,flat_lo_faceToNodeMapLH);
+nodeFuncModules_R = mapFaceValuesToNodes(modulesByFace.right_functional_modulesByAllId(:,2),flat_lo_grpvertex,flat_lo_faceToNodeMapRH);
+nodeRoiIds_L = mapFaceValuesToNodes(lo_faceROIidL(:,1),flat_lo_glpvertex,flat_lo_faceToNodeMapLH);
+nodeRoiIds_R = mapFaceValuesToNodes(lo_faceROIidR(:,1),flat_lo_grpvertex,flat_lo_faceToNodeMapRH);
+
+plotsurf(flat_lo_glpvertex,flat_lo_glpfaces(~ismember(1:end,nodeRoiIds_L),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0],'DisplayName','Left Hemisphere');
+plotsurf(flat_lo_grpvertex,flat_lo_grpfaces(~ismember(1:end,nodeRoiIds_R),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0],'DisplayName','Right Hemisphere');
+
+nStrucModules_L = length(unique(nodeStrucModules_L));
+nStrucModules_R = length(unique(nodeStrucModules_R));
+nFuncModules_L = length(unique(nodeFuncModules_L));
+nFuncModules_R = length(unique(nodeFuncModules_R));
+
+
+colormap_lines = lines(nStrucModules_L + nFuncModules_L + nStrucModules_R + nFuncModules_R);
+
+colorIndex = 1;
+% for strucModuleIndex=1:nStrucModules_L
+%     faceIndicesOfModule = find(nodeStrucModules_L == strucModuleIndex);
+%     moduleColor = colormap_lines(colorIndex,:);
+%     colorIndex = colorIndex + 1;
+%     plotsurf(flat_lo_glpvertex,[flat_lo_glpfaces(faceIndicesOfModule,:) nodeStrucModules_L(faceIndicesOfModule,1)],'DisplayName',['Structural Module: #',num2str(strucModuleIndex)], 'FaceColor', moduleColor);
+% end
+for strucModuleIndex=1:nStrucModules_R
+    faceIndicesOfModule = find(nodeStrucModules_R == strucModuleIndex);
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    plotsurf(flat_lo_grpvertex,[flat_lo_grpfaces(faceIndicesOfModule,:) nodeStrucModules_R(faceIndicesOfModule,1)],'DisplayName',['Structural Module: #',num2str(strucModuleIndex)], 'FaceColor', moduleColor);
+end
+
+for funcModuleIndex=1:nFuncModules_L
+    faceIndicesOfModule = modulesByFace.left_functional_modulesByAllId(:,2) == funcModuleIndex;
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    edgesOfModules = surfedge(inflated_lo_glpfaces(faceIndicesOfModule,:));
+    plotedges(inflated_lo_glpvertex(:,1:3), edgesOfModules, 'linewidth',10, 'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off', 'Color', moduleColor);
+end
+for funcModuleIndex=1:nFuncModules_R
+    faceIndicesOfModule = modulesByFace.right_functional_modulesByAllId(:,2) == funcModuleIndex;
+    moduleColor = colormap_lines(colorIndex,:);
+    colorIndex = colorIndex + 1;
+    edgesOfModules = surfedge(inflated_lo_grpfaces(faceIndicesOfModule,:));
+    plotedges(inflated_lo_grpvertex(:,1:3), edgesOfModules, 'linewidth',10, 'linestyle','-','DisplayName',['Functional Module: #' num2str(funcModuleIndex)],'Marker','o','MarkerSize',3,'AlignVertexCenters','on','HandleVisibility','off', 'Color', moduleColor);
+end
+campos(1.0e+03 * [1.0518    0.1297    0.7534]);
+lighting gouraud;
+material dull
+camlight;
+legend;
+zoom on;
+axis off
+ax = gca;
+ax.Clipping = "off";
 
 %% Load in gifti data from fMRI
 mycifti = ft_read_cifti(['../../data/subjects','/100307/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/100307_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii']);
@@ -199,8 +373,8 @@ set(ax(2), 'Colormap', copper);
 ax(2).Visible = 'off';
 ax(2).XTick = [];
 ax(2).YTick = [];
-colormap(ax(1), jet(max(strucValues_matrix,[],'all')));
-colormap(ax(2), copper(max(fMRIvalues_matrix,[],'all')));
+colormap_lines(ax(1), jet(max(strucValues_matrix,[],'all')));
+colormap_lines(ax(2), copper(max(fMRIvalues_matrix,[],'all')));
 c1 = colorbar(ax(1),'Position',[.05 .11 .0675 .815], 'Limits', [min(strucValues_matrix,[],'all'),max(strucValues_matrix,[],'all')]);
 c1.Label.String = 'Module id (structural)';
 c2 = colorbar(ax(2),'Position',[.88 .11 .0675 .815], 'Limits', [min(fMRIvalues_matrix,[],'all'),max(fMRIvalues_matrix,[],'all')]);

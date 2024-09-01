@@ -9,6 +9,8 @@ function [...
     hi_glpvertex,hi_grpvertex,...
     lo_faceROIidL,lo_faceROIidR,lo_faceROIidSubCor,...
     hi_faceROIidL,hi_faceROIidR,hi_faceROIidSubCor,...
+    lo_faceToNodeMapLH, lo_faceToNodeMapRH,...
+    hi_faceToNodeMapLH, hi_faceToNodeMapRH,...
     lo_centroidsL,lo_centroidsR,lo_centroidsSubCor,...
     hi_centroidsL,hi_centroidsR,hi_centroidsSubCor,...
     filenames,subfilenames...
@@ -38,7 +40,7 @@ ft_hastoolbox('gifti',1);
 %% load label info
 disp('step2: load surface node coordinates and their denoted label')
 atlas=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii.gz']);% load aparc+aseg.nii to get subcortical coordinates
-[hi_glpfaces, hi_grpfaces, hi_glpvertex, hi_grpvertex, filenames, subfilenames, hi_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/',subjectId,'.L.pial_MSMAll.164k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/',subjectId,'.R.pial_MSMAll.164k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+[hi_glpfaces, hi_grpfaces, hi_glpvertex, hi_grpvertex, filenames, subfilenames, hi_ROIfacevert]  = loadMesh([pathToFile,'/',subjectId,'/MNINonLinear/',subjectId,'.L.pial_MSMAll.164k_fs_LR.surf.gii'],[pathToFile,'/',subjectId,'/MNINonLinear/',subjectId,'.R.pial_MSMAll.164k_fs_LR.surf.gii'],pathToFile,subjectId,type);
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates (that is lh/rh.pial.surf.gii)
 elseif type==2
@@ -49,13 +51,13 @@ end
 %% assign labels to LH hi-res
 highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
 lowestLhLabelId = find(contains(filenames,'lh.'), 1, 'first' );
-hi_facesLH = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, hi_glpfaces, hi_ROIfacevert);
+[hi_facesLH, hi_faceToNodeMapLH] = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, hi_glpfaces, hi_ROIfacevert);
 hi_faceROIidL = hi_facesLH(:,4);
 
 %% assign labels to RH hi-res
 highestRhLabelId = find(contains(filenames,'rh.'), 1, 'last' );
 lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
-hi_facesRH = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, hi_grpfaces, hi_ROIfacevert);
+[hi_facesRH, hi_faceToNodeMapRH] = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, hi_grpfaces, hi_ROIfacevert);
 hi_faceROIidR = hi_facesRH(:,4);
 
 %% get subcortical coordinates and then map to pial space
@@ -143,7 +145,7 @@ elseif strcmp(downsample,'yes')
         highestRhLabelId = find(contains(filenames,'rh.'), 1, 'last' );
         lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
         
-        lo_facesLH = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, lo_glpfaces, lo_ROIfacevert);
+        [lo_facesLH,lo_faceToNodeMapLH] = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, lo_glpfaces, lo_ROIfacevert);
         [~,~,indicesWithLabel_L] = intersect(lo_facesLH(:,1:3),lo_glpfaces(:,1:3),'rows','stable');
         lo_faceROIidL = lo_glpfaces;
         lo_faceROIidL(:,4) = -1;
@@ -152,7 +154,7 @@ elseif strcmp(downsample,'yes')
         lo_faceROIidL = lo_faceROIidL(:,4);
         
 
-        lo_facesRH = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, lo_grpfaces, lo_ROIfacevert);
+        [lo_facesRH,lo_faceToNodeMapRH] = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, lo_grpfaces, lo_ROIfacevert);
         [~,~,indicesWithLabel_R] = intersect(lo_facesRH(:,1:3),lo_grpfaces(:,1:3),'rows','stable');
         lo_faceROIidR = lo_grpfaces;
         lo_faceROIidR(:,4) = -1;

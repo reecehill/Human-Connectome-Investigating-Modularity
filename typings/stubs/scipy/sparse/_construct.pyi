@@ -122,7 +122,7 @@ def diags(diagonals, offsets=..., shape=..., format=..., dtype=...): # -> dia_ma
     """
     ...
 
-def identity(n, dtype=..., format=...): # -> csc_matrix | csr_matrix | coo_matrix | dia_matrix | Any:
+def identity(n, dtype=..., format=...): # -> coo_matrix | dia_matrix | Any:
     """Identity matrix in sparse format
 
     Returns an identity matrix with shape (n,n) using a given
@@ -151,7 +151,7 @@ def identity(n, dtype=..., format=...): # -> csc_matrix | csr_matrix | coo_matri
     """
     ...
 
-def eye(m, n=..., k=..., dtype=..., format=...): # -> csc_matrix | csr_matrix | coo_matrix | dia_matrix | Any:
+def eye(m, n=..., k=..., dtype=..., format=...): # -> coo_matrix | dia_matrix | Any:
     """Sparse matrix with ones on diagonal
 
     Returns a sparse (m x n) matrix where the kth diagonal

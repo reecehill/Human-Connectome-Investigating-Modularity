@@ -131,7 +131,7 @@ class LinearOperator:
 
     """
     ndim = ...
-    def __new__(cls, *args, **kwargs): # -> Self:
+    def __new__(cls, *args, **kwargs): # -> LinearOperator:
         ...
     
     def __init__(self, dtype, shape) -> None:
@@ -142,7 +142,7 @@ class LinearOperator:
         """
         ...
     
-    def matvec(self, x): # -> ndarray[Any, Any]:
+    def matvec(self, x): # -> ndarray[Any, dtype[Any]] | ndarray[Any, Any]:
         """Matrix-vector multiplication.
 
         Performs the operation y=A*x where A is an MxN linear
@@ -167,7 +167,7 @@ class LinearOperator:
         """
         ...
     
-    def rmatvec(self, x): # -> ndarray[Any, Any]:
+    def rmatvec(self, x): # -> ndarray[Any, dtype[Any]] | ndarray[Any, Any]:
         """Adjoint matrix-vector multiplication.
 
         Performs the operation y = A^H * x where A is an MxN linear
@@ -192,7 +192,7 @@ class LinearOperator:
         """
         ...
     
-    def matmat(self, X): # -> matrix[Any, Any] | ndarray[Any, Any]:
+    def matmat(self, X): # -> matrix[Any, dtype[Any]] | matrix[Any, Any] | ndarray[Any, dtype[Any]]:
         """Matrix-matrix multiplication.
 
         Performs the operation y=A*X where A is an MxN linear
@@ -217,7 +217,7 @@ class LinearOperator:
         """
         ...
     
-    def rmatmat(self, X): # -> matrix[Any, Any] | ndarray[Any, Any] | Any:
+    def rmatmat(self, X): # -> matrix[Any, dtype[Any]] | matrix[Any, Any] | ndarray[Any, dtype[Any]] | Any:
         """Adjoint matrix-matrix multiplication.
 
         Performs the operation y = A^H * x where A is an MxN linear
@@ -244,10 +244,10 @@ class LinearOperator:
     def __call__(self, x):
         ...
     
-    def __mul__(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, Any] | matrix[Any, Any]:
+    def __mul__(self, x): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         ...
     
-    def dot(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, Any] | matrix[Any, Any]:
+    def dot(self, x): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         """Matrix-matrix or matrix-vector multiplication.
 
         Parameters
@@ -264,31 +264,31 @@ class LinearOperator:
         """
         ...
     
-    def __matmul__(self, other): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, Any] | matrix[Any, Any]:
+    def __matmul__(self, other): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         ...
     
-    def __rmatmul__(self, other): # -> _ScaledLinearOperator | _NotImplementedType:
+    def __rmatmul__(self, other): # -> LinearOperator | _NotImplementedType:
         ...
     
-    def __rmul__(self, x): # -> _ScaledLinearOperator | _NotImplementedType:
+    def __rmul__(self, x): # -> LinearOperator | _NotImplementedType:
         ...
     
-    def __pow__(self, p): # -> _PowerLinearOperator | _NotImplementedType:
+    def __pow__(self, p): # -> LinearOperator | _NotImplementedType:
         ...
     
-    def __add__(self, x): # -> _SumLinearOperator | _NotImplementedType:
+    def __add__(self, x): # -> LinearOperator | _NotImplementedType:
         ...
     
-    def __neg__(self): # -> _ScaledLinearOperator:
+    def __neg__(self): # -> LinearOperator:
         ...
     
-    def __sub__(self, x): # -> _SumLinearOperator | _NotImplementedType:
+    def __sub__(self, x): # -> LinearOperator | _NotImplementedType:
         ...
     
     def __repr__(self): # -> str:
         ...
     
-    def adjoint(self): # -> _AdjointLinearOperator:
+    def adjoint(self): # -> LinearOperator:
         """Hermitian adjoint.
 
         Returns the Hermitian adjoint of self, aka the Hermitian
@@ -305,7 +305,7 @@ class LinearOperator:
         ...
     
     H = ...
-    def transpose(self): # -> _TransposedLinearOperator:
+    def transpose(self): # -> LinearOperator:
         """Transpose this linear operator.
 
         Returns a LinearOperator that represents the transpose of this one.
@@ -383,7 +383,7 @@ class IdentityOperator(LinearOperator):
     
 
 
-def aslinearoperator(A): # -> LinearOperator | MatrixLinearOperator:
+def aslinearoperator(A): # -> LinearOperator:
     """Return A as a LinearOperator.
 
     'A' may be any of the following types:

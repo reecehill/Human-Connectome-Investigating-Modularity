@@ -297,7 +297,7 @@ class WAVE_FORMAT(IntEnum):
 
 
 KNOWN_WAVE_FORMATS = ...
-def read(filename, mmap=...): # -> tuple[Any, Any | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | memmap[Any, Any]]:
+def read(filename, mmap=...): # -> tuple[Any, Any | ndarray[Any, dtype[Any]] | memmap[Any, dtype[Any]]]:
     """
     Open a WAV file.
 

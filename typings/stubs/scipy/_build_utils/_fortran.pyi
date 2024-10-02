@@ -10,7 +10,7 @@ def get_fcompiler_ilp64_flags(): # -> dict[str, list[str]]:
     """
     ...
 
-def get_fcompiler_macro_include_flags(path): # -> dict[str, list[str | Any]]:
+def get_fcompiler_macro_include_flags(path): # -> dict[str, list[Any]]:
     """
     Dictionary of compiler flags for cpp-style preprocessing, with
     an #include search path, and safety options necessary for macro

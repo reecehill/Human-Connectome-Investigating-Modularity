@@ -12,7 +12,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def __init__(self, arg1, shape=..., dtype=..., copy=...) -> None:
         ...
     
-    def getnnz(self, axis=...): # -> int | tuple[Any, Any | None]:
+    def getnnz(self, axis=...): # -> int | NDArray[intp] | NDArray[Any]:
         ...
     
     def check_format(self, full_check=...): # -> None:
@@ -50,7 +50,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
         """
         ...
     
-    def diagonal(self, k=...): # -> ndarray[Any, Any]:
+    def diagonal(self, k=...): # -> NDArray[Any] | NDArray[float64]:
         ...
     
     def maximum(self, other): # -> Self:
@@ -59,7 +59,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def minimum(self, other): # -> Self:
         ...
     
-    def sum(self, axis=..., dtype=..., out=...): # -> Any:
+    def sum(self, axis=..., dtype=..., out=...): # -> matrix[Any, Any] | Any:
         """Sum the matrix over the given axis.  If the axis is None, sum
         over both rows and columns, returning a scalar.
         """
@@ -68,7 +68,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def tocoo(self, copy=...): # -> coo_matrix:
         ...
     
-    def toarray(self, order=..., out=...): # -> ndarray[Any, Any]:
+    def toarray(self, order=..., out=...): # -> NDArray[float64]:
         ...
     
     def eliminate_zeros(self): # -> None:

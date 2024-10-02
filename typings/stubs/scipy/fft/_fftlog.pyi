@@ -213,7 +213,7 @@ def ifht(A, dln, mu, offset=..., bias=...):
     '''
     ...
 
-def fhtcoeff(n, dln, mu, offset=..., bias=...): # -> ndarray[Any, Any]:
+def fhtcoeff(n, dln, mu, offset=..., bias=...): # -> NDArray[Any]:
     '''Compute the coefficient array for a fast Hankel transform.
     '''
     ...

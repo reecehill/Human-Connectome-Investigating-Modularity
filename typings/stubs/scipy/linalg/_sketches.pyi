@@ -40,7 +40,7 @@ def cwt_matrix(n_rows, n_columns, seed=...): # -> csc_matrix:
     """
     ...
 
-def clarkson_woodruff_transform(input_matrix, sketch_size, seed=...):
+def clarkson_woodruff_transform(input_matrix, sketch_size, seed=...): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
     r"""
     Applies a Clarkson-Woodruff Transform/sketch to the input matrix.
 

@@ -213,7 +213,7 @@ class spmatrix:
         """Element-wise minimum between this and another matrix."""
         ...
     
-    def dot(self, other):
+    def dot(self, other): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
         """Ordinary dot product
 
         Examples
@@ -262,19 +262,19 @@ class spmatrix:
     def __radd__(self, other): # -> Self | _NotImplementedType:
         ...
     
-    def __sub__(self, other): # -> Self | _NotImplementedType:
+    def __sub__(self, other): # -> Self | NDArray[Any] | _NotImplementedType:
         ...
     
-    def __rsub__(self, other): # -> _NotImplementedType:
+    def __rsub__(self, other): # -> NDArray[Any] | _NotImplementedType:
         ...
     
-    def __mul__(self, other): # -> _NotImplementedType | ndarray[Any, Any] | matrix[Any, Any]:
+    def __mul__(self, other): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
         ...
     
     def __rmul__(self, other): # -> _NotImplementedType:
         ...
     
-    def __matmul__(self, other): # -> _NotImplementedType | ndarray[Any, Any] | matrix[Any, Any]:
+    def __matmul__(self, other): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
         ...
     
     def __rmatmul__(self, other): # -> _NotImplementedType:
@@ -310,7 +310,7 @@ class spmatrix:
     def __itruediv__(self, other): # -> _NotImplementedType:
         ...
     
-    def __pow__(self, other): # -> dia_array | csc_matrix | csr_matrix | coo_matrix | dia_matrix | Any | Self | _NotImplementedType:
+    def __pow__(self, other): # -> dia_array | coo_matrix | dia_matrix | Any | Self | _NotImplementedType:
         ...
     
     def __getattr__(self, attr):
@@ -389,19 +389,19 @@ class spmatrix:
         """
         ...
     
-    def getcol(self, j): # -> _NotImplementedType | ndarray[Any, Any] | matrix[Any, Any]:
+    def getcol(self, j): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
         """Returns a copy of column j of the matrix, as an (m x 1) sparse
         matrix (column vector).
         """
         ...
     
-    def getrow(self, i): # -> _NotImplementedType | ndarray[Any, Any] | matrix[Any, Any]:
+    def getrow(self, i): # -> _NotImplementedType | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, Any]:
         """Returns a copy of row i of the matrix, as a (1 x n) sparse
         matrix (row vector).
         """
         ...
     
-    def todense(self, order=..., out=...): # -> ndarray[Any, Any] | matrix[Any, Any]:
+    def todense(self, order=..., out=...): # -> NDArray[Any] | matrix[Any, Any]:
         """
         Return a dense matrix representation of this matrix.
 
@@ -532,7 +532,7 @@ class spmatrix:
         """
         ...
     
-    def sum(self, axis=..., dtype=..., out=...): # -> Any:
+    def sum(self, axis=..., dtype=..., out=...): # -> Any | matrix[Any, Any]:
         """
         Sum the matrix elements over a given axis.
 

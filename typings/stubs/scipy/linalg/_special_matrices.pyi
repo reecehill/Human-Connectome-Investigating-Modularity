@@ -104,7 +104,7 @@ def triu(m, k=...): # -> Any:
     """
     ...
 
-def toeplitz(c, r=...):
+def toeplitz(c, r=...): # -> NDArray[Any]:
     """
     Construct a Toeplitz matrix.
 
@@ -156,7 +156,7 @@ def toeplitz(c, r=...):
     """
     ...
 
-def circulant(c):
+def circulant(c): # -> NDArray[Any]:
     """
     Construct a circulant matrix.
 
@@ -191,7 +191,7 @@ def circulant(c):
     """
     ...
 
-def hankel(c, r=...):
+def hankel(c, r=...): # -> NDArray[Any]:
     """
     Construct a Hankel matrix.
 
@@ -236,7 +236,7 @@ def hankel(c, r=...):
     """
     ...
 
-def hadamard(n, dtype=...): # -> ndarray[Any, Any]:
+def hadamard(n, dtype=...): # -> NDArray[Any]:
     """
     Construct an Hadamard matrix.
 
@@ -274,7 +274,7 @@ def hadamard(n, dtype=...): # -> ndarray[Any, Any]:
     """
     ...
 
-def leslie(f, s): # -> ndarray[Any, Any]:
+def leslie(f, s): # -> NDArray[float64]:
     """
     Create a Leslie matrix.
 
@@ -328,7 +328,7 @@ def leslie(f, s): # -> ndarray[Any, Any]:
     """
     ...
 
-def kron(a, b):
+def kron(a, b): # -> NDArray[Any]:
     """
     Kronecker product.
 
@@ -362,7 +362,7 @@ def kron(a, b):
     """
     ...
 
-def block_diag(*arrs): # -> ndarray[Any, Any]:
+def block_diag(*arrs): # -> NDArray[Any]:
     """
     Create a block diagonal matrix from provided arrays.
 
@@ -426,7 +426,7 @@ def block_diag(*arrs): # -> ndarray[Any, Any]:
     """
     ...
 
-def companion(a): # -> ndarray[Any, Any]:
+def companion(a): # -> NDArray[float64]:
     """
     Create a companion matrix.
 
@@ -472,7 +472,7 @@ def companion(a): # -> ndarray[Any, Any]:
     """
     ...
 
-def helmert(n, full=...):
+def helmert(n, full=...): # -> Any:
     """
     Create an Helmert matrix of order `n`.
 
@@ -508,7 +508,7 @@ def helmert(n, full=...):
     """
     ...
 
-def hilbert(n):
+def hilbert(n): # -> NDArray[Any]:
     """
     Create a Hilbert matrix of order `n`.
 
@@ -543,7 +543,7 @@ def hilbert(n):
     """
     ...
 
-def invhilbert(n, exact=...): # -> ndarray[Any, Any]:
+def invhilbert(n, exact=...): # -> NDArray[Any]:
     """
     Compute the inverse of the Hilbert matrix of order `n`.
 
@@ -601,7 +601,7 @@ def invhilbert(n, exact=...): # -> ndarray[Any, Any]:
     """
     ...
 
-def pascal(n, kind=..., exact=...): # -> ndarray[Any, Any] | float64 | Any:
+def pascal(n, kind=..., exact=...): # -> NDArray[Any] | NDArray[unsignedinteger[_64Bit]] | ndarray[Any, Any] | float64 | Any:
     """
     Returns the n x n Pascal matrix.
 
@@ -662,7 +662,7 @@ def pascal(n, kind=..., exact=...): # -> ndarray[Any, Any] | float64 | Any:
     """
     ...
 
-def invpascal(n, kind=..., exact=...): # -> ndarray[Any, Any]:
+def invpascal(n, kind=..., exact=...): # -> NDArray[Any] | NDArray[floating[Any]] | Any:
     """
     Returns the inverse of the n x n Pascal matrix.
 
@@ -796,7 +796,7 @@ def dft(n, scale=...):
     """
     ...
 
-def fiedler(a): # -> ndarray[Any, Any] | Any:
+def fiedler(a): # -> NDArray[Any] | Any:
     """Returns a symmetric Fiedler matrix
 
     Given an sequence of numbers `a`, Fiedler matrices have the structure
@@ -862,7 +862,7 @@ def fiedler(a): # -> ndarray[Any, Any] | Any:
     """
     ...
 
-def fiedler_companion(a): # -> ndarray[Any, Any]:
+def fiedler_companion(a): # -> NDArray[Any] | NDArray[float64]:
     """ Returns a Fiedler companion matrix
 
     Given a polynomial coefficient array ``a``, this function forms a
@@ -915,7 +915,7 @@ def fiedler_companion(a): # -> ndarray[Any, Any]:
     """
     ...
 
-def convolution_matrix(a, n, mode=...):
+def convolution_matrix(a, n, mode=...): # -> NDArray[Any]:
     """
     Construct a convolution matrix.
 

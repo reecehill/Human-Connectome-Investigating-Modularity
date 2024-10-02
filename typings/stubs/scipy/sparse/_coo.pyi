@@ -117,7 +117,7 @@ class coo_matrix(_data_matrix, _minmax_mixin):
     def reshape(self, *args, **kwargs): # -> Self:
         ...
     
-    def getnnz(self, axis=...): # -> int | tuple[Any, Any | None]:
+    def getnnz(self, axis=...): # -> int | NDArray[intp]:
         ...
     
     def transpose(self, axes=..., copy=...): # -> Self:
@@ -126,7 +126,7 @@ class coo_matrix(_data_matrix, _minmax_mixin):
     def resize(self, *shape): # -> None:
         ...
     
-    def toarray(self, order=..., out=...): # -> ndarray[Any, Any]:
+    def toarray(self, order=..., out=...): # -> NDArray[float64]:
         """See the docstring for `spmatrix.toarray`."""
         ...
     
@@ -183,7 +183,7 @@ class coo_matrix(_data_matrix, _minmax_mixin):
     def todok(self, copy=...): # -> dok_matrix:
         ...
     
-    def diagonal(self, k=...): # -> ndarray[Any, Any]:
+    def diagonal(self, k=...): # -> NDArray[float64]:
         ...
     
     def sum_duplicates(self): # -> None:

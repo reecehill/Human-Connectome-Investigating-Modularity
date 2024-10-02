@@ -87,7 +87,7 @@ class lil_matrix(spmatrix, IndexMixin):
     def __itruediv__(self, other): # -> Self | _NotImplementedType:
         ...
     
-    def getnnz(self, axis=...): # -> int | ndarray[Any, Any]:
+    def getnnz(self, axis=...): # -> int | NDArray[signedinteger[_NBitIntP]]:
         ...
     
     def count_nonzero(self): # -> int:
@@ -124,7 +124,7 @@ class lil_matrix(spmatrix, IndexMixin):
     def resize(self, *shape): # -> None:
         ...
     
-    def toarray(self, order=..., out=...): # -> ndarray[Any, Any]:
+    def toarray(self, order=..., out=...): # -> NDArray[float64]:
         ...
     
     def transpose(self, axes=..., copy=...):

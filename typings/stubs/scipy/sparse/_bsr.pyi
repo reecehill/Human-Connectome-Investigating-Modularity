@@ -127,7 +127,7 @@ class bsr_matrix(_cs_matrix, _minmax_mixin):
     def __repr__(self): # -> Any:
         ...
     
-    def diagonal(self, k=...): # -> ndarray[Any, Any]:
+    def diagonal(self, k=...): # -> NDArray[Any] | NDArray[float64]:
         ...
     
     def __getitem__(self, key):
@@ -161,7 +161,7 @@ class bsr_matrix(_cs_matrix, _minmax_mixin):
         """
         ...
     
-    def toarray(self, order=..., out=...): # -> ndarray[Any, Any]:
+    def toarray(self, order=..., out=...): # -> NDArray[float64]:
         ...
     
     def transpose(self, axes=..., copy=...): # -> bsr_matrix:

@@ -91,7 +91,7 @@ class dia_matrix(_data_matrix):
     def getnnz(self, axis=...): # -> int:
         ...
     
-    def sum(self, axis=..., dtype=..., out=...): # -> Any:
+    def sum(self, axis=..., dtype=..., out=...): # -> Any | matrix[Any, Any]:
         ...
     
     def todia(self, copy=...): # -> Self:
@@ -100,7 +100,7 @@ class dia_matrix(_data_matrix):
     def transpose(self, axes=..., copy=...): # -> dia_matrix:
         ...
     
-    def diagonal(self, k=...): # -> ndarray[Any, Any] | Any:
+    def diagonal(self, k=...): # -> NDArray[Any]:
         ...
     
     def tocsc(self, copy=...): # -> csc_matrix:

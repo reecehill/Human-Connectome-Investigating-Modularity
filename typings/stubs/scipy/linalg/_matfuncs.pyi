@@ -6,7 +6,7 @@ __all__ = ['expm', 'cosm', 'sinm', 'tanm', 'coshm', 'sinhm', 'tanhm', 'logm', 'f
 eps = ...
 feps = ...
 _array_precision = ...
-def fractional_matrix_power(A, t): # -> ndarray[Any, Any]:
+def fractional_matrix_power(A, t): # -> NDArray[Any] | Any | ndarray[Any, Any]:
     """
     Compute the fractional power of a matrix.
 
@@ -47,7 +47,7 @@ def fractional_matrix_power(A, t): # -> ndarray[Any, Any]:
     """
     ...
 
-def logm(A, disp=...): # -> Any | ndarray[Any, _dtype] | ndarray[Any, Any] | NDArray[Any] | tuple[Any | ndarray[Any, _dtype] | ndarray[Any, Any] | NDArray[Any], Any]:
+def logm(A, disp=...): # -> Any | ndarray[Any, _dtype] | tuple[Any | ndarray[Any, _dtype], Any | floating[Any]]:
     """
     Compute matrix logarithm.
 
@@ -104,7 +104,7 @@ def logm(A, disp=...): # -> Any | ndarray[Any, _dtype] | ndarray[Any, Any] | NDA
     """
     ...
 
-def expm(A): # -> ndarray[Any, Any] | NDArray[Any] | ndarray[Any, _dtype]:
+def expm(A): # -> NDArray[Any] | ndarray[Any, _dtype] | NDArray[floating[_32Bit]]:
     """Compute the matrix exponential of an array.
 
     Parameters
@@ -208,7 +208,7 @@ def cosm(A): # -> NDArray[floating[Any]] | ndarray[Any, _dtype]:
     """
     ...
 
-def sinm(A): # -> ndarray[Any, _dtype]:
+def sinm(A): # -> NDArray[complexfloating[Any, Any]] | ndarray[Any, _dtype]:
     """
     Compute the matrix sine.
 
@@ -243,7 +243,7 @@ def sinm(A): # -> ndarray[Any, _dtype]:
     """
     ...
 
-def tanm(A): # -> ndarray[Any, _dtype] | ndarray[Any, Any]:
+def tanm(A): # -> ndarray[Any, _dtype]:
     """
     Compute the matrix tangent.
 
@@ -280,7 +280,7 @@ def tanm(A): # -> ndarray[Any, _dtype] | ndarray[Any, Any]:
     """
     ...
 
-def coshm(A): # -> ndarray[Any, _dtype] | NDArray[floating[Any]]:
+def coshm(A): # -> ndarray[Any, _dtype]:
     """
     Compute the hyperbolic matrix cosine.
 
@@ -317,7 +317,7 @@ def coshm(A): # -> ndarray[Any, _dtype] | NDArray[floating[Any]]:
     """
     ...
 
-def sinhm(A):
+def sinhm(A): # -> ndarray[Any, _dtype]:
     """
     Compute the hyperbolic matrix sine.
 
@@ -354,7 +354,7 @@ def sinhm(A):
     """
     ...
 
-def tanhm(A): # -> ndarray[Any, _dtype] | ndarray[Any, Any]:
+def tanhm(A): # -> ndarray[Any, _dtype]:
     """
     Compute the hyperbolic matrix tangent.
 
@@ -391,7 +391,7 @@ def tanhm(A): # -> ndarray[Any, _dtype] | ndarray[Any, Any]:
     """
     ...
 
-def funm(A, func, disp=...): # -> tuple[Any, float | int]:
+def funm(A, func, disp=...): # -> Any | tuple[Any, float | floating[Any] | int]:
     """
     Evaluate a matrix function specified by a callable.
 
@@ -456,7 +456,7 @@ def funm(A, func, disp=...): # -> tuple[Any, float | int]:
     """
     ...
 
-def signm(A, disp=...): # -> Any | tuple[Any, Any | float | int]:
+def signm(A, disp=...): # -> Any | tuple[Any, Any | floating[Any] | float | int]:
     """
     Matrix sign function.
 
@@ -491,7 +491,7 @@ def signm(A, disp=...): # -> Any | tuple[Any, Any | float | int]:
     """
     ...
 
-def khatri_rao(a, b): # -> Any:
+def khatri_rao(a, b): # -> ndarray[Any, dtype[bool_]]:
     r"""
     Khatri-rao product
 

@@ -13,11 +13,11 @@ def has_flag(compiler, flag, ext=...): # -> bool:
     """Returns True if the compiler supports the given flag"""
     ...
 
-def get_cxx_std_flag(compiler): # -> str | None:
+def get_cxx_std_flag(compiler): # -> None:
     """Detects compiler flag for c++14, c++11, or None if not detected"""
     ...
 
-def get_c_std_flag(compiler): # -> str | None:
+def get_c_std_flag(compiler): # -> None:
     """Detects compiler flag to enable C99"""
     ...
 

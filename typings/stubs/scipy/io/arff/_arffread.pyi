@@ -177,7 +177,7 @@ class RelationalAttribute(Attribute):
         """
         ...
     
-    def parse_data(self, data_str): # -> ndarray[Any, Any]:
+    def parse_data(self, data_str): # -> NDArray[Any]:
         ...
     
     def __str__(self) -> str:
@@ -323,7 +323,7 @@ class MetaData:
     
 
 
-def loadarff(f): # -> tuple[ndarray[Any, Any], MetaData]:
+def loadarff(f): # -> tuple[NDArray[Any], MetaData]:
     """
     Read an arff file.
 

@@ -28,7 +28,7 @@ def set_docstring(header, Ainfo, footer=..., atol_default=...): # -> Callable[..
 
                """)
 @non_reentrant()
-def bicg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
+def bicg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[NDArray[Any] | ndarray[Any, dtype[Any]] | ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
     ...
 
 @set_docstring('Use BIConjugate Gradient STABilized iteration to solve ' '``Ax = b``.', 'The real or complex N-by-N matrix of the linear system.\n' 'Alternatively, ``A`` can be a linear operator which can\n' 'produce ``Ax`` using, e.g.,\n' '``scipy.sparse.linalg.LinearOperator``.', footer="""\
@@ -50,7 +50,7 @@ def bicg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -
                True
                """)
 @non_reentrant()
-def bicgstab(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
+def bicgstab(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[NDArray[Any] | ndarray[Any, dtype[Any]] | ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
     ...
 
 @set_docstring('Use Conjugate Gradient iteration to solve ``Ax = b``.', 'The real or complex N-by-N matrix of the linear system.\n' '``A`` must represent a hermitian, positive definite matrix.\n' 'Alternatively, ``A`` can be a linear operator which can\n' 'produce ``Ax`` using, e.g.,\n' '``scipy.sparse.linalg.LinearOperator``.', footer="""\
@@ -73,7 +73,7 @@ def bicgstab(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...):
 
                """)
 @non_reentrant()
-def cg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
+def cg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[NDArray[Any] | ndarray[Any, dtype[Any]] | ndarray[Any, Any], Literal[0]] | tuple[Any, Any]:
     ...
 
 @set_docstring('Use Conjugate Gradient Squared iteration to solve ``Ax = b``.', 'The real-valued N-by-N matrix of the linear system.\n' 'Alternatively, ``A`` can be a linear operator which can\n' 'produce ``Ax`` using, e.g.,\n' '``scipy.sparse.linalg.LinearOperator``.', footer="""\
@@ -95,7 +95,7 @@ def cg(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> 
                True
                """)
 @non_reentrant()
-def cgs(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[ndarray[Any, Any], Literal[0]] | tuple[Any, Any | Literal[0, -10]]:
+def cgs(A, b, x0=..., tol=..., maxiter=..., M=..., callback=..., atol=...): # -> tuple[NDArray[Any] | ndarray[Any, dtype[Any]] | ndarray[Any, Any], Literal[0]] | tuple[Any, Any | Literal[0, -10]]:
     ...
 
 @non_reentrant()

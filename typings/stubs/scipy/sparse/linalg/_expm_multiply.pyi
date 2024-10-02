@@ -174,7 +174,7 @@ class LazyOperatorNormInfo:
         """
         ...
     
-    def onenorm(self):
+    def onenorm(self): # -> floating[Any]:
         """
         Compute the exact 1-norm.
         """

@@ -100,7 +100,7 @@ def svd(a, full_matrices=..., compute_uv=..., overwrite_a=..., check_finite=...,
     """
     ...
 
-def svdvals(a, overwrite_a=..., check_finite=...): # -> tuple[Any, Any, Any] | ndarray[Any, Any]:
+def svdvals(a, overwrite_a=..., check_finite=...): # -> tuple[Any, Any, Any] | NDArray[float64]:
     """
     Compute singular values of a matrix.
 
@@ -323,7 +323,7 @@ def null_space(A, rcond=...):
     """
     ...
 
-def subspace_angles(A, B):
+def subspace_angles(A, B): # -> NDArray[Any]:
     r"""
     Compute the subspace angles between two matrices.
 

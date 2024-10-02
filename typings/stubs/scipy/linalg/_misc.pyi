@@ -11,7 +11,7 @@ class LinAlgWarning(RuntimeWarning):
     ...
 
 
-def norm(a, ord=..., axis=..., keepdims=..., check_finite=...):
+def norm(a, ord=..., axis=..., keepdims=..., check_finite=...): # -> floating[Any]:
     """
     Matrix or vector norm.
 

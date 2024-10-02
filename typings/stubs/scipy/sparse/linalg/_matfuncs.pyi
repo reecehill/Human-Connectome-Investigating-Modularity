@@ -55,7 +55,7 @@ class MatrixPowerOperator(LinearOperator):
         ...
     
     @property
-    def T(self): # -> MatrixPowerOperator:
+    def T(self): # -> LinearOperator:
         ...
     
 
@@ -68,7 +68,7 @@ class ProductOperator(LinearOperator):
         ...
     
     @property
-    def T(self): # -> ProductOperator:
+    def T(self): # -> LinearOperator:
         ...
     
 
@@ -101,55 +101,55 @@ class _ExpmPadeHelper:
         ...
     
     @property
-    def A2(self):
+    def A2(self): # -> Any:
         ...
     
     @property
-    def A4(self):
+    def A4(self): # -> Any:
         ...
     
     @property
-    def A6(self):
+    def A6(self): # -> Any:
         ...
     
     @property
-    def A8(self):
+    def A8(self): # -> Any:
         ...
     
     @property
-    def A10(self):
+    def A10(self): # -> Any:
         ...
     
     @property
-    def d4_tight(self):
+    def d4_tight(self): # -> floating[Any]:
         ...
     
     @property
-    def d6_tight(self):
+    def d6_tight(self): # -> floating[Any]:
         ...
     
     @property
-    def d8_tight(self):
+    def d8_tight(self): # -> floating[Any]:
         ...
     
     @property
-    def d10_tight(self):
+    def d10_tight(self): # -> floating[Any]:
         ...
     
     @property
-    def d4_loose(self): # -> Any:
+    def d4_loose(self): # -> floating[Any] | Any:
         ...
     
     @property
-    def d6_loose(self): # -> Any:
+    def d6_loose(self): # -> floating[Any] | Any:
         ...
     
     @property
-    def d8_loose(self): # -> Any:
+    def d8_loose(self): # -> floating[Any] | Any:
         ...
     
     @property
-    def d10_loose(self): # -> Any:
+    def d10_loose(self): # -> floating[Any] | Any:
         ...
     
     def pade3(self): # -> tuple[Any, Any]:

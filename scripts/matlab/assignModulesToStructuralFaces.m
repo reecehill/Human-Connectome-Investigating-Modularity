@@ -11,18 +11,13 @@ load(fileToLoad, ...
 disp('loading labelSRF.mat');
 fileToLoad=[pathToFile,'/',subject,'/labelSRF.mat'];
 load(fileToLoad, ...
+        'lo_centroidsL', 'lo_centroidsR',......
         'lo_faceROIidL', 'lo_faceROIidR',...
         'hi_faceROIidL', 'hi_faceROIidR',...
         'lo_glpfaces', 'lo_grpfaces',...
-        'hi_glpfaces', 'hi_grpfaces',...
         'lo_glpvertex', 'lo_grpvertex',...
-        'hi_glpvertex', 'hi_grpvertex',...
-        'lo_centroidsSubCor',  'hi_centroidsSubCor',...
         'lo_faceROIidSubCor', 'hi_faceROIidSubCor',...
         'lo_faceToNodeMapLH', 'lo_faceToNodeMapRH',...
-        'hi_faceToNodeMapLH', 'hi_faceToNodeMapRH',...
-        'lo_centroidsL', 'lo_centroidsR',...
-        'hi_centroidsL', 'hi_centroidsR',...
         'filenames',...
     'subfilenames'); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
 
@@ -87,7 +82,8 @@ for moduleSetIndex=1:length(moduleSets)
             % ROI is of right.
             %TODO: Labels arrive with rh offset by length of lh labels. Does
             %this make sense?
-            module_allIds = roiR_ids(moduleSet{moduleIndex}+1)-length(faceROI_L); %add 1 as python starts counting from zero.            
+            module_allIds = roiR_ids(moduleSet{moduleIndex}+1)-length(faceROI_L); %add 1 as python starts counting from zero.  
+
         else
             disp("ERROR: Module file does not contain left or right modules.")
         end
@@ -101,35 +97,45 @@ end
 
 
 %% Functional modules
-
-[moduleFacevert_L ,moduleFacevert_R, nbmodules] = getModuleByFaceVertex(pathToFile,subject);
+[moduleFacevert_L ,moduleFacevert_R, ~] = getModuleByFaceVertex(pathToFile,subject);
 
 minModule_L = min(cat(1,moduleFacevert_L.id));
 maxModule_L = max(cat(1,moduleFacevert_L.id));
-[L_facesROI,L_faceToNodeMap] = loopROIAndAssignLabels(minModule_L, maxModule_L, lo_glpfaces, moduleFacevert_L);
-[~,~,indicesWithModule_L] = intersect(L_facesROI(:,1:3),lo_glpfaces(:,1:3),'rows','stable');
-lo_faceModuleL = lo_glpfaces;
-lo_faceModuleL(:,4) = -1;
-lo_faceModuleL(indicesWithModule_L,4) = L_facesROI(:,4);
-lo_faceModuleL(lo_faceModuleL(:,4)==-1,4) = 0;
+[lo_faceModuleL,~] = loopROIAndAssignLabels(minModule_L, maxModule_L, lo_glpfaces, moduleFacevert_L);
 lo_faceModuleL = lo_faceModuleL(:,4);
-
 
 minModule_R = min(cat(1,moduleFacevert_R.id));
 maxModule_R = max(cat(1,moduleFacevert_R.id));
-[R_facesROI,L_faceToNodeMap] = loopROIAndAssignLabels(minModule_R, maxModule_R, lo_grpfaces, moduleFacevert_R);
-[~,~,indicesWithModule_R] = intersect(R_facesROI(:,1:3),lo_grpfaces(:,1:3),'rows','stable');
-lo_faceModuleR = lo_grpfaces;
-lo_faceModuleR(:,4) = -1;
-lo_faceModuleR(indicesWithModule_R,4) = R_facesROI(:,4);
-lo_faceModuleR(lo_faceModuleR(:,4)==-1,4) = 0;
+[lo_faceModuleR,~] = loopROIAndAssignLabels(minModule_R, maxModule_R, lo_grpfaces, moduleFacevert_R);
 lo_faceModuleR = lo_faceModuleR(:,4);
 
-
-modulesByFace.left_functional_modulesByAllId(:,1) = [1:1:length(L_facesROI)];
+modulesByFace.left_functional_modulesByAllId(:,1) = 1:1:length(lo_faceModuleL);
 modulesByFace.left_functional_modulesByAllId(:,2) = lo_faceModuleL;
-modulesByFace.right_functional_modulesByAllId(:,1) = [1:1:length(R_facesROI)];
+modulesByFace.left_functional_modulesByROIId = modulesByFace.left_functional_modulesByAllId(modulesByFace.left_structural_modulesByROIId(:,1),1:2);
+
+modulesByFace.right_functional_modulesByAllId(:,1) = 1:1:length(lo_faceModuleR);
 modulesByFace.right_functional_modulesByAllId(:,2) = lo_faceModuleR;
+modulesByFace.right_functional_modulesByROIId = modulesByFace.right_functional_modulesByAllId(modulesByFace.right_structural_modulesByROIId(:,1)-length(modulesByFace.right_functional_modulesByAllId),1:2);
+
+% Convert NaN to -1
+leftNaNValues = isnan(modulesByFace.left_functional_modulesByROIId(:,2));
+modulesByFace.left_functional_modulesByROIId(leftNaNValues,2) = -1;
+rightNaNValues = isnan(modulesByFace.right_functional_modulesByROIId(:,2));
+modulesByFace.right_functional_modulesByROIId(rightNaNValues,2) = -1;
+
+% Convert to string and drop index.
+modulesByFace.left_functional_modulesByROIId = string(modulesByFace.left_functional_modulesByROIId(:,2));
+modulesByFace.right_functional_modulesByROIId = string(modulesByFace.right_functional_modulesByROIId(:,2));
+modulesByFace.left_structural_modulesByROIId = string(modulesByFace.left_structural_modulesByROIId(:,2));
+modulesByFace.right_structural_modulesByROIId = string(modulesByFace.right_structural_modulesByROIId(:,2));
+
+writematrix(modulesByFace.left_functional_modulesByROIId',[pathToFile,'/',subject,'/left_functional_modules.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(modulesByFace.right_functional_modulesByROIId',[pathToFile,'/',subject,'/right_functional_modules.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(modulesByFace.left_structural_modulesByROIId',[pathToFile,'/',subject,'/left_structural_modules.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(modulesByFace.right_structural_modulesByROIId',[pathToFile,'/',subject,'/right_structural_modules.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(string(lo_centroidsL(roiL_ids,1:3)),[pathToFile,'/',subject,'/left_coordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(string(lo_centroidsR(roiR_ids-length(faceROI_L),1:3)),[pathToFile,'/',subject,'/right_coordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+
 
 %% Create dscalar of structural and functional modules.
 sampleCifti = ft_read_cifti([pathToFile,'/',subject,'/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/',subject,'_tfMRI_MOTOR_level2_hp200_s2_MSMAll.dscalar.nii'], 'readdata',true,'mapname','array');

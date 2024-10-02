@@ -12,11 +12,12 @@ function [facesROI,faceToNodeMap] = loopROIAndAssignLabels(ROI_startIndex, ROI_e
         faceToNodeMap=NaN([length(faces),4]);
         faceToNodeMap(:,1) = 1:1:length(faces);
 
-        % On first pass, assign faces a value if 3 nodes have the same
-        % value.
+
         allRois = unique([ROIfacevert(:).id]);
         firstRoiIndex = find(allRois==ROI_startIndex);
         lastRoiIndexx = find(allRois==ROI_endIndex);
+        minNOfSharedNodes = 2;
+        maxNOfSharedNodes = 3; % As a triangle has 3 nodes.
 
         for roiIndex=firstRoiIndex:lastRoiIndexx
             roiName = allRois(roiIndex);
@@ -31,8 +32,7 @@ function [facesROI,faceToNodeMap] = loopROIAndAssignLabels(ROI_startIndex, ROI_e
             x = sum(attachedFaces(:,1:3),2);
 
             % Face ids with >=x nodes of same value.
-            minNOfSharedNodes = 3;
-            maxNOfSharedNodes = 3; % As a triangle has 3 nodes.
+
             for nSharedNodes = minNOfSharedNodes:maxNOfSharedNodes
                 faceIdsSetWithNodeValue = find(x==nSharedNodes);
     

@@ -16,7 +16,7 @@ load('../../data/subjects/100307/edgeList.mat');
 load('../../data/subjects/100307/labelSRF.mat');
 load('../../data/subjects/100307/matrices.mat');
 load('../../data/subjects/100307/trsfmTrk.mat');
-load('../../data/subjects/100307/optimal_modules.mat');
+load('../../data/subjects/100307/optimal_struc_modules.mat');
 assignModulesToStructuralFaces('../../data/subjects','100307','yes');
 load('../../data/subjects/100307/modulesByFace.mat');
 [inflated_lo_glpfaces, inflated_lo_grpfaces, inflated_lo_glpvertex, inflated_lo_grpvertex, filenames, subfilenames, inflated_lo_ROIfacevert]  = loadMesh([pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.L.very_inflated_MSMAll.32k_fs_LR.surf.gii'],[pathToFile,'/',subjectId,'/MNINonLinear/fsaverage_LR32k/',subjectId,'.R.very_inflated_MSMAll.32k_fs_LR.surf.gii'],pathToFile,subjectId,type);

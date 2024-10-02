@@ -3,11 +3,8 @@
 # ----------
 
 import multiprocessing
-from typing import Optional
+from typing import Literal, Optional
 from includes.automated import *
-
-# import includes.all_subjects
-
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
 # CPU_THREADS = 10
@@ -69,11 +66,11 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
-RUN_MATLAB_DIFFUSION = False
-RUN_MATLAB_FUNCTIONAL = True
-RUN_NETWORKX= True
-RUN_MATLAB_MAPPING = False
-MATLAB_CALCULATE_STATS = False
+RUN_PROCESS_TRACTOGRAPHY = False
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY= False
+RUN_MAPPING = False
+RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
 # ----------
@@ -107,6 +104,7 @@ CLUSTER_MIN_AREA: float = 5.0 # in mm
 # ----------
 # [START] PROCESSING PARAMETERS
 # ----------
+HEMISPHERES: "list[Literal['left','right']]" = ['left','right']
 NUMBER_OF_NODES = 59 # per hemisphere (32, 59, 164). NOTE: Only 59k is supported for now.
 PIAL_SURFACE_TYPE = 1 # NOTE: Anything other than 1 or 2 (int) is unsupported.
 DOWNSAMPLE_SURFACE = 'yes' # NOTE: Anything other than 'yes' (str) is unsupported.
@@ -237,3 +235,11 @@ WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbComman
 #COMPOSITE PATHS DEPENDANT ON PREV PATHS
 FMRI_SCALAR_PATH_CORTICAL = (Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]) / IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"]).__str__().replace(".dscalar.nii", "_ROI.dscalar.nii")
 # FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)
+
+def setSubjectDir(subjectDir: Path = Path("/path-not-given")):
+  global SUBJECT_DIR
+  SUBJECT_DIR = subjectDir
+
+def setStatDir(statDir: Path = Path("/path-not-given")):
+  global SUBJECT_STAT_DIR
+  SUBJECT_STAT_DIR = statDir

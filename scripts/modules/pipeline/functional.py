@@ -6,6 +6,32 @@ from pathlib import Path
 from modules.subprocess_caller.call import *
 from ..file_directory.file_directory import createDirectories
 import csv
+from modules.utils import prepStep
+
+def prepareFunctionalSurfacesForModularity(subjectId: str) -> bool:
+  prepStep(subjectId)
+  
+  return (
+          createRoiShapeFiles(subjectId=subjectId) and \
+          createRoiScalarFiles(subjectId=subjectId) and \
+          createFmriDenseScalarOfRoiOnly(subjectId=subjectId) and \
+          filterFmriMapsAndWriteToCsv(subjectId=subjectId) and \
+          findFmriExtrema(subjectId=subjectId) and \
+          findClustersFromFmri(subjectId=subjectId)
+          # matlabMapLowToHighResFmriData(subjectId=subjectId) and
+          # transformFmriIntoDiffusionSpace(subjectId=subjectId)
+  )
+  return (matlabMapLowToHighResFmriData(subjectId=subjectId))
+  firstLevelFolder =  config.SUBJECT_DIR / "1stlevel"
+  createDirectories(directoryPaths=[firstLevelFolder], createParents=True, throwErrorIfExists=False)
+    
+  return (
+    convertFmriToModules(subjectId=subjectId) and
+    createTimingFiles(subjectId=subjectId) and
+    getFmriData(subjectId=subjectId) and
+    matlabSortFmriVoxelsIntoModules(subjectId=subjectId, binaryThreshold=config.FMRI_THRESHOLD_TO_BINARISE)
+    )  
+
 def createTimingFiles(subjectId: str) -> bool:
   # Function not used when using fMRI pre-processed data in HCP dataset.
   g.logger.info("Ensuring timing files for functional data exists -- Run 1 (Right-Left Phase Encoding)")
@@ -18,16 +44,16 @@ def createTimingFiles(subjectId: str) -> bool:
 def getFmriData(subjectId: str) -> bool:
   # Function not used when using fMRI pre-processed data in HCP dataset.
   g.logger.info("Ensuring functional data results exist")
-  subjectDir = config.SUBJECTS_DIR / subjectId / "MNINonLinear"
+  imageDir = config.SUBJECT_DIR / "MNINonLinear"
   filesToExist = [
-                    (subjectDir / 'Results' / 'tfMRI_MOTOR' /'tfMRI_MOTOR_hp200_s2_level2.feat' /f'{subjectId}_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii'),
+                    (imageDir / 'Results' / 'tfMRI_MOTOR' /'tfMRI_MOTOR_hp200_s2_level2.feat' /f'{subjectId}_tfMRI_MOTOR_level2_hp200_s2.dscalar.nii'),
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 
   g.logger.info("Ensuring surface files exist")
   filesToExist = [
-                    (subjectDir / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'),
-                    (subjectDir / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'),
+                    (imageDir / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'),
+                    (imageDir / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'),
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
   return True
@@ -54,21 +80,18 @@ def matlabSortFmriVoxelsIntoModules(subjectId: str, binaryThreshold: float) -> b
 def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
   # Map low-resolution fMRI data to high-resolution (e.g., 32k to 164k node mesh)
   # TODO: It makes sense that this is done only with labelled data (e.g., modules).
-  
-  subjectFolder = config.SUBJECTS_DIR / subjectId
+  fMriScalarPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriModulesPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
 
-  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriModulesPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".clusters.dscalar.nii"))
-
-  fMriScalarPath_outputFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"].replace("$subjectId$",subjectId))
-  fMriModulesPath_outputFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"].replace("$subjectId$",subjectId))
+  fMriScalarPath_outputFolder = config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"].replace("$subjectId$",subjectId))
+  fMriModulesPath_outputFolder = config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"].replace("$subjectId$",subjectId))
 
   
-  subjectLeftSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectRightSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
+  subjectLeftSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRightSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
 
-  subjectLeftSurfacePath_output = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectRightSurfacePath_output = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
+  subjectLeftSurfacePath_output = config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRightSurfacePath_output = config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)                                                                                  
                                                                          
   
   remoteFilesToExist: "list[Path]" = [
@@ -82,10 +105,10 @@ def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
   _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
   createDirectories(directoryPaths=[
-    subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"],
-    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"],
-    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"],
-    subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"],
+    config.SUBJECT_DIR / config.IMAGES["FMRI"]["HIGH_RES"]["DATA"]["FOLDER"],
+    config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"],
+    config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["SCALAR_FOLDER"],
+    config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["FOLDER"] / config.IMAGES["FMRI"]["COMMON_RES"]["DATA"]["MODULES_FOLDER"],
     ], createParents=True, throwErrorIfExists=False)
 
   return call(cmdLabel="MATLAB",
@@ -96,8 +119,7 @@ def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
               cwd=config.matlabScriptsFolder)   
 
 def getClusterThresholdForMap(subjectId: str, mapName: str, hemisphere: str) -> float:
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  percentilesCsvFile: Path = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / f"{hemisphere}.fMRI_percentiles_modified.csv"
+  percentilesCsvFile: Path = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / f"{hemisphere}.fMRI_percentiles_modified.csv"
 
   filesToExist = [
                     percentilesCsvFile
@@ -117,11 +139,10 @@ def getClusterThresholdForMap(subjectId: str, mapName: str, hemisphere: str) -> 
   return float('nan')
 
 def createRoiScalarFiles(subjectId: str) -> bool:
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  labelledCiftiFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["CIFTI_PATH"].replace("$subjectId$",subjectId))
-  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
-  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
-  maskOfLRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["LR_MASK"]
+  labelledCiftiFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["CIFTI_PATH"].replace("$subjectId$",subjectId))
+  maskOfLLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  maskOfLRLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["LR_MASK"]
 
   filesToExist = [
                     labelledCiftiFile
@@ -166,11 +187,10 @@ def createRoiScalarFiles(subjectId: str) -> bool:
   ])
 
 def createRoiShapeFiles(subjectId: str) -> bool:
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
-  labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
-  shapeLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
-  shapeRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
+  labelledLFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
+  labelledRFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
+  shapeLFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
+  shapeRFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
 
   filesToExist = [
                     labelledLFile,
@@ -200,12 +220,11 @@ def createRoiShapeFiles(subjectId: str) -> bool:
   ])
 
 def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriScalarPath_input_cortical =  (subjectFolder / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
+  fMriScalarPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriScalarPath_input_cortical =  (config.SUBJECT_DIR / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
 
-  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
-  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  maskOfLLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
 
   desiredMapsCiftiFiles = {
     desiredMap
@@ -273,22 +292,21 @@ def findClustersFromFmri(subjectId: str) -> bool:
   # https://humanconnectome.org/software/workbench-command/-cifti-label-to-roi
 
   g.logger.info("Finding clusters within functional data (scalar)")
-  subjectFolder = config.SUBJECTS_DIR / subjectId
   
-  shapeLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
-  shapeRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
+  shapeLFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_SHAPE"].replace("$subjectId$",subjectId))
+  shapeRFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_SHAPE"].replace("$subjectId$",subjectId))
 
-  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
-  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  maskOfLLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
   g.logger.info("Ensuring files files exist")
 
-  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriScalarPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
 
-  subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectLSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   
   g.logger.info("Ensuring files files exist")
-  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
+  createDirectories(directoryPaths=[config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
   remoteFilesToExist = [
                     fMriScalarPath_input,
                     subjectLSurfacePath_input,
@@ -304,7 +322,7 @@ def findClustersFromFmri(subjectId: str) -> bool:
   _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in localFilesToExist]
 
 
-  cmds: list[bool] = []  
+  cmds: "list[bool]" = []  
   for hemisphere, roi in {"L": maskOfLLabel, "R": maskOfRLabel}.items():
     for mapName in config.DESIRED_FMRI_MAPS:
       mapName = mapName.replace("$subjectId$", subjectId)
@@ -387,12 +405,11 @@ def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
   """
   g.logger.info("Creating csv that contains only the maps we want: "+''.join([desiredMap.replace("$subjectId$", subjectId) for desiredMap in config.DESIRED_FMRI_MAPS]))
 
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriScalarPath_input_cortical =  (subjectFolder / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
-  percentilesCsvFolder = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]
-  maskOfLLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
-  maskOfRLabel = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
+  fMriScalarPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriScalarPath_input_cortical =  (config.SUBJECT_DIR / config.FMRI_SCALAR_PATH_CORTICAL).resolve().__str__().replace("$subjectId$",subjectId)
+  percentilesCsvFolder = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]
+  maskOfLLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_MASK"]
+  maskOfRLabel = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_MASK"]
 
 
   g.logger.info("Ensuring files files exist")
@@ -450,21 +467,20 @@ def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
   return all(item for item in _) # Modified .csv files have been created.
 
 def findFmriExtrema(subjectId: str) -> bool:
-  subjectFolder = config.SUBJECTS_DIR / subjectId
-  labelledLFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
-  labelledRFile = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
+  labelledLFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["L_PATH"].replace("$subjectId$",subjectId))
+  labelledRFile = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["R_PATH"].replace("$subjectId$",subjectId))
   g.logger.info("Ensuring files files exist")
   filesToExist = [
                     labelledLFile,
                     labelledRFile,
                     ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
-  createDirectories(directoryPaths=[subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
-  fMriScalarPath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
-  fMriModulesPath_output = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".extrema_clusters.dscalar.nii"))
+  createDirectories(directoryPaths=[config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]], createParents=True)
+  fMriScalarPath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId))
+  fMriModulesPath_output = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"] / (config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"].replace("$subjectId$",subjectId).replace(".dscalar.nii",".extrema_clusters.dscalar.nii"))
 
-  subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectLSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   
   g.logger.info("Ensuring files files exist")
   filesToExist = [
@@ -531,16 +547,15 @@ def transformFmriIntoDiffusionSpace(subjectId: str) -> bool:
   # For HCP data, this moves fMRI from MNI space to T1w space.
 
   g.logger.info("Transforming fMRI surface to a different space.")
-  subjectFolder = config.SUBJECTS_DIR / subjectId
 
-  subjectLSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
-  subjectRSurfacePath_input = subjectFolder / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectLSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
+  subjectRSurfacePath_input = config.SUBJECT_DIR / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["HIGH_RES"]["SURFACE"]["R_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)
   
-  outputSurfFolder = subjectFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"]
+  outputSurfFolder = config.SUBJECT_DIR / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["FOLDER"]
   subjectLSurfacePath_output = outputSurfFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["L_HEMISPHERE_PATH"]
   subjectRSurfacePath_output = outputSurfFolder / config.IMAGES["FMRI"]["COMMON_RES"]["SURFACE"]["R_HEMISPHERE_PATH"]
-  acpcdc2StandardTransform = subjectFolder / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["ACPC_DC2STANDARD"]
-  standard2AcpcdcTransform = subjectFolder / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["STANDARD2ACPC_DC"]
+  acpcdc2StandardTransform = config.SUBJECT_DIR / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["ACPC_DC2STANDARD"]
+  standard2AcpcdcTransform = config.SUBJECT_DIR / config.TRANSFORMS["INTRA_SUBJECT"]["FOLDER"] / config.TRANSFORMS["INTRA_SUBJECT"]["STANDARD2ACPC_DC"]
   g.logger.info("Ensuring files files exist")
   filesToExist = [
                     subjectLSurfacePath_input,
@@ -573,34 +588,5 @@ def transformFmriIntoDiffusionSpace(subjectId: str) -> bool:
                       ],
               )
   return warpLeftHemisphereSuccess and warpRightHemisphereSuccess
-
-
-def matlabProcessFunctional(subjectId: str) -> bool:
-  # This function takes fMRI data and returns a binarised surface.
-  # TODO: Folder naming scheme is remnant of SPM.
-  
-  return (
-          createRoiShapeFiles(subjectId=subjectId) and \
-          createRoiScalarFiles(subjectId=subjectId) and \
-          createFmriDenseScalarOfRoiOnly(subjectId=subjectId) and \
-          filterFmriMapsAndWriteToCsv(subjectId=subjectId) and \
-          findFmriExtrema(subjectId=subjectId) and \
-          findClustersFromFmri(subjectId=subjectId)
-          # matlabMapLowToHighResFmriData(subjectId=subjectId) and
-          # transformFmriIntoDiffusionSpace(subjectId=subjectId)
-  )
-  return (matlabMapLowToHighResFmriData(subjectId=subjectId))
-  firstLevelFolder =  config.SUBJECTS_DIR / subjectId / "1stlevel"
-  createDirectories(directoryPaths=[firstLevelFolder], createParents=True, throwErrorIfExists=False)
-    
-  return (
-    convertFmriToModules(subjectId=subjectId) and
-    createTimingFiles(subjectId=subjectId) and
-    getFmriData(subjectId=subjectId) and
-    matlabSortFmriVoxelsIntoModules(subjectId=subjectId, binaryThreshold=config.FMRI_THRESHOLD_TO_BINARISE)
-    )
-  # runSpm() is not needed if we intend to use the processed data.
-  # runSpm(subjectId=subjectId)
-  
 
 

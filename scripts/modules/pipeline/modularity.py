@@ -3,7 +3,7 @@
 # NetworkX (Python package is used to calculate network properties.)
 import numpy as np
 import numpy.typing as np_typing
-from scipy.io import loadmat, savemat # type: ignore
+from scipy.io import loadmat, savemat
 from scipy.sparse import random as random_sparse, spmatrix
 from scipy.stats import uniform as uniform_dist
 import modules.globals as g
@@ -16,14 +16,109 @@ import matplotlib.pyplot as plt
 import itertools
 from collections import defaultdict, deque
 from cdlib import NodeClustering, algorithms
+from modules.utils import prepStep
+
+def calculateModularity(subjectId: str) -> bool:
+  prepStep(subjectId)
+  return findModularity(subjectId)
+
+def findModularity(subjectId: str) -> bool:
+  L_optimalGamma = np.NaN
+  R_optimalGamma = np.NaN
+  L_optimalModules: 'list[list[int]]|NodeClustering' = []
+  R_optimalModules: 'list[list[int]]|NodeClustering' = []
+  
+  L_graph = from_scipy_sparse_array(
+          getComputedMatrix(subjectId,config.L_MATRIX)
+          )
+  R_graph = from_scipy_sparse_array(
+          getComputedMatrix(subjectId,config.R_MATRIX)
+          )
+  g.logger.info(f"Running NetworkX: calculating modularity using: {config.NETWORKX_ALGORITHM}.")
+  match config.NETWORKX_ALGORITHM:
+    case 'leiden_communities': 
+      # Using the optimal gamma, find the modules arrangement.
+      L_optimalModules = algorithms.leiden(g_original=L_graph, weights='weight').communities # type: ignore
+      R_optimalModules = algorithms.leiden(g_original=R_graph, weights='weight').communities # type: ignore
+    case 'bayan': 
+      L_optimalModules = algorithms.bayan(g_original=L_graph, time_allowed=1, resolution=1) # type: ignore
+      R_optimalModules = algorithms.bayan(g_original=R_graph,  time_allowed=1, resolution=1).communities # type: ignore
+    case 'frc_fgsn': 
+      L_optimalModules = algorithms.frc_fgsn(g_original=L_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
+      R_optimalModules = algorithms.frc_fgsn(g_original=R_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
+    case 'principled_clustering': 
+      L_optimalModules = algorithms.principled_clustering(g_original=L_graph, cluster_count=5).communities # type: ignore
+      R_optimalModules = algorithms.principled_clustering(g_original=R_graph, cluster_count=5).communities # type: ignore
+    case 'scan': 
+      L_optimalModules = algorithms.scan(g_original=L_graph, epsilon=0.2, mu=10).communities # type: ignore
+      R_optimalModules = algorithms.scan(g_original=R_graph, epsilon=0.2, mu=10).communities # type: ignore
+    case 'louvain_communities': 
+      # Search parameter space for gamma that yields maximal modularity.
+      L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
+      R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
+
+      # Using the optimal gamma, find the modules arrangement.
+      L_optimalModules, _ = runLouvainAlgorithm(
+        L_graph,
+        L_optimalGamma)
+      R_optimalModules, _ = runLouvainAlgorithm(
+        R_graph,
+        R_optimalGamma)
+    case 'greedy_modularity_communities':
+      # Search parameter space for gamma that yields maximal modularity.
+      L_optimalGamma = 0.2
+      # L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
+      R_optimalGamma = 0.2
+      # R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
+      
+      L_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(L_graph, weight='weight', resolution=L_optimalGamma, cutoff=10,best_n=10)] # type: ignore
+      R_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(R_graph, weight='weight', resolution=R_optimalGamma, cutoff=10,best_n=10)] # type: ignore
+    case 'fast_label_propagation_communities': 
+      L_optimalModules_gen = nx_community.fast_label_propagation_communities(L_graph, weight='weight') # type: ignore
+      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      R_optimalModules_gen = nx_community.fast_label_propagation_communities(R_graph, weight='weight') # type: ignore
+      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
+    case 'async_fluid': 
+      L_optimalModules = algorithms.async_fluid(L_graph,k=config.NETWORKX_FLUID_K)
+      R_optimalModules = algorithms.async_fluid(R_graph,k=config.NETWORKX_FLUID_K)
+    case 'girvan_newman': 
+      L_optimalModules_gen = nx_community.girvan_newman(L_graph) # type: ignore
+      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      R_optimalModules_gen = nx_community.girvan_newman(R_graph) # type: ignore
+      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
+    case 'k_clique_communities': 
+      L_optimalModules_gen = nx_community.k_clique_communities(L_graph, k=3, cliques=nx.find_cliques(L_graph)) # type: ignore
+      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      R_optimalModules_gen = nx_community.k_clique_communities(R_graph, k=3, cliques=nx.find_cliques(R_graph)) # type: ignore
+      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
+    case _:
+      g.logger.info("ERROR: Running NetworkX: community detection algorithm incorrectly set.")
+      raise ValueError("Incorrect networkx algorithm specified.")
+  
+
+  # Save data.
+  savemat(config.SUBJECT_DIR / "optimal_struc_modules.mat", {
+    'modules': {
+      'left_structural': np.array(L_optimalModules, dtype=object),
+      'right_structural': np.array(R_optimalModules, dtype=object),
+    },
+    'optimal_gamma': {
+      'left_structural': L_optimalGamma,
+      'right_structural': R_optimalGamma,
+    }
+  }
+          )
+  return True
+
+
+
 def convertMatlabDataToPython(subjectId: str) -> bool:
   
   return True
 
 def getComputedMatrix(subjectId: str, weighted_matrix: str) -> spmatrix:
    # Get computed adjacency matrix
-  subjectFolder = config.DATA_DIR / 'subjects' / subjectId
-  matrices = loadmat(subjectFolder / 'matrices.mat') # type: ignore
+  matrices = loadmat(config.SUBJECT_DIR / 'matrices.mat') # type: ignore
   matrix: spmatrix = matrices[weighted_matrix]  # variable in mat file 
   return matrix
 
@@ -97,93 +192,6 @@ def runLouvainAlgorithm(graph: Graph, gamma: np.float64) -> 'tuple[list[list[int
   modularity = nx_community.modularity(graph, communities) # type: ignore
   return communities_list, modularity
 
-def findModularity(subjectId: str) -> bool:
-  L_optimalGamma = np.NaN
-  R_optimalGamma = np.NaN
-  L_optimalModules: 'list[list[int]]|NodeClustering' = []
-  R_optimalModules: 'list[list[int]]|NodeClustering' = []
-  
-  L_graph = from_scipy_sparse_array(
-          getComputedMatrix(subjectId,config.L_MATRIX)
-          )
-  R_graph = from_scipy_sparse_array(
-          getComputedMatrix(subjectId,config.R_MATRIX)
-          )
-  g.logger.info(f"Running NetworkX: calculating modularity using: {config.NETWORKX_ALGORITHM}.")
-  match config.NETWORKX_ALGORITHM:
-    case 'leiden_communities': 
-      # Using the optimal gamma, find the modules arrangement.
-      L_optimalModules = algorithms.leiden(g_original=L_graph, weights='weight').communities # type: ignore
-      R_optimalModules = algorithms.leiden(g_original=R_graph, weights='weight').communities # type: ignore
-    case 'bayan': 
-      L_optimalModules = algorithms.bayan(g_original=L_graph, time_allowed=1, resolution=1) # type: ignore
-      R_optimalModules = algorithms.bayan(g_original=R_graph,  time_allowed=1, resolution=1).communities # type: ignore
-    case 'frc_fgsn': 
-      L_optimalModules = algorithms.frc_fgsn(g_original=L_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
-      R_optimalModules = algorithms.frc_fgsn(g_original=R_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
-    case 'principled_clustering': 
-      L_optimalModules = algorithms.principled_clustering(g_original=L_graph, cluster_count=5).communities # type: ignore
-      R_optimalModules = algorithms.principled_clustering(g_original=R_graph, cluster_count=5).communities # type: ignore
-    case 'scan': 
-      L_optimalModules = algorithms.scan(g_original=L_graph, epsilon=0.2, mu=10).communities # type: ignore
-      R_optimalModules = algorithms.scan(g_original=R_graph, epsilon=0.2, mu=10).communities # type: ignore
-    case 'louvain_communities': 
-      # Search parameter space for gamma that yields maximal modularity.
-      L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
-      R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
-
-      # Using the optimal gamma, find the modules arrangement.
-      L_optimalModules, _ = runLouvainAlgorithm(
-        L_graph,
-        L_optimalGamma)
-      R_optimalModules, _ = runLouvainAlgorithm(
-        R_graph,
-        R_optimalGamma)
-    case 'greedy_modularity_communities':
-      # Search parameter space for gamma that yields maximal modularity.
-      L_optimalGamma = 0.2
-      # L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
-      R_optimalGamma = 0.2
-      # R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
-      
-      L_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(L_graph, weight='weight', resolution=L_optimalGamma, cutoff=10,best_n=10)] # type: ignore
-      R_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(R_graph, weight='weight', resolution=R_optimalGamma, cutoff=10,best_n=10)] # type: ignore
-    case 'fast_label_propagation_communities': 
-      L_optimalModules_gen = nx_community.fast_label_propagation_communities(L_graph, weight='weight') # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
-      R_optimalModules_gen = nx_community.fast_label_propagation_communities(R_graph, weight='weight') # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case 'async_fluid': 
-      L_optimalModules = algorithms.async_fluid(L_graph,k=config.NETWORKX_FLUID_K)
-      R_optimalModules = algorithms.async_fluid(R_graph,k=config.NETWORKX_FLUID_K)
-    case 'girvan_newman': 
-      L_optimalModules_gen = nx_community.girvan_newman(L_graph) # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
-      R_optimalModules_gen = nx_community.girvan_newman(R_graph) # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case 'k_clique_communities': 
-      L_optimalModules_gen = nx_community.k_clique_communities(L_graph, k=3, cliques=nx.find_cliques(L_graph)) # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
-      R_optimalModules_gen = nx_community.k_clique_communities(R_graph, k=3, cliques=nx.find_cliques(R_graph)) # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case _:
-      g.logger.info("ERROR: Running NetworkX: community detection algorithm incorrectly set.")
-  
-
-  # Save data.
-  subjectFolder = config.DATA_DIR / 'subjects' / subjectId
-  savemat(subjectFolder / "optimal_modules.mat", {
-    'modules': {
-      'left_structural': np.array(L_optimalModules, dtype=object),
-      'right_structural': np.array(R_optimalModules, dtype=object),
-    },
-    'optimal_gamma': {
-      'left_structural': L_optimalGamma,
-      'right_structural': R_optimalGamma,
-    }
-  }
-          )
-  return True
 
 def main()  -> bool:
-  return findModularity('100307')
+  return calculateModularity('100307')

@@ -10,96 +10,43 @@ from sklearn.metrics import make_scorer
 from sklearn.metrics import silhouette_score
 import random
 import string
-from scipy import stats
-
 
 # Function to generate a random word
-def random_word(length=10):
+def random_word(length=6):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
 
-y: pd.DataFrame = pd.read_csv('/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/right_functional_modules.csv', sep=',', header=None, keep_default_na=True).T
-x: pd.DataFrame = pd.read_csv('/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/right_structural_modules.csv', sep=',', header=None, keep_default_na=True).T
-x: pd.Series = x[0]
-y: pd.Series = y[0]
-
-# Padding/smoothing function
-def enlarge_mask_with_mode_priority(mask: pd.Series, n, mode_method: string):
-    padded_mask = mask.copy(deep=True)
-    possibleIndexes = padded_mask.index
-    valueCounts = padded_mask.value_counts().drop([-1], errors='ignore')
-    for idx in possibleIndexes:
-        # Define window for smoothing
-        start_window = max(0, idx - n)
-        end_window = min(possibleIndexes.max(), idx + n + 1)
-        
-        # Find the mode of the values in the window
-        window = mask[start_window : end_window]
-        if mode_method == 'window':
-            if(window.size != 0 ):
-                mode_value = stats.mode(window, axis=None, nan_policy='omit',keepdims=True)[0]
-            else:
-                mode_value = -1
-        elif mode_method == 'roi':
-            # Within the mask, just select module that is the largest (mode)
-            currentModules = window.values
-            # Not all modules in window are unset, so continue to keep this one unset.
-            if((currentModules == -1).all()):
-                mode_value = -1
-            else:
-                modulesBySize = valueCounts[currentModules[currentModules != -1]]
-                largestModule = modulesBySize.idxmax()
-                mode_value = largestModule
-
-        
-        # Overwrite the current index with the mode
-        padded_mask[idx] = mode_value
-    
-    return padded_mask
+y: pd.DataFrame = pd.read_csv('/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/right_functional_modules.csv', sep=',', header=None, keep_default_na=False).T
+x: pd.DataFrame = pd.read_csv('/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/right_structural_modules.csv', sep=',', header=None, keep_default_na=False).T
 
 # Cleaning data to exclude NaN values
-def switch(nan_handler, x: pd.Series, y: pd.Series) -> tuple[pd.Series,pd.Series]:
-    idsOfNonNan: pd.Series = (x > 0) & (y > 0) # All modules begin counting from 1 onwards.
-    print(max(y))
-    if(nan_handler == 'mask'):
-        x_clean = x[idsOfNonNan]
-        y_clean = y[idsOfNonNan]
-    elif(nan_handler == 'ffill'):
-        y_clean = y.ffill().bfill()
-        x_clean = x.ffill().bfill()
-    elif(nan_handler == 'smoothed'):
-        y_smoothed = y.fillna(value=int(-1), axis=0, inplace=False)
-        y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=2, mode_method='roi')
-        y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=1, mode_method='window')
-        y_filtered = y_smoothed[idsOfNonNan]
-        y_clean = y_filtered
-        x_smoothed = x.fillna(value=int(-1), axis=0, inplace=False)
-        x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=1, mode_method='window')
-        x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=1, mode_method='roi')
-        x_filtered = x_smoothed[idsOfNonNan]
-        x_clean = x_filtered
-    else:
-        x_clean = np.array(x)
-        y_clean = np.array(y)
-    return x_clean, y_clean
+useMask = True
+if (useMask):
+    mask = ~x.isna() & ~y.isna()
+
+    x_clean = np.array(x)[mask]
+    y_clean = np.array(y)[mask]
+else:
+    x_clean = np.array(x)
+    y_clean = np.array(y)
     # Allowing NaN values for the tests
-    # pass
-x_clean, y_clean = switch(nan_handler="smoothed", x=x, y=y)
+    pass
+
 
 # Step 1: Get unique labels in x and y
 unique_labels_x = set(x_clean)  # Assuming x is an array or list
 unique_labels_y = set(y_clean)  # Assuming y is an array or list
 
 # Step 2: Create a dictionary to map each label to a random word
-label_to_word_map_x: dict[str, str] = {label: random_word() for label in unique_labels_x}
-label_to_word_map_y: dict[str, str] = {label: random_word() for label in unique_labels_y}
+label_to_word_map_x: "dict[str, str]" = {label: random_word() for label in unique_labels_x}
+label_to_word_map_y: "dict[str, str]" = {label: random_word() for label in unique_labels_y}
 
 # Step 3: Apply the mapping to x and y
-x_as_words: list[str] = [label_to_word_map_x[label] for label in x_clean]
-y_as_words: list[str] = [label_to_word_map_y[label] for label in y_clean]
+x_as_words: "list[str]" = [label_to_word_map_x[label] for label in x_clean]
+y_as_words: "list[str]" = [label_to_word_map_y[label] for label in y_clean]
 
-x_clean: list[str] = x_as_words
-y_clean: list[str] = y_as_words
+x_clean: "list[str]" = x_as_words
+y_clean: "list[str]" = y_as_words
 
 # For absolute confidence that Python is not converting strings to integers, convert labels to random words.
 
@@ -225,11 +172,12 @@ df_no_truth_with_range = df_x_truth_with_range[df_x_truth_with_range["Statistica
     "Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"])]
 
 # Write results to Excel
-excel_path_with_range = '/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/statistical_test_results_with_ranges_excluding_nan_L_1_node1.xlsx'
+excel_path_with_range = '/home/reece/HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100307/statistical_test_results_with_ranges_excluding_nan_L.xlsx'
 with pd.ExcelWriter(excel_path_with_range, engine='xlsxwriter') as writer:
     df_x_truth_with_range.to_excel(writer, sheet_name='X as Truth', index=False)
     df_y_truth_with_range.to_excel(writer, sheet_name='Y as Truth', index=False)
     df_no_truth_with_range.to_excel(writer, sheet_name='No Truth Required', index=False)
+
 
 # Provide link to download the Excel file
 excel_path_with_range

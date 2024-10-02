@@ -4,21 +4,23 @@ import config
 from modules.file_directory.file_directory import createDirectories
 from modules.hcp_data_manager.downloader import getFile
 from modules.subprocess_caller.call import *
+from modules.utils import prepStep
 
 def generateLabels(subjectId: str) -> bool:
   g.logger.info("Running Freesurfer: generating label files by annotating the pial surfaces.")
   g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
-  subjectDir = config.SUBJECTS_DIR / subjectId / "T1w"
-  outputDir = subjectDir / subjectId / 'label' / 'label_type2'
+  prepStep(subjectId)
+  imageDir = config.SUBJECT_DIR / "T1w"
+  outputDir = imageDir / subjectId / 'label' / 'label_type2'
   createDirectories(directoryPaths=[outputDir], createParents=True, throwErrorIfExists=False)
   outputPath = (outputDir).resolve(strict=True).__str__()
 
   # Ensure pial and annot files exist.
   filesToExist = [
-                  (subjectDir / subjectId / 'surf' / 'lh.pial'),
-                  (subjectDir / subjectId / 'surf' / 'rh.pial'),
-                  (subjectDir / subjectId / 'label' / 'lh.aparc.annot'),
-                  (subjectDir / subjectId / 'label' / 'rh.aparc.annot'),
+                  (imageDir / subjectId / 'surf' / 'lh.pial'),
+                  (imageDir / subjectId / 'surf' / 'rh.pial'),
+                  (imageDir / subjectId / 'label' / 'lh.aparc.annot'),
+                  (imageDir / subjectId / 'label' / 'rh.aparc.annot'),
                   ]
   _ = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
   
@@ -32,7 +34,7 @@ def generateLabels(subjectId: str) -> bool:
                 "--surf",
                 "pial",
                 "--sd",
-                subjectDir,
+                imageDir,
                 "--outdir",
                 outputPath
                 ])
@@ -47,7 +49,7 @@ def generateLabels(subjectId: str) -> bool:
                 "--surf",
                 "pial",
                 "--sd",
-                subjectDir,
+                imageDir,
                 "--outdir",
                 outputPath
                 ])
@@ -55,26 +57,27 @@ def generateLabels(subjectId: str) -> bool:
   return (lhLabelsSuccess and rhLabelsSuccess)
 
 def generateMni152Labels(subjectId: str) -> bool:
+  prepStep(subjectId)
   g.logger.info("Running Freesurfer: generating label files in Native/MNI152 space by annotating the pial surfaces.")
   g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
-  subjectDir = config.SUBJECTS_DIR / subjectId / config.NATIVEORMNI152FOLDER
-  labelDir: config.Path = subjectDir / subjectId / 'label' / 'label_type2'
-  surfDir = subjectDir / subjectId / 'surf'
+  imageDir = config.SUBJECT_DIR / config.NATIVEORMNI152FOLDER
+  labelDir: config.Path = imageDir / subjectId / 'label' / 'label_type2'
+  surfDir = imageDir / subjectId / 'surf'
   createDirectories(directoryPaths=[labelDir, surfDir], createParents=True, throwErrorIfExists=False)
   outputPath = (labelDir).resolve(strict=True).__str__()
 
   # Ensure pial and annot files (both (gifti format) exist.
   filesToExist = [
                   # TODO: Do not hard code this file name?
-                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
-                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
-                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
-                  (subjectDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
+                  (imageDir  / 'fsaverage_LR32k' / f'{subjectId}.R.pial.32k_fs_LR.surf.gii'), # Right surface
+                  (imageDir  / 'fsaverage_LR32k' / f'{subjectId}.L.pial.32k_fs_LR.surf.gii'), # Left surface
+                  (imageDir  / 'fsaverage_LR32k' / f'{subjectId}.R.aparc.32k_fs_LR.label.gii'), # Right annotation
+                  (imageDir  / 'fsaverage_LR32k' / f'{subjectId}.L.aparc.32k_fs_LR.label.gii'), # Left annotation
                   ]
-                  # (subjectDir  / f'{subjectId}.R.pial_MSMAll.164k_fs_LR.surf.gii'), # Right surface
-                  # (subjectDir  / f'{subjectId}.L.pial_MSMAll.164k_fs_LR.surf.gii'), # Left surface
-                  # (subjectDir  / f'{subjectId}.R.aparc.164k_fs_LR.label.gii'), # Right annotation
-                  # (subjectDir  / f'{subjectId}.L.aparc.164k_fs_LR.label.gii'), # Left annotation
+                  # (imageDir  / f'{subjectId}.R.pial_MSMAll.164k_fs_LR.surf.gii'), # Right surface
+                  # (imageDir  / f'{subjectId}.L.pial_MSMAll.164k_fs_LR.surf.gii'), # Left surface
+                  # (imageDir  / f'{subjectId}.R.aparc.164k_fs_LR.label.gii'), # Right annotation
+                  # (imageDir  / f'{subjectId}.L.aparc.164k_fs_LR.label.gii'), # Left annotation
                   # ]
   surfaceAndAnnotFiles = [getFile(localPath=fileToExist) for fileToExist in filesToExist]
 
@@ -123,7 +126,7 @@ def generateMni152Labels(subjectId: str) -> bool:
                 # "--label",
                 # "24",
                 "--sd",
-                subjectDir,
+                imageDir,
                 "--outdir",
                 outputPath
                 ])
@@ -142,7 +145,7 @@ def generateMni152Labels(subjectId: str) -> bool:
                 # "--label",
                 # "24",
                 "--sd",
-                subjectDir,
+                imageDir,
                 "--outdir",
                 outputPath
                 ])

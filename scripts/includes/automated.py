@@ -33,6 +33,7 @@ def getDiffusionFolder(use7TDiffusion: bool = False):
 TIMESTAMP_OF_SCRIPT = strftime("%d%m%Y-%H%M%S")
 START_A_FRESH = False
 
+
 # ----------
 # [START] DIRECTORY STRUCTURE PARAMETERS
 # ----------
@@ -42,6 +43,10 @@ INCLUDES_DIR: Path = (SCRIPTS_DIR / "includes").resolve(strict=True)
 DATA_DIR: Path = (BASE_DIR / "data").resolve(strict=True)
 SUBJECTS_DIR: Path = (DATA_DIR / "subjects").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
+
+SUBJECT_DIR: Path = Path()
+SUBJECT_STAT_DIR: Path = Path()
+
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
 
@@ -55,10 +60,12 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
     pathToExecutable =  \
       which(executable) or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
+      getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executable}' -type f -executable") or \
       getoutput(f"find $HOME -wholename '*/{executableAlias}/*' -name '{executable}' -type f -executable") 
     # If the pathToExecutable is a string and contains data after being stripped of white space. 
     if (isinstance(pathToExecutable, str) and pathToExecutable.strip()): # type: ignore # 
+      print(f'Path to {executable} is {pathToExecutable}')
       return Path(pathToExecutable).resolve(strict=True)
     else:
       message = f"Cannot find the executable: {executable}. Please specify or correct the location in config.py"

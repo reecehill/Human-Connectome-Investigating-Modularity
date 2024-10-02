@@ -34,7 +34,6 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         try:
             g.logger = LoggerClass()
             g.logger = g.logger.run()
-            
             # -- [START] LOGGER AVAILABLE 
 
             # ------------------------------------------------------------

@@ -16,7 +16,7 @@ class LoggerClass:
       self.logger: Logger
       self.folderPathsNeeded: "list[Path]" = [config.LOGS_DIR]
       #self.filePathsNeeded: "list[Optional[str]]"" = []
-      deleteDirectories(directoryPaths=[self.folderPathsNeeded[0].parent])
+      # deleteDirectories(directoryPaths=[self.folderPathsNeeded[0].parent])
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     
   def run(self) -> Logger:
@@ -31,6 +31,6 @@ class LoggerClass:
     self.logger.info("Logger is instantiated.")
     self.logger.error("Logger is instantiated.")
     self.logger.info("Logs are saved to: " + config.LOGS_DIR.__str__())
-    copy(config.SCRIPTS_DIR / "config.py", config.LOGS_DIR / "config.py.txt")
+    copy(config.SCRIPTS_DIR / "config.py", config.LOGS_DIR / "config.py")
     self.logger.info("A copy of parameters are saved to: " + config.LOGS_DIR.__str__())
     return self.logger

@@ -23,11 +23,11 @@ class _UI_Switcher:
         ...
     
     @property
-    def backend(self): # -> None:
+    def backend(self): # -> str | None:
         ...
     
     @property
-    def ui(self): # -> ConsoleLog | DialogUI | IPythonUI | UnderAnnexUI | UnderTestsUI | QuietConsoleLog | SilentConsoleLog | None:
+    def ui(self): # -> None:
         ...
     
     def __getattribute__(self, key): # -> Any:

@@ -11,15 +11,6 @@ DecimalNumber = Union[float, np.floating, np.integer]
 if TYPE_CHECKING:
     SeedType = Optional[Union[IntNumber, np.random.Generator, np.random.RandomState]]
     GeneratorType = TypeVar("GeneratorType", bound=Union[np.random.Generator, np.random.RandomState])
-def prod(iterable): # -> Literal[1]:
-    """
-    Product of a sequence of numbers.
-
-    Faster than np.prod for short lists like array shapes, and does
-    not overflow if using Python integers.
-    """
-    ...
-
 def float_factorial(n: int) -> float:
     """Compute the factorial and return as a float
 

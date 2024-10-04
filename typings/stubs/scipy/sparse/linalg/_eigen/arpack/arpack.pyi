@@ -8,12 +8,12 @@ from scipy.sparse.linalg._interface import LinearOperator
 Find a few eigenvectors and eigenvalues of a matrix.
 
 
-Uses ARPACK: http://www.caam.rice.edu/software/ARPACK/
+Uses ARPACK: https://github.com/opencollab/arpack-ng
 
 """
+arpack_int = ...
 __docformat__ = ...
 __all__ = ['eigs', 'eigsh', 'ArpackError', 'ArpackNoConvergence']
-arpack_int = ...
 _type_conv = ...
 _ndigits = ...
 DNAUPD_ERRORS = ...
@@ -291,7 +291,7 @@ def eigs(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., to
 
     References
     ----------
-    .. [1] ARPACK Software, http://www.caam.rice.edu/software/ARPACK/
+    .. [1] ARPACK Software, https://github.com/opencollab/arpack-ng
     .. [2] R. B. Lehoucq, D. C. Sorensen, and C. Yang,  ARPACK USERS GUIDE:
        Solution of Large Scale Eigenvalue Problems by Implicitly Restarted
        Arnoldi Methods. SIAM, Philadelphia, PA, 1998.
@@ -499,7 +499,7 @@ def eigsh(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., t
 
     References
     ----------
-    .. [1] ARPACK Software, http://www.caam.rice.edu/software/ARPACK/
+    .. [1] ARPACK Software, https://github.com/opencollab/arpack-ng
     .. [2] R. B. Lehoucq, D. C. Sorensen, and C. Yang,  ARPACK USERS GUIDE:
        Solution of Large Scale Eigenvalue Problems by Implicitly Restarted
        Arnoldi Methods. SIAM, Philadelphia, PA, 1998.

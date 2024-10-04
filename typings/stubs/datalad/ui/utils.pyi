@@ -15,3 +15,16 @@ def get_console_width(default_min=...): # -> Any | Literal[80, 20, 0]:
     """
     ...
 
+def show_hint(msg): # -> None:
+    ...
+
+def can_prompt() -> bool:
+    """Return True if the process can prompt for credentials
+
+    On Linux this method checks for a controlling terminal.
+    On Windows it always returns True.
+    Unlike :func:`datalad.utils.is_interactive` it does not check all the streams to be a tty,
+    and just tries to open `/dev/tty` directly.
+    """
+    ...
+

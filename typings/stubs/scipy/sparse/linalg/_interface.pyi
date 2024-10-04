@@ -131,7 +131,8 @@ class LinearOperator:
 
     """
     ndim = ...
-    def __new__(cls, *args, **kwargs): # -> LinearOperator:
+    __array_ufunc__ = ...
+    def __new__(cls, *args, **kwargs): # -> Self:
         ...
     
     def __init__(self, dtype, shape) -> None:
@@ -244,10 +245,13 @@ class LinearOperator:
     def __call__(self, x):
         ...
     
-    def __mul__(self, x): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def __mul__(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         ...
     
-    def dot(self, x): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def __truediv__(self, other): # -> _ScaledLinearOperator:
+        ...
+    
+    def dot(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         """Matrix-matrix or matrix-vector multiplication.
 
         Parameters
@@ -264,31 +268,31 @@ class LinearOperator:
         """
         ...
     
-    def __matmul__(self, other): # -> LinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def __matmul__(self, other): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
         ...
     
-    def __rmatmul__(self, other): # -> LinearOperator | _NotImplementedType:
+    def __rmatmul__(self, other): # -> _ScaledLinearOperator | _ProductLinearOperator | Any:
         ...
     
-    def __rmul__(self, x): # -> LinearOperator | _NotImplementedType:
+    def __rmul__(self, x): # -> _ScaledLinearOperator | _ProductLinearOperator | Any:
         ...
     
-    def __pow__(self, p): # -> LinearOperator | _NotImplementedType:
+    def __pow__(self, p): # -> _PowerLinearOperator | _NotImplementedType:
         ...
     
-    def __add__(self, x): # -> LinearOperator | _NotImplementedType:
+    def __add__(self, x): # -> _SumLinearOperator | _NotImplementedType:
         ...
     
-    def __neg__(self): # -> LinearOperator:
+    def __neg__(self): # -> _ScaledLinearOperator:
         ...
     
-    def __sub__(self, x): # -> LinearOperator | _NotImplementedType:
+    def __sub__(self, x): # -> _SumLinearOperator | _NotImplementedType:
         ...
     
     def __repr__(self): # -> str:
         ...
     
-    def adjoint(self): # -> LinearOperator:
+    def adjoint(self): # -> _AdjointLinearOperator:
         """Hermitian adjoint.
 
         Returns the Hermitian adjoint of self, aka the Hermitian
@@ -305,7 +309,7 @@ class LinearOperator:
         ...
     
     H = ...
-    def transpose(self): # -> LinearOperator:
+    def transpose(self): # -> _TransposedLinearOperator:
         """Transpose this linear operator.
 
         Returns a LinearOperator that represents the transpose of this one.
@@ -383,7 +387,7 @@ class IdentityOperator(LinearOperator):
     
 
 
-def aslinearoperator(A): # -> LinearOperator:
+def aslinearoperator(A): # -> LinearOperator | MatrixLinearOperator:
     """Return A as a LinearOperator.
 
     'A' may be any of the following types:

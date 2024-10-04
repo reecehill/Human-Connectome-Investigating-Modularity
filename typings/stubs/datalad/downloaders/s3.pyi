@@ -17,23 +17,33 @@ class S3Authenticator(Authenticator):
     """
     allows_anonymous = ...
     DEFAULT_CREDENTIAL_TYPE = ...
-    def __init__(self, *args, host=..., **kwargs) -> None:
+    def __init__(self, *args, host=..., region=..., **kwargs) -> None:
         """
 
         Parameters
         ----------
         host: str, optional
-          In some cases it is necessary to provide host to connect to. Passed
-          to boto.connect_s3
+          A URL to the endpoint or just a host name (then prepended with https://).
+          Define either `host` or `region`, not both.
+        region: str, optional
+          will be passed to s3 client as region_name.
+          Default region could also be defined in the `~/.aws/config`
+          file or by setting the AWS_DEFAULT_REGION environment variable.
         """
         ...
     
-    def authenticate(self, bucket_name, credential, cache=...): # -> Bucket | None:
+    def authenticate(self, bucket_name, credential, cache=...): # -> _:
         """Authenticates to the specified bucket using provided credentials
+
+        Sets up a boto3 S3 client. Uses supplied DataLad credentials
+        or connects anonymously - in that order of preference.
+
+        No test is done to verify bucket access, to avoid hitting the case
+        where a bucket cannot be listed but its objects can be accessed.
 
         Returns
         -------
-        bucket
+        s3client: botocore.client.S3
         """
         ...
     
@@ -41,7 +51,7 @@ class S3Authenticator(Authenticator):
 
 @auto_repr
 class S3DownloaderSession(DownloaderSession):
-    def __init__(self, size=..., filename=..., url=..., headers=..., key=...) -> None:
+    def __init__(self, size=..., filename=..., url=..., headers=..., client=..., bucket: str = ..., key: str = ..., version_kwargs: dict = ...) -> None:
         ...
     
     def download(self, f=..., pbar=..., size=...): # -> None:
@@ -59,25 +69,42 @@ class S3Downloader(BaseDownloader):
         ...
     
     @property
-    def bucket(self): # -> Any | None:
+    def client(self): # -> None:
         ...
     
     def reset(self): # -> None:
         ...
     
     def get_downloader_session(self, url, **kwargs): # -> S3DownloaderSession:
+        """Create a DownloaderSession for a given URL
+
+        This function sets up a DownloaderSession object and reads the
+        information necessary (e.g. size, headers) by issuing a
+        head_object query.
+
+        Returns
+        -------
+        S3DownloaderSession
+        """
         ...
     
     @classmethod
-    def get_key_headers(cls, key, dateformat=...): # -> dict[str, Unknown]:
+    def get_obj_headers(cls, obj_meta, other=...): # -> dict[str, Any]:
+        """Get a headers dict from head_object output
+
+        Picks, renames, and converts certain keys from the boto3
+        head_object response. Some (like Content-Disposition) may need
+        to be added via kwargs.
+
+        Note: the head_object output also includes the relevant
+        information under ['ResponseMetadata']['HTTPHeaders']
+        (possibly using different data type), but this function only
+        uses top-level keys.
+        """
         ...
     
     @classmethod
     def get_status_from_headers(cls, headers): # -> FileStatus:
-        ...
-    
-    @classmethod
-    def get_key_status(cls, key, dateformat=...): # -> FileStatus:
         ...
     
 

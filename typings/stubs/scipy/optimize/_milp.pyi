@@ -39,11 +39,11 @@ def milp(c, *, integrality=..., bounds=..., constraints=..., options=...): # -> 
 
     Parameters
     ----------
-    c : 1D array_like
+    c : 1D dense array_like
         The coefficients of the linear objective function to be minimized.
         `c` is converted to a double precision array before the problem is
         solved.
-    integrality : 1D array_like, optional
+    integrality : 1D dense array_like, optional
         Indicates the type of integrality constraint on each decision variable.
 
         ``0`` : Continuous variable; no integrality constraint.

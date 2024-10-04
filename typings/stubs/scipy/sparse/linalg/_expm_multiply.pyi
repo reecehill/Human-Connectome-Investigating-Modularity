@@ -68,7 +68,7 @@ def expm_multiply(A, B, start=..., stop=..., num=..., endpoint=..., traceA=...):
         For linear operators, `traceA` should be provided to ensure performance
         as the estimation is not guaranteed to be reliable for all cases.
 
-        .. versionadded: 1.9.0
+        .. versionadded:: 1.9.0
 
     Returns
     -------

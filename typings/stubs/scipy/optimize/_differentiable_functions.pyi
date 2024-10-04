@@ -118,7 +118,7 @@ class VectorFunction:
     def fun(self, x):
         ...
     
-    def jac(self, x): # -> csr_matrix | LinearOperator | NDArray[float64]:
+    def jac(self, x): # -> csr_matrix | LinearOperator | NDArray[float64] | NDArray[Any]:
         ...
     
     def hess(self, x, v): # -> csr_matrix | NDArray[Any] | HessianUpdateStrategy:
@@ -136,7 +136,7 @@ class LinearVectorFunction:
     def __init__(self, A, x0, sparse_jacobian) -> None:
         ...
     
-    def fun(self, x): # -> ndarray[Any, Any] | _NotImplementedType | ndarray[Any, dtype[Any]] | matrix[Any, Any] | Any:
+    def fun(self, x): # -> ndarray[Any, Any] | Any | _NotImplementedType | ndarray[Any, dtype[Any]] | matrix[Any, Any]:
         ...
     
     def jac(self, x): # -> csr_matrix | NDArray[Any]:

@@ -26,7 +26,7 @@ class ResourceCollection:
     def __repr__(self): # -> str:
         ...
     
-    def __iter__(self): # -> Generator[Unknown, None, None]:
+    def __iter__(self): # -> Generator[Any, Any, None]:
         """
         A generator which yields resource instances after doing the
         appropriate service operation calls and handling any pagination
@@ -44,7 +44,7 @@ class ResourceCollection:
         """
         ...
     
-    def pages(self): # -> Generator[list[Unknown], None, None]:
+    def pages(self): # -> Generator[list[Any], Any, None]:
         """
         A generator which yields pages of resource instances after
         doing the appropriate service operation calls and handling
@@ -66,7 +66,7 @@ class ResourceCollection:
         """
         ...
     
-    def all(self): # -> ResourceCollection:
+    def all(self): # -> Self:
         """
         Get all items from the collection, optionally with a custom
         page size and item count limit.
@@ -87,7 +87,7 @@ class ResourceCollection:
         """
         ...
     
-    def filter(self, **kwargs): # -> ResourceCollection:
+    def filter(self, **kwargs): # -> Self:
         """
         Get items from the collection, passing keyword arguments along
         as parameters to the underlying service operation, which are
@@ -111,7 +111,7 @@ class ResourceCollection:
         """
         ...
     
-    def limit(self, count): # -> ResourceCollection:
+    def limit(self, count): # -> Self:
         """
         Return at most this many resources.
 
@@ -129,7 +129,7 @@ class ResourceCollection:
         """
         ...
     
-    def page_size(self, count): # -> ResourceCollection:
+    def page_size(self, count): # -> Self:
         """
         Fetch at most this many resources per service request.
 
@@ -215,7 +215,7 @@ class CollectionManager:
     def page_size(self, count): # -> _collection_cls:
         ...
     
-    def pages(self): # -> Generator[list[Unknown], None, None]:
+    def pages(self): # -> Generator[list[Any], Any, None]:
         ...
     
 
@@ -227,7 +227,7 @@ class CollectionFactory:
     subclasses from a :py:class:`~boto3.resources.model.Collection`
     model. These subclasses include methods to perform batch operations.
     """
-    def load_from_definition(self, resource_name, collection_model, service_context, event_emitter): # -> Type[_]:
+    def load_from_definition(self, resource_name, collection_model, service_context, event_emitter): # -> type[_]:
         """
         Loads a collection from a model, creating a new
         :py:class:`CollectionManager` subclass

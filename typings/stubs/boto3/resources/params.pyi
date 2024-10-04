@@ -20,7 +20,7 @@ def get_data_member(parent, path): # -> Any:
     """
     ...
 
-def create_request_parameters(parent, request_model, params=..., index=...): # -> dict[Unknown, Unknown]:
+def create_request_parameters(parent, request_model, params=..., index=...): # -> dict[Any, Any]:
     """
     Handle request parameters that can be filled in from identifiers,
     resource data members or constants.

@@ -34,7 +34,7 @@ __parameters_str_re = ...
 __re_params = ...
 __re_spliter1 = ...
 __re_spliter2 = ...
-def get_docstring_split(f): # -> tuple[None, None, None] | tuple[Unknown | str, list[tuple[str | Any, str | Any]], str]:
+def get_docstring_split(f): # -> tuple[None, None, None] | tuple[Any | str, list[tuple[str | Any, str | Any]], str]:
     """Given a function, break it up into portions
 
     Parameters
@@ -48,7 +48,7 @@ def get_docstring_split(f): # -> tuple[None, None, None] | tuple[Unknown | str, 
     """
     ...
 
-def borrowdoc(cls, methodname=...): # -> (method: Unknown) -> Unknown:
+def borrowdoc(cls, methodname=...): # -> Callable[..., Any]:
     """Return a decorator to borrow docstring from another `cls`.`methodname`
 
     It should not be used for __init__ methods of classes derived from
@@ -76,7 +76,7 @@ def borrowdoc(cls, methodname=...): # -> (method: Unknown) -> Unknown:
     """
     ...
 
-def borrowkwargs(cls=..., methodname=..., exclude=...): # -> (method: Unknown) -> Unknown:
+def borrowkwargs(cls=..., methodname=..., exclude=...): # -> Callable[..., Any]:
     """Return  a decorator which would borrow docstring for ``**kwargs``
 
     Notes
@@ -88,7 +88,7 @@ def borrowkwargs(cls=..., methodname=..., exclude=...): # -> (method: Unknown) -
     In the simplest scenario -- just grab all arguments from parent class::
 
            @borrowkwargs(A)
-           def met1(self, bu, **kwargs):
+           def met1(self, desc, **kwargs):
                pass
 
     Parameters
@@ -102,12 +102,10 @@ def borrowkwargs(cls=..., methodname=..., exclude=...): # -> (method: Unknown) -
     """
     ...
 
-def exc_str(exc=..., limit=...): # -> str:
-    """Enhanced str for exceptions.  Should include original location
+def exc_str(exc=..., limit=..., include_str=...): # -> str:
+    """Temporary adapter
 
-    Parameters
-    ----------
-    Exception to
+    The CapturedException should be available and be used directly instead.
     """
     ...
 

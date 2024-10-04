@@ -150,6 +150,8 @@ def gmres(A, b, x0=..., tol=..., restart=..., maxiter=..., M=..., callback=..., 
         preconditioning dramatically improves the rate of convergence,
         which implies that fewer iterations are needed to reach a given
         error tolerance.  By default, no preconditioner is used.
+        In this implementation, left preconditioning is used,
+        and the preconditioned residual is minimized.
     callback : function
         User-supplied function to call after each iteration.  It is called
         as `callback(args)`, where `args` are selected by `callback_type`.

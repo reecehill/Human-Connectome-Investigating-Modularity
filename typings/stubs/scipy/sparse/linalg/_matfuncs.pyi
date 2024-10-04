@@ -55,7 +55,7 @@ class MatrixPowerOperator(LinearOperator):
         ...
     
     @property
-    def T(self): # -> LinearOperator:
+    def T(self): # -> MatrixPowerOperator:
         ...
     
 
@@ -68,7 +68,7 @@ class ProductOperator(LinearOperator):
         ...
     
     @property
-    def T(self): # -> LinearOperator:
+    def T(self): # -> ProductOperator:
         ...
     
 

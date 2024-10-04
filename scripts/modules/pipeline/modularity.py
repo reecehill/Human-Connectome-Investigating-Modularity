@@ -1,9 +1,7 @@
-# pyright: reportUndefinedVariable=false,reportUnusedImport=false,reportMissingTypeStubs=false,reportUnknownMemberType=false,reportUnknownVariableType=false,reportUnknownArgumentType=false
-
 # NetworkX (Python package is used to calculate network properties.)
 import numpy as np
-import numpy.typing as np_typing
-from scipy.io import loadmat, savemat
+import numpy.typing as npt
+from scipy.io import loadmat, savemat # type: ignore
 from scipy.sparse import random as random_sparse, spmatrix
 from scipy.stats import uniform as uniform_dist
 import modules.globals as g
@@ -15,7 +13,7 @@ from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import itertools
 from collections import defaultdict, deque
-from cdlib import NodeClustering, algorithms
+from cdlib import NodeClustering, algorithms # type: ignore
 from modules.utils import prepStep
 
 def calculateModularity(subjectId: str) -> bool:
@@ -25,8 +23,8 @@ def calculateModularity(subjectId: str) -> bool:
 def findModularity(subjectId: str) -> bool:
   L_optimalGamma = np.NaN
   R_optimalGamma = np.NaN
-  L_optimalModules: 'list[list[int]]|NodeClustering' = []
-  R_optimalModules: 'list[list[int]]|NodeClustering' = []
+  L_optimalModules: 'npt.NDArray[np.int8]|NodeClustering' = np.array([])
+  R_optimalModules: 'npt.NDArray[np.int8]|NodeClustering' = np.array([])
   
   L_graph = from_scipy_sparse_array(
           getComputedMatrix(subjectId,config.L_MATRIX)
@@ -35,24 +33,23 @@ def findModularity(subjectId: str) -> bool:
           getComputedMatrix(subjectId,config.R_MATRIX)
           )
   g.logger.info(f"Running NetworkX: calculating modularity using: {config.NETWORKX_ALGORITHM}.")
-  match config.NETWORKX_ALGORITHM:
-    case 'leiden_communities': 
+  if config.NETWORKX_ALGORITHM == 'leiden_communities': 
       # Using the optimal gamma, find the modules arrangement.
       L_optimalModules = algorithms.leiden(g_original=L_graph, weights='weight').communities # type: ignore
       R_optimalModules = algorithms.leiden(g_original=R_graph, weights='weight').communities # type: ignore
-    case 'bayan': 
+  elif config.NETWORKX_ALGORITHM == 'bayan': 
       L_optimalModules = algorithms.bayan(g_original=L_graph, time_allowed=1, resolution=1) # type: ignore
       R_optimalModules = algorithms.bayan(g_original=R_graph,  time_allowed=1, resolution=1).communities # type: ignore
-    case 'frc_fgsn': 
+  elif config.NETWORKX_ALGORITHM == 'frc_fgsn': 
       L_optimalModules = algorithms.frc_fgsn(g_original=L_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
       R_optimalModules = algorithms.frc_fgsn(g_original=R_graph, theta=1, eps=0.5, r=3000).communities # type: ignore
-    case 'principled_clustering': 
+  elif config.NETWORKX_ALGORITHM == 'principled_clustering': 
       L_optimalModules = algorithms.principled_clustering(g_original=L_graph, cluster_count=5).communities # type: ignore
       R_optimalModules = algorithms.principled_clustering(g_original=R_graph, cluster_count=5).communities # type: ignore
-    case 'scan': 
+  elif config.NETWORKX_ALGORITHM == 'scan': 
       L_optimalModules = algorithms.scan(g_original=L_graph, epsilon=0.2, mu=10).communities # type: ignore
       R_optimalModules = algorithms.scan(g_original=R_graph, epsilon=0.2, mu=10).communities # type: ignore
-    case 'louvain_communities': 
+  elif config.NETWORKX_ALGORITHM == 'louvain_communities': 
       # Search parameter space for gamma that yields maximal modularity.
       L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
       R_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.R_MATRIX)
@@ -64,7 +61,7 @@ def findModularity(subjectId: str) -> bool:
       R_optimalModules, _ = runLouvainAlgorithm(
         R_graph,
         R_optimalGamma)
-    case 'greedy_modularity_communities':
+  elif config.NETWORKX_ALGORITHM == 'greedy_modularity_communities':
       # Search parameter space for gamma that yields maximal modularity.
       L_optimalGamma = 0.2
       # L_optimalGamma = findOptimalGamma(subjectId=subjectId, weighted_matrix=config.L_MATRIX)
@@ -73,25 +70,25 @@ def findModularity(subjectId: str) -> bool:
       
       L_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(L_graph, weight='weight', resolution=L_optimalGamma, cutoff=10,best_n=10)] # type: ignore
       R_optimalModules = [list(community) for community in nx_community.greedy_modularity_communities(R_graph, weight='weight', resolution=R_optimalGamma, cutoff=10,best_n=10)] # type: ignore
-    case 'fast_label_propagation_communities': 
+  elif config.NETWORKX_ALGORITHM == 'fast_label_propagation_communities': 
       L_optimalModules_gen = nx_community.fast_label_propagation_communities(L_graph, weight='weight') # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      L_optimalModules = np.array([list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))])
       R_optimalModules_gen = nx_community.fast_label_propagation_communities(R_graph, weight='weight') # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case 'async_fluid': 
+      R_optimalModules = np.array([list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))])
+  elif config.NETWORKX_ALGORITHM == 'async_fluid': 
       L_optimalModules = algorithms.async_fluid(L_graph,k=config.NETWORKX_FLUID_K)
       R_optimalModules = algorithms.async_fluid(R_graph,k=config.NETWORKX_FLUID_K)
-    case 'girvan_newman': 
+  elif config.NETWORKX_ALGORITHM == 'girvan_newman': 
       L_optimalModules_gen = nx_community.girvan_newman(L_graph) # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      L_optimalModules = np.array([list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))])
       R_optimalModules_gen = nx_community.girvan_newman(R_graph) # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case 'k_clique_communities': 
+      R_optimalModules = np.array([list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))])
+  elif config.NETWORKX_ALGORITHM == 'k_clique_communities': 
       L_optimalModules_gen = nx_community.k_clique_communities(L_graph, k=3, cliques=nx.find_cliques(L_graph)) # type: ignore
-      L_optimalModules = [list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))]
+      L_optimalModules = np.array([list(community) for community in deque(L_optimalModules_gen, maxlen=len(L_graph))])
       R_optimalModules_gen = nx_community.k_clique_communities(R_graph, k=3, cliques=nx.find_cliques(R_graph)) # type: ignore
-      R_optimalModules = [list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))]
-    case _:
+      R_optimalModules = np.array([list(community) for community in deque(R_optimalModules_gen, maxlen=len(R_graph))])
+  else:
       g.logger.info("ERROR: Running NetworkX: community detection algorithm incorrectly set.")
       raise ValueError("Incorrect networkx algorithm specified.")
   
@@ -136,7 +133,7 @@ def process_iteration(args: 'tuple[np.float64,int,Graph,str]') -> 'np.float64':
 
 def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
   g.logger.info("Running NetworkX: finding optimal gamma.")
-  all_gammas = cast('np_typing.NDArray[np.float64]', np.arange(config.NETWORKX_GAMMA_START, config.NETWORKX_GAMMA_END, config.NETWORKX_GAMMA_STEP))
+  all_gammas = cast('npt.NDArray[np.float64]', np.arange(config.NETWORKX_GAMMA_START, config.NETWORKX_GAMMA_END, config.NETWORKX_GAMMA_STEP))
   all_iterations = range(1, config.NETWORKX_ITERATION_COUNT)
 
   # Q_corts: np_typing.NDArray[np.float64] = np.zeros((max(all_iterations),1), dtype=np.float64)
@@ -149,9 +146,10 @@ def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
 
 
   # Create random adjacency matrix
-  number_of_edges_to_create: np.int32 = computed_matrix.nnz
+  number_of_edges_to_create: np.int32 = computed_matrix.getnnz()
+  # number_of_edges_to_create: np.int32 = computed_matrix.nnz
   numel_adj_matrix: np.int32 = computed_matrix.shape[0]*computed_matrix.shape[1]
-  density_of_random_matrix = np.float64(number_of_edges_to_create / numel_adj_matrix)
+  density_of_random_matrix = float(number_of_edges_to_create / numel_adj_matrix)
   random_matrix: spmatrix = random_sparse(
     m=computed_matrix.shape[0],
     n=computed_matrix.shape[1],
@@ -179,19 +177,19 @@ def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
 
   return optimal_gamma
 
-def runLouvainAlgorithm(graph: Graph, gamma: np.float64) -> 'tuple[list[list[int]], np.float64]':
-  match config.NETWORKX_ALGORITHM:
-    case 'louvain_communities': 
+def runLouvainAlgorithm(graph: Graph, gamma: np.float64) -> 'tuple[npt.NDArray[np.int8] | NodeClustering, np.float64]':
+  if config.NETWORKX_ALGORITHM == 'louvain_communities': 
       communities: 'list[set[int]]' = nx_community.louvain_communities(graph, weight='weight', resolution=gamma) # type: ignore
-    case 'greedy_modularity_communities':
+  elif config.NETWORKX_ALGORITHM == 'greedy_modularity_communities':
       communities: 'list[set[int]]' = nx_community.greedy_modularity_communities(graph, weight='weight', resolution=gamma) # type: ignore
-    case _:
+  else:
       g.logger.error(f"Invalid NetworkX algorithm: {config.NETWORKX_ALGORITHM}. Expected 'louvain_communities' or 'greedy_modularity_communities'.")
-      return [], np.float64(0)
-  communities_list: 'ndarray[list[int]]' = np.array([list(community) for community in communities], dtype=object)
+      raise ValueError("Incorrect networkx algorithm specified.")
+  communities_list: 'npt.NDArray[np.int8]' = np.array([list(community) for community in communities], dtype=object)
   modularity = nx_community.modularity(graph, communities) # type: ignore
   return communities_list, modularity
 
 
 def main()  -> bool:
+  g.logger.warn("Calculating modularity for subject 100307 only.")
   return calculateModularity('100307')

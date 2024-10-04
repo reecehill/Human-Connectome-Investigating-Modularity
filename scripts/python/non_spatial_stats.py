@@ -1,13 +1,15 @@
 # Re-importing necessary libraries and preparing data again
-from typing import Literal, Union
+from typing import Any, Literal, Tuple, Union
 import numpy as np
-from numpy._typing import NDArray
+import numpy.typing as npt
 import pandas as pd
 import random
 import string
 from scipy.stats import mode
 from includes.statistics import test_ranges, test_functions_with_range, generate_interpretation, convertResultsToDataFrames
 from pathlib import Path
+
+from includes.statistics.testVariables import Float
 
 def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputtedXlsx: Path) -> None:
     # Function to generate a random word
@@ -17,11 +19,11 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
     x_raw: pd.DataFrame = pd.read_csv(pathToXCsv.absolute().__str__(), sep=',', header=None, keep_default_na=True).T
     y_raw: pd.DataFrame = pd.read_csv(pathToYCsv.absolute().__str__(), sep=',', header=None, keep_default_na=True).T
-    x: pd.Series = x_raw[0]
-    y: pd.Series = y_raw[0]
+    x: "pd.Series[int]" = x_raw[0]
+    y: "pd.Series[int]" = y_raw[0]
 
     # Padding/smoothing function
-    def enlarge_mask_with_mode_priority(mask: pd.Series, n, mode_method: str):
+    def enlarge_mask_with_mode_priority(mask: "pd.Series[int]", n: int, mode_method: str):
         padded_mask = mask.copy(deep=True)
         possibleIndexes = padded_mask.index
         valueCounts = padded_mask.value_counts().drop([-1], errors='ignore')
@@ -58,7 +60,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
         return padded_mask
 
     # Cleaning data to exclude NaN values
-    def switch(nan_handler: str, x: pd.Series, y: pd.Series) -> tuple[pd.Series,pd.Series]:
+    def switch(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
         idsOfNonNan: pd.Series = (x > 0) & (y > 0) # All modules begin counting from 1 onwards.
         x_out: pd.Series
         y_out: pd.Series
@@ -87,7 +89,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
         print(f'n of functional modules (post-{nan_handler}): {len(y_out.unique())}')
         return x_out, y_out
 
-    def convertNumericalModuleToWords(xory: "Union[pd.Series[float],np.ndarray]") -> "pd.Series[str]":
+    def convertNumericalModuleToWords(xory: "Union[pd.Series[int],npt.NDArray[np.int8]]") -> "pd.Series[str]":
         # Step 1: Get unique labels in x and y
         unique_labels_xory = set(xory)  # Assuming x or y is an array or list
 
@@ -98,7 +100,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
         xory_as_words: pd.Series[str] = pd.Series([label_to_word_map_xory[label] for label in xory])
         return xory_as_words
 
-    def convertNumericalModulesToWords(x, y) -> "tuple[pd.Series[str], pd.Series[str]]":
+    def convertNumericalModulesToWords(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[str], pd.Series[str]]":
         x_as_words: pd.Series[str] = convertNumericalModuleToWords(x)
         y_as_words: pd.Series[str] = convertNumericalModuleToWords(y)
         # Step 1: Get unique labels in x and y
@@ -106,8 +108,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
         unique_labels_y = set(y)  # Assuming y is an array or list
 
         # Step 2: Create a dictionary to map each label to a random word
-        label_to_word_map_x: dict[str, str] = {label: random_word() for label in unique_labels_x}
-        label_to_word_map_y: dict[str, str] = {label: random_word() for label in unique_labels_y}
+        label_to_word_map_x: dict[int, str] = {label: random_word() for label in unique_labels_x}
+        label_to_word_map_y: dict[int, str] = {label: random_word() for label in unique_labels_y}
 
         # Step 3: Apply the mapping to x and y
         x_as_words: pd.Series[str] = pd.Series([label_to_word_map_x[label] for label in x])
@@ -123,36 +125,38 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
 
     # Prepare results storage
-    results_x_truth_with_range = []
-    results_y_truth_with_range = []
+    results_x_truth_with_range: list[tuple[Union[Float,str]]] = []
+    results_y_truth_with_range: list[tuple[Union[Float,str]]] = []
 
     # Run tests for X as truth
     for test_name, test_func in test_functions_with_range:
         try:
-            score_x_defined = test_func(x_final, y_final)
-            score_x_imported_random_y = test_func(
+            score_x_defined: Float = test_func(x_final, y_final)
+            score_x_imported_random_y: Float = test_func(
                 x_final, 
                 convertNumericalModuleToWords(np.random.choice(
                         a=y_final.unique(),
                         size=len(y_final)
                         ))
                 )
-            score_x_random_y_imported = test_func(
+            score_x_random_y_imported: Float = test_func(
                 convertNumericalModuleToWords(np.random.choice(
                     a=x_final.unique(),
                     size=len(x_final)
                     )),
                 y_final
                 )
-            
-            results_x_truth_with_range.append([
+
+            newResult: tuple[Union[Float,str]] = (
                 test_name, 
                 score_x_defined, 
                 score_x_imported_random_y, 
                 score_x_random_y_imported, 
                 generate_interpretation(test_name, score_x_defined),
                 test_ranges[test_name]
-            ])
+            )
+            
+            results_x_truth_with_range.append(newResult)
         except Exception as e:
             print(f"Error running {test_name} with x as truth: {e}")
 
@@ -174,14 +178,14 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                     )),
                 x_final)
             
-            results_y_truth_with_range.append([
+            results_y_truth_with_range.append((
                 test_name, 
                 score_y_defined, 
                 score_y_imported_random_x, 
                 score_y_random_x_imported, 
                 generate_interpretation(test_name, score_y_defined),
                 test_ranges[test_name]
-            ])
+            ))
         except Exception as e:
             print(f"Error running {test_name} with y as truth: {e}")
 

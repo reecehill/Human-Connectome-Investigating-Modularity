@@ -28,11 +28,16 @@ def differential_evolution(func, bounds, args=..., strategy=..., maxiter=..., po
         to ``len(x)``.
     bounds : sequence or `Bounds`
         Bounds for variables. There are two ways to specify the bounds:
-        1. Instance of `Bounds` class.
-        2. ``(min, max)`` pairs for each element in ``x``, defining the finite
-        lower and upper bounds for the optimizing argument of `func`.
+
+            1. Instance of `Bounds` class.
+            2. ``(min, max)`` pairs for each element in ``x``, defining the
+               finite lower and upper bounds for the optimizing argument of
+               `func`.
+
         The total number of bounds is used to determine the number of
-        parameters, N.
+        parameters, N. If there are parameters whose bounds are equal the total
+        number of free parameters is ``N - N_equal``.
+
     args : tuple, optional
         Any additional fixed parameters needed to
         completely specify the objective function.
@@ -56,13 +61,13 @@ def differential_evolution(func, bounds, args=..., strategy=..., maxiter=..., po
     maxiter : int, optional
         The maximum number of generations over which the entire population is
         evolved. The maximum number of function evaluations (with no polishing)
-        is: ``(maxiter + 1) * popsize * N``
+        is: ``(maxiter + 1) * popsize * (N - N_equal)``
     popsize : int, optional
         A multiplier for setting the total population size. The population has
-        ``popsize * N`` individuals. This keyword is overridden if an
-        initial population is supplied via the `init` keyword. When using
+        ``popsize * (N - N_equal)`` individuals. This keyword is overridden if
+        an initial population is supplied via the `init` keyword. When using
         ``init='sobol'`` the population size is calculated as the next power
-        of 2 after ``popsize * N``.
+        of 2 after ``popsize * (N - N_equal)``.
     tol : float, optional
         Relative tolerance for convergence, the solving stops when
         ``np.std(pop) <= atol + tol * np.abs(np.mean(population_energies))``,
@@ -126,8 +131,8 @@ def differential_evolution(func, bounds, args=..., strategy=..., maxiter=..., po
         'sobol' and 'halton' are superior alternatives and maximize even more
         the parameter space. 'sobol' will enforce an initial population
         size which is calculated as the next power of 2 after
-        ``popsize * N``. 'halton' has no requirements but is a bit less
-        efficient. See `scipy.stats.qmc` for more details.
+        ``popsize * (N - N_equal)``. 'halton' has no requirements but is a bit
+        less efficient. See `scipy.stats.qmc` for more details.
 
         'random' initializes the population randomly - this has the drawback
         that clustering can occur, preventing the whole of parameter space
@@ -374,11 +379,15 @@ class DifferentialEvolutionSolver:
         to ``len(x)``.
     bounds : sequence or `Bounds`
         Bounds for variables. There are two ways to specify the bounds:
-        1. Instance of `Bounds` class.
-        2. ``(min, max)`` pairs for each element in ``x``, defining the finite
-        lower and upper bounds for the optimizing argument of `func`.
+
+            1. Instance of `Bounds` class.
+            2. ``(min, max)`` pairs for each element in ``x``, defining the
+               finite lower and upper bounds for the optimizing argument of
+               `func`.
+
         The total number of bounds is used to determine the number of
-        parameters, N.
+        parameters, N. If there are parameters whose bounds are equal the total
+        number of free parameters is ``N - N_equal``.
     args : tuple, optional
         Any additional fixed parameters needed to
         completely specify the objective function.
@@ -403,13 +412,13 @@ class DifferentialEvolutionSolver:
     maxiter : int, optional
         The maximum number of generations over which the entire population is
         evolved. The maximum number of function evaluations (with no polishing)
-        is: ``(maxiter + 1) * popsize * N``
+        is: ``(maxiter + 1) * popsize * (N - N_equal)``
     popsize : int, optional
         A multiplier for setting the total population size. The population has
-        ``popsize * N`` individuals. This keyword is overridden if an
-        initial population is supplied via the `init` keyword. When using
+        ``popsize * (N - N_equal)`` individuals. This keyword is overridden if
+        an initial population is supplied via the `init` keyword. When using
         ``init='sobol'`` the population size is calculated as the next power
-        of 2 after ``popsize * N``.
+        of 2 after ``popsize * (N - N_equal)``.
     tol : float, optional
         Relative tolerance for convergence, the solving stops when
         ``np.std(pop) <= atol + tol * np.abs(np.mean(population_energies))``,
@@ -476,8 +485,8 @@ class DifferentialEvolutionSolver:
         'sobol' and 'halton' are superior alternatives and maximize even more
         the parameter space. 'sobol' will enforce an initial population
         size which is calculated as the next power of 2 after
-        ``popsize * N``. 'halton' has no requirements but is a bit less
-        efficient. See `scipy.stats.qmc` for more details.
+        ``popsize * (N - N_equal)``. 'halton' has no requirements but is a bit
+        less efficient. See `scipy.stats.qmc` for more details.
 
         'random' initializes the population randomly - this has the drawback
         that clustering can occur, preventing the whole of parameter space

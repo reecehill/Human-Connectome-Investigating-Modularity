@@ -474,7 +474,7 @@ class KDTree(cKDTree):
         """
         ...
     
-    def query_ball_tree(self, other, r, p=..., eps=...): # -> List[List[int]]:
+    def query_ball_tree(self, other, r, p=..., eps=...): # -> list[list[int]]:
         """
         Find all pairs of points between `self` and `other` whose distance is
         at most r.

@@ -151,7 +151,7 @@ class FullHessianUpdateStrategy(HessianUpdateStrategy):
         """
         ...
     
-    def get_matrix(self):
+    def get_matrix(self): # -> NDArray[Any]:
         """Return the current internal matrix.
 
         Returns

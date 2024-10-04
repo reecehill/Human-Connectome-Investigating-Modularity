@@ -3,7 +3,7 @@
 # ----------
 
 import multiprocessing
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from includes.automated import *
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
@@ -53,7 +53,7 @@ NETWORKX_GAMMA_START = 0.2
 NETWORKX_GAMMA_END = 0.6
 NETWORKX_GAMMA_STEP = 0.02
 NETWORKX_ITERATION_COUNT = 5
-NETWORKX_MAX_LEVEL: int|None = 5
+NETWORKX_MAX_LEVEL: "Union[int,None]" = 5
 NETWORKX_FLUID_K: int = 3
 # ----------
 # [END] NETWORKX PARAMETERS
@@ -88,7 +88,7 @@ R_MATRIX = "adj_matrix_wei_roiR" # adj_matrix_wei_roiR, adj_matrix_bin_roiR
 # ----------
 # [START] FMRI PARAMETERS
 # ----------
-DESIRED_FMRI_MAPS: list[str] = [
+DESIRED_FMRI_MAPS: "list[str]" = [
   '$subjectId$_tfMRI_MOTOR_level2_LF_hp200_s2_MSMAll',
   '$subjectId$_tfMRI_MOTOR_level2_RF_hp200_s2_MSMAll',
   '$subjectId$_tfMRI_MOTOR_level2_LH_hp200_s2_MSMAll',
@@ -221,6 +221,14 @@ EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code com
 
 # ----------
 # [END] LOGGING PARAMETERS
+# ----------
+
+# ----------
+# [START] STATISTICS PARAMETERS
+# ----------
+CALC_DEPRECATED_STATS: bool = False
+# ----------
+# [END] STATISTICS PARAMETERS
 # ----------
 
 

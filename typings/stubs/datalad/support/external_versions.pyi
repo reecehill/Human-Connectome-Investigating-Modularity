@@ -18,6 +18,9 @@ class UnknownVersion:
 
 _runner = ...
 _git_runner = ...
+def get_rsync_version(): # -> LooseVersion:
+    ...
+
 class ExternalVersions:
     """Helper to figure out/use versions of the externals (modules, cmdline tools, etc).
 
@@ -32,23 +35,52 @@ class ExternalVersions:
     storing it, so later call will re-evaluate fully.
     """
     UNKNOWN = ...
-    CUSTOM = ...
-    INTERESTING = ...
+    _CUSTOM = ...
+    _PYTHON_PACKAGES = ...
+    _INTERESTING = ...
     def __init__(self) -> None:
         ...
     
-    def __getitem__(self, module): # -> UnknownVersion | None:
+    def __getitem__(self, module): # -> None:
         ...
     
-    def keys(self): # -> dict_keys[Unknown, Unknown]:
-        """Return names of the known modules"""
+    def keys(self, query=...): # -> dict_keys[Any, Any]:
+        """Return names of the known modules
+
+        Parameters
+        ----------
+        query: bool, optional
+          If True, we will first query all CUSTOM and INTERESTING entries
+          to make sure we have them known.
+        """
         ...
     
     def __contains__(self, item): # -> bool:
         ...
     
+    def add(self, name, func=...): # -> None:
+        """Add a version checker
+
+        This method allows third-party libraries to define additional checks.
+        It will not add `name` if already exists.  If `name` exists and `func`
+        is different - it will override with a new `func`.  Added entries will
+        be included in the output of `dumps(query=True)`.
+
+        Parameters
+        ----------
+        name: str
+          Name of the check (usually a name of the Python module, or an
+          external command prefixed with "cmd:")
+        func: callable, optional
+          Function to be called to obtain version information. This should be
+          defined when checking the version of something that is not a Python
+          module or when this class's method for determining the version of a
+          Python module isn't sufficient.
+        """
+        ...
+    
     @property
-    def versions(self): # -> dict[Unknown, Unknown]:
+    def versions(self): # -> dict[Any, Any]:
         """Return dictionary (copy) of versions"""
         ...
     

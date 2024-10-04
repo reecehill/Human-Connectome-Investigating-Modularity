@@ -52,8 +52,9 @@ class OptimizeResult(dict):
 
     Notes
     -----
-    `OptimizeResult` may have additional attributes not listed here depending
-    on the specific solver being used. Since this class is essentially a
+    Depending on the specific solver being used, `OptimizeResult` may
+    not have all attributes listed here, and they may have additional
+    attributes not listed here. Since this class is essentially a
     subclass of dict with attribute accessors, one can see which
     attributes are available using the `OptimizeResult.keys` method.
     """
@@ -604,7 +605,7 @@ def fmin_cg(f, x0, fprime=..., args=..., gtol=..., norm=..., epsilon=..., maxite
         Stop when the norm of the gradient is less than `gtol`.
     norm : float, optional
         Order to use for the norm of the gradient
-        (``-np.Inf`` is min, ``np.Inf`` is max).
+        (``-np.inf`` is min, ``np.inf`` is max).
     epsilon : float or ndarray, optional
         Step size(s) to use when `fprime` is approximated numerically. Can be a
         scalar or a 1-D array. Defaults to ``sqrt(eps)``, with eps the
@@ -854,12 +855,12 @@ def fminbound(func, x1, x2, args=..., xtol=..., maxfun=..., full_output=..., dis
         Parameters (over given interval) which minimize the
         objective function.
     fval : number
-        The function value evaluated at the minimizer.
+        (Optional output) The function value evaluated at the minimizer.
     ierr : int
-        An error flag (0 if converged, 1 if maximum number of
+        (Optional output) An error flag (0 if converged, 1 if maximum number of
         function calls reached).
     numfunc : int
-      The number of function calls made.
+        (Optional output) The number of function calls made.
 
     See also
     --------
@@ -894,12 +895,13 @@ def fminbound(func, x1, x2, args=..., xtol=..., maxfun=..., full_output=..., dis
     >>> minimum = f(minimizer)
     >>> minimum
     0.0
-    >>> minimizer = optimize.fminbound(f, 3, 4)
+    >>> res = optimize.fminbound(f, 3, 4, full_output=True)
+    >>> minimizer, fval, ierr, numfunc = res
     >>> minimizer
     3.000005960860986
     >>> minimum = f(minimizer)
-    >>> minimum
-    4.000023843479476
+    >>> minimum, fval
+    (4.000023843479476, 4.000023843479476)
     """
     ...
 
@@ -910,13 +912,13 @@ class Brent:
     def set_bracket(self, brack=...): # -> None:
         ...
     
-    def get_bracket_info(self): # -> tuple[float | Any, Any | float, float | Any, Any, Any, Any, int]:
+    def get_bracket_info(self): # -> tuple[Any, Any, Any, Any, Any, Any, int]:
         ...
     
     def optimize(self): # -> None:
         ...
     
-    def get_result(self, full_output=...): # -> tuple[Any | float | None, Any | None, int, int] | float | Any | None:
+    def get_result(self, full_output=...): # -> tuple[Any | None, Any | None, int, int] | Any | None:
         ...
     
 
@@ -924,7 +926,7 @@ class Brent:
 def brent(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # -> tuple[Any, Any, Any, Any]:
     """
     Given a function of one variable and a possible bracket, return
-    the local minimum of the function isolated to a fractional precision
+    a local minimizer of the function isolated to a fractional precision
     of tol.
 
     Parameters
@@ -934,11 +936,11 @@ def brent(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # -
     args : tuple, optional
         Additional arguments (if present).
     brack : tuple, optional
-        Either a triple (xa,xb,xc) where xa<xb<xc and func(xb) <
-        func(xa), func(xc) or a pair (xa,xb) which are used as a
-        starting interval for a downhill bracket search (see
-        `bracket`). Providing the pair (xa,xb) does not always mean
-        the obtained solution will satisfy xa<=x<=xb.
+        Either a triple ``(xa, xb, xc)`` satisfying ``xa < xb < xc`` and
+        ``func(xb) < func(xa) and  func(xb) < func(xc)``, or a pair
+        ``(xa, xb)`` to be used as initial points for a downhill bracket search
+        (see `scipy.optimize.bracket`).
+        The minimizer ``x`` will not necessarily satisfy ``xa <= x <= xb``.
     tol : float, optional
         Relative error in solution `xopt` acceptable for convergence.
     full_output : bool, optional
@@ -952,11 +954,11 @@ def brent(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # -
     xmin : ndarray
         Optimum point.
     fval : float
-        Optimum value.
+        (Optional output) Optimum function value.
     iter : int
-        Number of iterations.
+        (Optional output) Number of iterations.
     funcalls : int
-        Number of objective function evaluations made.
+        (Optional output) Number of objective function evaluations made.
 
     See also
     --------
@@ -969,37 +971,38 @@ def brent(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # -
     convergence of golden section method.
 
     Does not ensure that the minimum lies in the range specified by
-    `brack`. See `fminbound`.
+    `brack`. See `scipy.optimize.fminbound`.
 
     Examples
     --------
     We illustrate the behaviour of the function when `brack` is of
     size 2 and 3 respectively. In the case where `brack` is of the
-    form (xa,xb), we can see for the given values, the output need
-    not necessarily lie in the range (xa,xb).
+    form ``(xa, xb)``, we can see for the given values, the output does
+    not necessarily lie in the range ``(xa, xb)``.
 
     >>> def f(x):
-    ...     return x**2
+    ...     return (x-1)**2
 
     >>> from scipy import optimize
 
-    >>> minimum = optimize.brent(f,brack=(1,2))
-    >>> minimum
-    0.0
-    >>> minimum = optimize.brent(f,brack=(-1,0.5,2))
-    >>> minimum
-    -2.7755575615628914e-17
+    >>> minimizer = optimize.brent(f, brack=(1, 2))
+    >>> minimizer
+    1
+    >>> res = optimize.brent(f, brack=(-1, 0.5, 2), full_output=True)
+    >>> xmin, fval, iter, funcalls = res
+    >>> f(xmin), fval
+    (0.0, 0.0)
 
     """
     ...
 
 def golden(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # -> tuple[Any, Any, Any]:
     """
-    Return the minimum of a function of one variable using golden section
+    Return the minimizer of a function of one variable using the golden section
     method.
 
     Given a function of one variable and a possible bracketing interval,
-    return the minimum of the function isolated to a fractional precision of
+    return a minimizer of the function isolated to a fractional precision of
     tol.
 
     Parameters
@@ -1009,17 +1012,26 @@ def golden(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # 
     args : tuple, optional
         Additional arguments (if present), passed to func.
     brack : tuple, optional
-        Triple (a,b,c), where (a<b<c) and func(b) <
-        func(a),func(c). If bracket consists of two numbers (a,
-        c), then they are assumed to be a starting interval for a
-        downhill bracket search (see `bracket`); it doesn't always
-        mean that obtained solution will satisfy a<=x<=c.
+        Either a triple ``(xa, xb, xc)`` where ``xa < xb < xc`` and
+        ``func(xb) < func(xa) and  func(xb) < func(xc)``, or a pair (xa, xb)
+        to be used as initial points for a downhill bracket search (see
+        `scipy.optimize.bracket`).
+        The minimizer ``x`` will not necessarily satisfy ``xa <= x <= xb``.
     tol : float, optional
         x tolerance stop criterion
     full_output : bool, optional
         If True, return optional outputs.
     maxiter : int
         Maximum number of iterations to perform.
+
+    Returns
+    -------
+    xmin : ndarray
+        Optimum point.
+    fval : float
+        (Optional output) Optimum function value.
+    funcalls : int
+        (Optional output) Number of objective function evaluations made.
 
     See also
     --------
@@ -1039,36 +1051,36 @@ def golden(func, args=..., brack=..., tol=..., full_output=..., maxiter=...): # 
     not necessarily lie in the range ``(xa, xb)``.
 
     >>> def f(x):
-    ...     return x**2
+    ...     return (x-1)**2
 
     >>> from scipy import optimize
 
-    >>> minimum = optimize.golden(f, brack=(1, 2))
-    >>> minimum
-    1.5717277788484873e-162
-    >>> minimum = optimize.golden(f, brack=(-1, 0.5, 2))
-    >>> minimum
-    -1.5717277788484873e-162
+    >>> minimizer = optimize.golden(f, brack=(1, 2))
+    >>> minimizer
+    1
+    >>> res = optimize.golden(f, brack=(-1, 0.5, 2), full_output=True)
+    >>> xmin, fval, funcalls = res
+    >>> f(xmin), fval
+    (9.925165290385052e-18, 9.925165290385052e-18)
 
     """
     ...
 
-def bracket(func, xa=..., xb=..., args=..., grow_limit=..., maxiter=...): # -> tuple[float | Any, Any, float | Any, Any, Any, Any, int] | tuple[float | Any, float | Any, Any, Any, Any, Any, int] | tuple[float | Any, float | Any, float | Any, Any, Any, Any, int]:
+def bracket(func, xa=..., xb=..., args=..., grow_limit=..., maxiter=...): # -> tuple[Any, Any, Any, Any, Any, Any, int]:
     """
-    Bracket the minimum of the function.
+    Bracket the minimum of a function.
 
     Given a function and distinct initial points, search in the
     downhill direction (as defined by the initial points) and return
-    new points xa, xb, xc that bracket the minimum of the function
-    f(xa) > f(xb) < f(xc). It doesn't always mean that obtained
-    solution will satisfy xa<=x<=xb.
+    three points that bracket the minimum of the function.
 
     Parameters
     ----------
     func : callable f(x,*args)
         Objective function to minimize.
     xa, xb : float, optional
-        Bracketing interval. Defaults `xa` to 0.0, and `xb` to 1.0.
+        Initial points. Defaults `xa` to 0.0, and `xb` to 1.0.
+        A local minimum need not be contained within this interval.
     args : tuple, optional
         Additional arguments (if present), passed to `func`.
     grow_limit : float, optional
@@ -1079,11 +1091,25 @@ def bracket(func, xa=..., xb=..., args=..., grow_limit=..., maxiter=...): # -> t
     Returns
     -------
     xa, xb, xc : float
-        Bracket.
+        Final points of the bracket.
     fa, fb, fc : float
-        Objective function values in bracket.
+        Objective function values at the bracket points.
     funcalls : int
         Number of function evaluations made.
+
+    Raises
+    ------
+    BracketError
+        If no valid bracket is found before the algorithm terminates.
+        See notes for conditions of a valid bracket.
+
+    Notes
+    -----
+    The algorithm attempts to find three strictly ordered points (i.e.
+    :math:`x_a < x_b < x_c` or :math:`x_c < x_b < x_a`) satisfying
+    :math:`f(x_b) ≤ f(x_a)` and :math:`f(x_b) ≤ f(x_c)`, where one of the
+    inequalities must be satistfied strictly and all :math:`x_i` must be
+    finite.
 
     Examples
     --------
@@ -1096,7 +1122,7 @@ def bracket(func, xa=..., xb=..., args=..., grow_limit=..., maxiter=...): # -> t
     ...     return 10*x**2 + 3*x + 5
     >>> x = np.linspace(-2, 2)
     >>> y = f(x)
-    >>> init_xa, init_xb = 0, 1
+    >>> init_xa, init_xb = 0.1, 1
     >>> xa, xb, xc, fa, fb, fc, funcalls = bracket(f, xa=init_xa, xb=init_xb)
     >>> plt.axvline(x=init_xa, color="k", linestyle="--")
     >>> plt.axvline(x=init_xb, color="k", linestyle="--")
@@ -1106,8 +1132,19 @@ def bracket(func, xa=..., xb=..., args=..., grow_limit=..., maxiter=...): # -> t
     >>> plt.plot(xc, fc, "bx")
     >>> plt.show()
 
+    Note that both initial points were to the right of the minimum, and the
+    third point was found in the "downhill" direction: the direction
+    in which the function appeared to be decreasing (to the left).
+    The final points are strictly ordered, and the function value
+    at the middle point is less than the function values at the endpoints;
+    it follows that a minimum must lie within the bracket.
+
     """
     ...
+
+class BracketError(RuntimeError):
+    ...
+
 
 def fmin_powell(func, x0, args=..., xtol=..., ftol=..., maxiter=..., maxfun=..., full_output=..., disp=..., retall=..., callback=..., direc=...): # -> tuple[Any, Any, Any, Any, Any, Any, Any] | tuple[Any, Any, Any, Any, Any, Any] | tuple[Any, Any]:
     """

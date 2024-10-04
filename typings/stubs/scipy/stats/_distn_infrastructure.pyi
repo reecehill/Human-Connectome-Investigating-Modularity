@@ -90,13 +90,13 @@ class rv_frozen:
     def std(self):
         ...
     
-    def moment(self, order=..., **kwds):
+    def moment(self, order=...):
         ...
     
     def entropy(self):
         ...
     
-    def interval(self, confidence=..., **kwds):
+    def interval(self, confidence=...):
         ...
     
     def expect(self, func=..., lb=..., ub=..., conditional=..., **kwds): # -> NDArray[floating[Any]] | float:
@@ -296,13 +296,8 @@ class rv_generic:
         """
         ...
     
-    def moment(self, order=..., *args, **kwds): # -> ndarray[Any, dtype[float64]]:
+    def moment(self, order, *args, **kwds): # -> ndarray[Any, dtype[float64]]:
         """non-central moment of distribution of specified order.
-
-        .. deprecated:: 1.9.0
-           Parameter `n` is replaced by parameter `order` to avoid name
-           collisions with the shape parameter `n` of several distributions.
-           Parameter `n` will be removed in SciPy 1.11.0.
 
         Parameters
         ----------
@@ -408,13 +403,8 @@ class rv_generic:
         """
         ...
     
-    def interval(self, confidence=..., *args, **kwds): # -> tuple[Any, Any]:
+    def interval(self, confidence, *args, **kwds): # -> tuple[Any, Any]:
         """Confidence interval with equal areas around the median.
-
-        .. deprecated:: 1.9.0
-           Parameter `alpha` is replaced by parameter `confidence` to avoid
-           name collisions with the shape parameter `alpha` of some
-           distributions. Parameter `alpha` will be removed in SciPy 1.11.0.
 
         Parameters
         ----------
@@ -524,11 +514,6 @@ class rv_continuous(rv_generic):
         its methods. If not provided, shape parameters will be inferred from
         the signature of the private methods, ``_pdf`` and ``_cdf`` of the
         instance.
-    extradoc :  str, optional, deprecated
-        This string is used as the last part of the docstring returned when a
-        subclass has no docstring of its own. Note: `extradoc` exists for
-        backwards compatibility and will be removed in SciPy 1.11.0, do not
-        use for new subclasses.
     seed : {None, int, `numpy.random.Generator`, `numpy.random.RandomState`}, optional
         If `seed` is None (or `np.random`), the `numpy.random.RandomState`
         singleton is used.
@@ -659,6 +644,14 @@ class rv_continuous(rv_generic):
     Alternatively, you can override ``_munp``, which takes ``n`` and shape
     parameters and returns the n-th non-central moment of the distribution.
 
+    **Deepcopying / Pickling**
+
+    If a distribution or frozen distribution is deepcopied (pickled/unpickled,
+    etc.), any underlying random number generator is deepcopied with it. An
+    implication is that if a distribution relies on the singleton RandomState
+    before copying, it will rely on a copy of that random state after copying,
+    and ``np.random.seed`` will no longer control the state.
+
     Examples
     --------
     To create a new Gaussian distribution, we would do the following:
@@ -682,7 +675,7 @@ class rv_continuous(rv_generic):
     ``gaussian._pdf(y) / scale``.
 
     """
-    def __init__(self, momtype=..., a=..., b=..., xtol=..., badvalue=..., name=..., longname=..., shapes=..., extradoc=..., seed=...) -> None:
+    def __init__(self, momtype=..., a=..., b=..., xtol=..., badvalue=..., name=..., longname=..., shapes=..., seed=...) -> None:
         ...
     
     def __getstate__(self): # -> dict[str, Any]:
@@ -885,10 +878,9 @@ class rv_continuous(rv_generic):
         Likelihood Estimation (MLE), but Method of Moments (MM)
         is also available.
 
-        Starting estimates for
-        the fit are given by input arguments; for any arguments not provided
-        with starting estimates, ``self._fitstart(data)`` is called to generate
-        such.
+        Starting estimates for the fit are given by input arguments;
+        for any arguments not provided with starting estimates,
+        ``self._fitstart(data)`` is called to generate such.
 
         One can hold some parameters fixed to specific values by passing in
         keyword arguments ``f0``, ``f1``, ..., ``fn`` (for shape parameters)
@@ -897,7 +889,7 @@ class rv_continuous(rv_generic):
 
         Parameters
         ----------
-        data : array_like
+        data : array_like or `CensoredData` instance
             Data to use in estimating the distribution parameters.
         arg1, arg2, arg3,... : floats, optional
             Starting value(s) for any shape-characterizing arguments (those not
@@ -920,9 +912,8 @@ class rv_continuous(rv_generic):
 
             - fscale : hold scale parameter fixed to specified value.
 
-            - optimizer : The optimizer to use.
-              The optimizer must take ``func``,
-              and starting position as the first two arguments,
+            - optimizer : The optimizer to use.  The optimizer must take
+              ``func`` and starting position as the first two arguments,
               plus ``args`` (for extra arguments to pass to the
               function to be optimized) and ``disp=0`` to suppress
               output as keyword arguments.
@@ -941,10 +932,10 @@ class rv_continuous(rv_generic):
         Returns
         -------
         parameter_tuple : tuple of floats
-            Estimates for any shape parameters (if applicable),
-            followed by those for location and scale.
-            For most random variables, shape statistics
-            will be returned, but there are exceptions (e.g. ``norm``).
+            Estimates for any shape parameters (if applicable), followed by
+            those for location and scale. For most random variables, shape
+            statistics will be returned, but there are exceptions (e.g.
+            ``norm``).
 
         Notes
         -----
@@ -985,8 +976,8 @@ class rv_continuous(rv_generic):
         >>> a, b = 1., 2.
         >>> x = beta.rvs(a, b, size=1000)
 
-        Now we can fit all four parameters (``a``, ``b``, ``loc``
-        and ``scale``):
+        Now we can fit all four parameters (``a``, ``b``, ``loc`` and
+        ``scale``):
 
         >>> a1, b1, loc1, scale1 = beta.fit(x)
 
@@ -1179,11 +1170,6 @@ class rv_discrete(rv_generic):
         If not provided, shape parameters will be inferred from
         the signatures of the private methods, ``_pmf`` and ``_cdf`` of
         the instance.
-    extradoc :  str, optional, deprecated
-        This string is used as the last part of the docstring returned when a
-        subclass has no docstring of its own. Note: `extradoc` exists for
-        backwards compatibility and will be removed in SciPy 1.11.0, do not
-        use for new subclasses.
     seed : {None, int, `numpy.random.Generator`, `numpy.random.RandomState`}, optional
         If `seed` is None (or `np.random`), the `numpy.random.RandomState`
         singleton is used.
@@ -1252,6 +1238,14 @@ class rv_discrete(rv_generic):
     on a finite set of values ``xk`` with ``Prob{X=xk} = pk`` by using the
     ``values`` keyword argument to the `rv_discrete` constructor.
 
+    **Deepcopying / Pickling**
+
+    If a distribution or frozen distribution is deepcopied (pickled/unpickled,
+    etc.), any underlying random number generator is deepcopied with it. An
+    implication is that if a distribution relies on the singleton RandomState
+    before copying, it will rely on a copy of that random state after copying,
+    and ``np.random.seed`` will no longer control the state.
+
     Examples
     --------
     Custom made discrete distribution:
@@ -1273,10 +1267,10 @@ class rv_discrete(rv_generic):
     >>> R = custm.rvs(size=100)
 
     """
-    def __new__(cls, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., extradoc=..., seed=...): # -> rv_discrete:
+    def __new__(cls, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., seed=...): # -> Self:
         ...
     
-    def __init__(self, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., extradoc=..., seed=...) -> None:
+    def __init__(self, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., seed=...) -> None:
         ...
     
     def __getstate__(self): # -> dict[str, Any]:
@@ -1546,7 +1540,7 @@ class rv_sample(rv_discrete):
 
     The ctor ignores most of the arguments, only needs the `values` argument.
     """
-    def __init__(self, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., extradoc=..., seed=...) -> None:
+    def __init__(self, a=..., b=..., name=..., badvalue=..., moment_tol=..., values=..., inc=..., longname=..., shapes=..., seed=...) -> None:
         ...
     
     def __getstate__(self): # -> dict[str, Any]:

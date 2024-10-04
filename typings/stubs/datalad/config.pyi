@@ -7,15 +7,54 @@ from functools import lru_cache
 """
 """
 lgr = ...
+cfg_k_regex = ...
 cfg_kv_regex = ...
 cfg_section_regex = ...
 cfg_sectionoption_regex = ...
-_where_reload_doc = ...
+_scope_reload_doc = ...
+_stat_result = ...
 @lru_cache()
-def get_git_version(runner=...): # -> str:
+def get_git_version(runner=...):
     """Return version of available git"""
     ...
 
+def parse_gitconfig_dump(dump, cwd=..., multi_value=...): # -> tuple[dict[Any, Any], set[Path | Any]]:
+    """Parse a dump-string from `git config -z --list`
+
+    This parser has limited support for discarding unrelated output
+    that may contaminate the given dump. It does so performing a
+    relatively strict matching of configuration key syntax, and discarding
+    lines in the output that are not valid git-config keys.
+
+    There is also built-in support for parsing outputs generated
+    with --show-origin (see return value).
+
+    Parameters
+    ----------
+    dump : str
+      Null-byte separated output
+    cwd : path-like, optional
+      Use this absolute path to convert relative paths for origin reports
+      into absolute paths. By default, the process working directory
+      PWD is used.
+    multi_value : bool, optional
+      If True, report values from multiple specifications of the
+      same key as a tuple of values assigned to this key. Otherwise,
+      the last configuration is reported.
+
+    Returns:
+    --------
+    dict, set
+      Configuration items are returned as key/value pairs in a dictionary.
+      The second tuple-item will be a set of identifiers comprising all
+      source files/blobs, if origin information was included
+      in the dump (--show-origin). An empty set is returned otherwise.
+      For actual files a Path object is included in the set, for a git-blob
+      a Git blob ID prefixed with 'blob:' is reported.
+    """
+    ...
+
+_parse_gitconfig_dump = ...
 def anything2bool(val): # -> bool:
     ...
 
@@ -38,17 +77,15 @@ class ConfigManager:
     configurations items at once.  Instead, each modification results in a
     dedicated call to `git config`. This author thinks this is OK, as he
     cannot think of a situation where a large number of items need to be
-    written during normal operation. If such need arises, various solutions are
-    possible (via GitPython, or an independent writer).
+    written during normal operation.
 
     Each instance carries a public `overrides` attribute. This dictionary
     contains variables that override any setting read from a file. The overrides
-    are persistent across reloads, and are not modified by any of the
-    manipulation methods, such as `set` or `unset`.
+    are persistent across reloads.
 
     Any DATALAD_* environment variable is also presented as a configuration
     item. Settings read from environment variables are not stored in any of the
-    configuration file, but are read dynamically from the environment at each
+    configuration files, but are read dynamically from the environment at each
     `reload()` call. Their values take precedence over any specification in
     configuration files, and even overrides.
 
@@ -58,22 +95,23 @@ class ConfigManager:
       If provided, all `git config` calls are executed in this dataset's
       directory. Moreover, any modifications are, by default, directed to
       this dataset's configuration file (which will be created on demand)
-    dataset_only : bool
-      Legacy option, do not use.
     overrides : dict, optional
       Variable overrides, see general class documentation for details.
-    source : {'any', 'local', 'dataset', 'dataset-local'}, optional
-      Which sources of configuration setting to consider. If 'dataset',
+    source : {'any', 'local', 'branch', 'branch-local'}, optional
+      Which sources of configuration setting to consider. If 'branch',
       configuration items are only read from a dataset's persistent
-      configuration file, if any is present (the one in ``.datalad/config``, not
+      configuration file in current branch, if any is present
+      (the one in ``.datalad/config``, not
       ``.git/config``); if 'local', any non-committed source is considered
       (local and global configuration in Git config's terminology);
-      if 'dataset-local', persistent dataset configuration and local, but
-      not global or system configuration are considered; if 'any'
+      if 'branch-local', persistent configuration in current dataset branch
+      and local, but not global or system configuration are considered; if 'any'
       all possible sources of configuration are considered.
+      Note: 'dataset' and 'dataset-local' are deprecated in favor of 'branch'
+      and 'branch-local'.
     """
-    _checked_git_identity = ...
-    def __init__(self, dataset=..., dataset_only=..., overrides=..., source=...) -> None:
+    _run_lock = ...
+    def __init__(self, dataset=..., overrides=..., source=...) -> None:
         ...
     
     def reload(self, force=...): # -> None:
@@ -86,8 +124,9 @@ class ConfigManager:
         """
         ...
     
-    @_where_reload
-    def obtain(self, var, default=..., dialog_type=..., valtype=..., store=..., where=..., reload=..., **kwargs):
+    @_scope_reload
+    @_where_to_scope
+    def obtain(self, var, default=..., dialog_type=..., valtype=..., store=..., scope=..., reload=..., **kwargs):
         """
         Convenience method to obtain settings interactively, if needed
 
@@ -120,31 +159,53 @@ class ConfigManager:
         """
         ...
     
+    def __repr__(self): # -> str:
+        ...
+    
     def __str__(self) -> str:
         ...
     
     def __len__(self): # -> int:
         ...
     
-    def __getitem__(self, key):
+    def __getitem__(self, key): # -> Any:
         ...
     
     def __contains__(self, key): # -> bool:
         ...
     
-    def keys(self): # -> dict_keys[Unknown, Unknown]:
+    def keys(self): # -> dict_keys[Any, Any]:
         """Returns list of configuration item names"""
         ...
     
-    def get(self, key, default=...): # -> None:
-        """D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None."""
+    def get(self, key, default=..., get_all=...): # -> Any | None:
+        """D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None.
+
+        Parameters
+        ----------
+        default : optional
+          Value to return when key is not present. `None` by default.
+        get_all : bool, optional
+          If True, return all values of multiple identical configuration keys.
+          By default only the last specified value is returned.
+        """
+        ...
+    
+    def get_from_source(self, source, key, default=...): # -> Any | None:
+        """Like get(), but a source can be specific.
+
+        If `source` is 'branch', only the committed configuration is queried,
+        overrides are applied. In the case of 'local', the committed
+        configuration is ignored, but overrides and configuration from
+        environment variables are applied as usual.
+        """
         ...
     
     def sections(self): # -> list[str | Any]:
         """Returns a list of the sections available"""
         ...
     
-    def options(self, section): # -> list[Unknown]:
+    def options(self, section): # -> list[Any]:
         """Returns a list of options available in the specified section."""
         ...
     
@@ -160,6 +221,10 @@ class ConfigManager:
         """A convenience method which coerces the option value to an integer"""
         ...
     
+    def getfloat(self, section, option): # -> float:
+        """A convenience method which coerces the option value to a float"""
+        ...
+    
     def getbool(self, section, option, default=...): # -> bool:
         """A convenience method which coerces the option value to a bool
 
@@ -170,18 +235,14 @@ class ConfigManager:
         """
         ...
     
-    def getfloat(self, section, option): # -> float:
-        """A convenience method which coerces the option value to a float"""
-        ...
-    
-    def items(self, section=...): # -> dict_items[Unknown, Unknown] | list[tuple[Unknown, Unknown]]:
+    def items(self, section=...): # -> dict_items[Any, Any] | list[tuple[Any, Any]]:
         """Return a list of (name, value) pairs for each option
 
         Optionally limited to a given section.
         """
         ...
     
-    def get_value(self, section, option, default=...):
+    def get_value(self, section, option, default=...): # -> Any:
         """Like `get()`, but with an optional default value
 
         If the default is not None, the given default value will be returned in
@@ -190,8 +251,9 @@ class ConfigManager:
         """
         ...
     
-    @_where_reload
-    def add(self, var, value, where=..., reload=...): # -> None:
+    @_scope_reload
+    @_where_to_scope
+    def add(self, var, value, scope=..., reload=...): # -> None:
         """Add a configuration variable and value
 
         Parameters
@@ -204,8 +266,9 @@ class ConfigManager:
         %s"""
         ...
     
-    @_where_reload
-    def set(self, var, value, where=..., reload=..., force=...): # -> None:
+    @_scope_reload
+    @_where_to_scope
+    def set(self, var, value, scope=..., reload=..., force=...): # -> None:
         """Set a variable to a value.
 
         In opposition to `add`, this replaces the value of `var` if there is
@@ -225,8 +288,9 @@ class ConfigManager:
         %s"""
         ...
     
-    @_where_reload
-    def rename_section(self, old, new, where=..., reload=...): # -> None:
+    @_scope_reload
+    @_where_to_scope
+    def rename_section(self, old, new, scope=..., reload=...): # -> None:
         """Rename a configuration section
 
         Parameters
@@ -238,8 +302,9 @@ class ConfigManager:
         %s"""
         ...
     
-    @_where_reload
-    def remove_section(self, sec, where=..., reload=...): # -> None:
+    @_scope_reload
+    @_where_to_scope
+    def remove_section(self, sec, scope=..., reload=...): # -> None:
         """Rename a configuration section
 
         Parameters
@@ -249,8 +314,9 @@ class ConfigManager:
         %s"""
         ...
     
-    @_where_reload
-    def unset(self, var, where=..., reload=...): # -> None:
+    @_scope_reload
+    @_where_to_scope
+    def unset(self, var, scope=..., reload=...): # -> None:
         """Remove all occurrences of a variable
 
         Parameters
@@ -281,5 +347,38 @@ def rewrite_url(cfg, url): # -> str:
     str
       Rewritten or unmodified URL.
     """
+    ...
+
+def quote_config(v): # -> str:
+    """Helper to perform minimal quoting of config keys/value parts
+
+    Parameters
+    ----------
+    v : str
+      To-be-quoted string
+    """
+    ...
+
+def write_config_section(fobj, suite, name, props): # -> None:
+    """Write a config section with (multiple) settings.
+
+    Parameters
+    ----------
+    fobj : File
+       Opened target file
+    suite : str
+       First item of the section name, e.g. 'submodule', or
+       'datalad'
+    name : str
+       Remainder of the section name
+    props : dict
+       Keys are configuration setting names within the section
+       context (i.e. not duplicating `suite` and/or `name`, values
+       are configuration setting values.
+    """
+    ...
+
+def warn_on_undefined_git_identity(cfg: ConfigManager): # -> None:
+    """Check whether a Git identity is defined, and warn if not"""
     ...
 

@@ -12,6 +12,7 @@ Functions
 """
 __all__ = ['minimize', 'minimize_scalar']
 MINIMIZE_METHODS = ...
+MINIMIZE_METHODS_NEW_CB = ...
 MINIMIZE_SCALAR_METHODS = ...
 def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds=..., constraints=..., tol=..., callback=..., options=...):
     """Minimization of scalar function of one or more variables.
@@ -108,8 +109,9 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
         dimension (n,) and ``args`` is a tuple with the fixed
         parameters.
     bounds : sequence or `Bounds`, optional
-        Bounds on variables for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell, and
-        trust-constr methods. There are two ways to specify the bounds:
+        Bounds on variables for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell,
+        trust-constr, and COBYLA methods. There are two ways to specify the
+        bounds:
 
             1. Instance of `Bounds` class.
             2. Sequence of ``(min, max)`` pairs for each element in `x`. None
@@ -159,20 +161,28 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
 
         For method-specific options, see :func:`show_options()`.
     callback : callable, optional
-        Called after each iteration. For 'trust-constr' it is a callable with
+        A callable called after each iteration.
+
+        All methods except TNC, SLSQP, and COBYLA support a callable with
         the signature:
 
-            ``callback(xk, OptimizeResult state) -> bool``
+            ``callback(OptimizeResult: intermediate_result)``
 
-        where ``xk`` is the current parameter vector. and ``state``
-        is an `OptimizeResult` object, with the same fields
-        as the ones from the return. If callback returns True
-        the algorithm execution is terminated.
-        For all the other methods, the signature is:
+        where ``intermediate_result`` is a keyword parameter containing an
+        `OptimizeResult` with attributes ``x`` and ``fun``, the present values
+        of the parameter vector and objective function. Note that the name
+        of the parameter must be ``intermediate_result`` for the callback
+        to be passed an `OptimizeResult`. These methods will also terminate if
+        the callback raises ``StopIteration``.
+
+        All methods except trust-constr (also) support a signature like:
 
             ``callback(xk)``
 
         where ``xk`` is the current parameter vector.
+
+        Introspection is used to determine which of the signatures above to
+        invoke.
 
     Returns
     -------
@@ -493,11 +503,13 @@ def minimize_scalar(fun, bracket=..., bounds=..., args=..., method=..., tol=...,
         Scalar function, must return a scalar.
     bracket : sequence, optional
         For methods 'brent' and 'golden', `bracket` defines the bracketing
-        interval and can either have three items ``(a, b, c)`` so that
-        ``a < b < c`` and ``fun(b) < fun(a), fun(c)`` or two items ``a`` and
-        ``c`` which are assumed to be a starting interval for a downhill
-        bracket search (see `bracket`); it doesn't always mean that the
-        obtained solution will satisfy ``a <= x <= c``.
+        interval and is required.
+        Either a triple ``(xa, xb, xc)`` satisfying ``xa < xb < xc`` and
+        ``func(xb) < func(xa) and  func(xb) < func(xc)``, or a pair
+        ``(xa, xb)`` to be used as initial points for a downhill bracket search
+        (see `scipy.optimize.bracket`).
+        The minimizer ``res.x`` will not necessarily satisfy
+        ``xa <= res.x <= xb``.
     bounds : sequence, optional
         For method 'bounded', `bounds` is mandatory and must have two finite
         items corresponding to the optimization bounds.

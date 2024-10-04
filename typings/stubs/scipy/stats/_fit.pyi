@@ -359,11 +359,12 @@ def goodness_of_fit(dist, data, *, known_params=..., fit_params=..., guessed_par
         to the Monte Carlo samples drawn from the null-hypothesized
         distribution. The purpose of these `guessed_params` is to be used as
         initial values for the numerical fitting procedure.
-    statistic : {"ad", "ks", "cvm"}, optional
+    statistic : {"ad", "ks", "cvm", "filliben"}, optional
         The statistic used to compare data to a distribution after fitting
         unknown parameters of the distribution family to the data. The
-        Anderson-Darling ("ad"), Kolmogorov-Smirnov ("ks"), and
-        Cramer-von Mises ("cvm") statistics are available [1]_.
+        Anderson-Darling ("ad") [1]_, Kolmogorov-Smirnov ("ks") [1]_,
+        Cramer-von Mises ("cvm") [1]_, and Filliben ("filliben") [7]_
+        statistics are available.
     n_mc_samples : int, default: 9999
         The number of Monte Carlo samples drawn from the null hypothesized
         distribution to form the null distribution of the statistic. The
@@ -528,6 +529,8 @@ def goodness_of_fit(dist, data, *, known_params=..., fit_params=..., guessed_par
     .. [6] H. W. Lilliefors (1967). "On the Kolmogorov-Smirnov test for
            normality with mean and variance unknown." Journal of the American
            statistical Association 62.318: 399-402.
+    .. [7] Filliben, James J. "The probability plot correlation coefficient
+           test for normality." Technometrics 17.1 (1975): 111-117.
 
     Examples
     --------

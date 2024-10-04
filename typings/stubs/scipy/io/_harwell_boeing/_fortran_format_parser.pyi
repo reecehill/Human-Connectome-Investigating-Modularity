@@ -116,7 +116,7 @@ class Token:
     def __str__(self) -> str:
         ...
     
-    def __repr__(self): # -> LiteralString:
+    def __repr__(self): # -> str:
         ...
     
 

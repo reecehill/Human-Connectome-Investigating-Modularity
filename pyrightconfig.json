@@ -1,48 +1,39 @@
 {
-  "include": ["scripts/modules/**/*"],
-
+  "include": [
+    "scripts/*",
+    "scripts/**/*"
+  ],
   "exclude": [
     "**/node_modules",
     "**/__pycache__",
     "scripts/src/experimental",
     "scripts/src/typestubs",
     "scripts/src/**/*",
+    "scripts/matlab",
+    "matlab",
+    "matlab/**/*",
+    "scripts/matlab/**/*",
+    "scripts/matlab",
     "logs/**/*"
   ],
-
   "ignore": [],
-
   "defineConstant": {
     "DEBUG": true
   },
-
   "stubPath": "typings/stubs",
   "venv": "env367",
-
   "reportMissingImports": true,
   "reportMissingTypeStubs": true,
-
+  "reportUnknownParameterType": true,
+  "reportUntypedFunctionDecorator": true,
   "pythonVersion": "3.10",
   "pythonPlatform": "Linux",
-
   "executionEnvironments": [
     {
-      "root": "src/web",
-      "pythonVersion": "3.6",
+      "root": "scripts",
+      "pythonVersion": "3.8",
       "pythonPlatform": "Linux",
-      "extraPaths": ["src/service_libs"]
-    },
-    {
-      "root": "src/sdk",
-      "pythonVersion": "3.6",
-      "extraPaths": ["src/backend"]
-    },
-    {
-      "root": "src/tests",
-      "extraPaths": ["src/tests/e2e", "src/sdk"]
-    },
-    {
-      "root": "src"
+      "extraPaths": []
     }
   ]
 }

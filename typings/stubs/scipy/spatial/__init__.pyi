@@ -19,6 +19,11 @@ Spatial algorithms and data structures (:mod:`scipy.spatial`)
 
 .. currentmodule:: scipy.spatial
 
+.. toctree::
+   :hidden:
+
+   spatial.distance
+
 Spatial transformations
 =======================
 

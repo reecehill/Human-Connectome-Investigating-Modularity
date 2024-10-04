@@ -283,6 +283,19 @@ def interpn(points, values, xi, method=..., bounds_error=..., fill_value=...): #
         Interpolated values at `xi`. See notes for behaviour when
         ``xi.ndim == 1``.
 
+    See Also
+    --------
+    NearestNDInterpolator : Nearest neighbor interpolation on unstructured
+                            data in N dimensions
+    LinearNDInterpolator : Piecewise linear interpolant on unstructured data
+                           in N dimensions
+    RegularGridInterpolator : interpolation on a regular or rectilinear grid
+                              in arbitrary dimensions (`interpn` wraps this
+                              class).
+    RectBivariateSpline : Bivariate spline approximation over a rectangular mesh
+    scipy.ndimage.map_coordinates : interpolation on grids with equal spacing
+                                    (suitable for e.g., N-D image resampling)
+
     Notes
     -----
 
@@ -315,23 +328,6 @@ def interpn(points, values, xi, method=..., bounds_error=..., fill_value=...): #
     >>> point = np.array([2.21, 3.12, 1.15])
     >>> print(interpn(points, values, point))
     [12.63]
-
-    See Also
-    --------
-    NearestNDInterpolator : Nearest neighbor interpolation on unstructured
-                            data in N dimensions
-
-    LinearNDInterpolator : Piecewise linear interpolant on unstructured data
-                           in N dimensions
-
-    RegularGridInterpolator : interpolation on a regular or rectilinear grid
-                              in arbitrary dimensions (`interpn` wraps this
-                              class).
-
-    RectBivariateSpline : Bivariate spline approximation over a rectangular mesh
-
-    scipy.ndimage.map_coordinates : interpolation on grids with equal spacing
-                                    (suitable for e.g., N-D image resampling)
 
     """
     ...

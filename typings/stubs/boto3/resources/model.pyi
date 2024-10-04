@@ -55,7 +55,7 @@ class DefinitionWithParams:
         ...
     
     @property
-    def params(self): # -> list[Unknown]:
+    def params(self): # -> list[Any]:
         """
         Get a list of auto-filled parameters for this request.
 
@@ -123,7 +123,7 @@ class ResponseResource:
         ...
     
     @property
-    def identifiers(self): # -> list[Unknown]:
+    def identifiers(self): # -> list[Any]:
         """
         A list of resource identifiers.
 
@@ -154,7 +154,7 @@ class Collection(Action):
     :param resource_defs: All resources defined in the service
     """
     @property
-    def batch_actions(self): # -> list[Unknown]:
+    def batch_actions(self): # -> list[Any]:
         """
         Get a list of batch actions supported by the resource type
         contained in this action. This is a shortcut for accessing
@@ -222,7 +222,7 @@ class ResourceModel:
         """
         ...
     
-    def get_attributes(self, shape): # -> dict[Unknown, Unknown]:
+    def get_attributes(self, shape): # -> dict[Any, Any]:
         """
         Get a dictionary of attribute names to original name and shape
         models that represent the attributes of this resource. Looks
@@ -240,7 +240,7 @@ class ResourceModel:
         ...
     
     @property
-    def identifiers(self): # -> list[Unknown]:
+    def identifiers(self): # -> list[Any]:
         """
         Get a list of resource identifiers.
 
@@ -258,7 +258,7 @@ class ResourceModel:
         ...
     
     @property
-    def actions(self): # -> list[Unknown]:
+    def actions(self): # -> list[Any]:
         """
         Get a list of actions for this resource.
 
@@ -267,7 +267,7 @@ class ResourceModel:
         ...
     
     @property
-    def batch_actions(self): # -> list[Unknown]:
+    def batch_actions(self): # -> list[Any]:
         """
         Get a list of batch actions for this resource.
 
@@ -276,7 +276,7 @@ class ResourceModel:
         ...
     
     @property
-    def subresources(self): # -> list[Unknown]:
+    def subresources(self): # -> list[Any]:
         """
         Get a list of sub-resources.
 
@@ -285,7 +285,7 @@ class ResourceModel:
         ...
     
     @property
-    def references(self): # -> list[Unknown]:
+    def references(self): # -> list[Any]:
         """
         Get a list of reference resources.
 
@@ -294,7 +294,7 @@ class ResourceModel:
         ...
     
     @property
-    def collections(self): # -> list[Unknown]:
+    def collections(self): # -> list[Any]:
         """
         Get a list of collections for this resource.
 
@@ -303,7 +303,7 @@ class ResourceModel:
         ...
     
     @property
-    def waiters(self): # -> list[Unknown]:
+    def waiters(self): # -> list[Any]:
         """
         Get a list of waiters for this resource.
 

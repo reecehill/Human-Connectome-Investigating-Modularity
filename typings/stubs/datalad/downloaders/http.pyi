@@ -12,10 +12,12 @@ from .base import Authenticator, BaseDownloader, DownloaderSession
 
 """
 lgr = ...
+DEFAULT_USER_AGENT = ...
+_FTP_SUPPORT = ...
 if lgr.getEffectiveLevel() <= 1:
     requests_log = ...
 __docformat__ = ...
-def process_www_authenticate(v): # -> list[Unknown] | list[str]:
+def process_www_authenticate(v): # -> list[Any] | list[str]:
     ...
 
 def check_response_status(response, err_prefix=..., session=...): # -> None:
@@ -96,6 +98,10 @@ class HTMLFormAuthenticator(HTTPBaseAuthenticator):
 @auto_repr
 class HTTPRequestsAuthenticator(HTTPBaseAuthenticator):
     """Base class for various authenticators using requests pre-crafted ones
+
+
+    Note, that current implementation assumes REQUESTS_FIELDS to be identical to
+    the keys of a `Credential` object's FIELDS.
     """
     REQUESTS_AUTHENTICATOR = ...
     REQUESTS_FIELDS = ...
@@ -141,10 +147,35 @@ class HTTPDigestAuthAuthenticator(HTTPRequestsAuthenticator):
 
 @auto_repr
 class HTTPBearerTokenAuthenticator(HTTPRequestsAuthenticator):
-    """Authenticate via HTTP Authorization header
+    """Authenticate via HTTP 'Authorization: Bearer TOKEN' header
+
+    E.g. as defined for OAuth2 in RFC 6750
+    https://datatracker.ietf.org/doc/html/rfc6750
     """
     DEFAULT_CREDENTIAL_TYPE = ...
+    AUTH_KEYWORD = ...
     def __init__(self, **kwargs) -> None:
+        ...
+    
+
+
+class HTTPTokenAuthenticator(HTTPBearerTokenAuthenticator):
+    """Authenticate via HTTP 'Authorization: Token TOKEN' header
+
+    It is pretty much the "Bearer TOKEN" method but which uses different keyword
+    "Token".  It is e.g. the one provided by Django REST Framework.
+    GitHub allows for both 'Bearer' and 'Token' keywords:
+    https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28
+    """
+    AUTH_KEYWORD = ...
+
+
+@auto_repr
+class HTTPAnonBearerTokenAuthenticator(HTTPBearerTokenAuthenticator):
+    """Retrieve token via 401 response and add Authorization: Bearer header.
+    """
+    allows_anonymous = ...
+    def authenticate(self, url, credential, session, update=...): # -> None:
         ...
     
 
@@ -165,6 +196,14 @@ class HTTPDownloader(BaseDownloader):
     """
     @borrowkwargs(BaseDownloader)
     def __init__(self, headers=..., **kwargs) -> None:
+        """
+
+        Parameters
+        ----------
+        headers: dict, optional
+          Header fields to be provided to the session. Unless User-Agent provided, a custom
+          one, available in `DEFAULT_USER_AGENT` constant of this module will be used.
+        """
         ...
     
     def get_downloader_session(self, url, allow_redirects=..., use_redirected_url=..., headers=...): # -> HTTPDownloaderSession:

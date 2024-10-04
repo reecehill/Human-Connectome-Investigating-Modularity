@@ -51,7 +51,8 @@ def orthogonal_procrustes(A, B, check_finite=...): # -> tuple[Any, Any]:
     References
     ----------
     .. [1] Peter H. Schonemann, "A generalized solution of the orthogonal
-           Procrustes problem", Psychometrica -- Vol. 31, No. 1, March, 1996.
+           Procrustes problem", Psychometrica -- Vol. 31, No. 1, March, 1966.
+           :doi:`10.1007/BF02289451`
 
     Examples
     --------

@@ -546,6 +546,14 @@ def make_interp_spline(x, y, k=..., t=..., bc_type=..., axis=..., check_finite=.
     -------
     b : a BSpline object of the degree ``k`` and with knots ``t``.
 
+    See Also
+    --------
+    BSpline : base class representing the B-spline objects
+    CubicSpline : a cubic spline in the polynomial basis
+    make_lsq_spline : a similar factory function for spline fitting
+    UnivariateSpline : a wrapper over FITPACK spline fitting routines
+    splrep : a wrapper over FITPACK spline fitting routines
+
     Examples
     --------
 
@@ -619,14 +627,6 @@ def make_interp_spline(x, y, k=..., t=..., bc_type=..., axis=..., check_finite=.
     >>> ax.scatter3D(x, *y, color='red')
     >>> plt.show()
 
-    See Also
-    --------
-    BSpline : base class representing the B-spline objects
-    CubicSpline : a cubic spline in the polynomial basis
-    make_lsq_spline : a similar factory function for spline fitting
-    UnivariateSpline : a wrapper over FITPACK spline fitting routines
-    splrep : a wrapper over FITPACK spline fitting routines
-
     """
     ...
 
@@ -672,6 +672,13 @@ def make_lsq_spline(x, y, t, k=..., w=..., axis=..., check_finite=...): # -> BSp
     Returns
     -------
     b : a BSpline object of the degree ``k`` with knots ``t``.
+
+    See Also
+    --------
+    BSpline : base class representing the B-spline objects
+    make_interp_spline : a similar factory function for interpolating splines
+    LSQUnivariateSpline : a FITPACK-based spline fitting routine
+    splrep : a FITPACK-based fitting routine
 
     Notes
     -----
@@ -729,13 +736,6 @@ def make_lsq_spline(x, y, t, k=..., w=..., axis=..., check_finite=...): # -> BSp
     Notice the need to replace a ``nan`` by a numerical value (precise value
     does not matter as long as the corresponding weight is zero.)
 
-    See Also
-    --------
-    BSpline : base class representing the B-spline objects
-    make_interp_spline : a similar factory function for interpolating splines
-    LSQUnivariateSpline : a FITPACK-based spline fitting routine
-    splrep : a FITPACK-based fitting routine
-
     """
     ...
 
@@ -766,9 +766,9 @@ def make_smoothing_spline(x, y, w=..., lam=...): # -> BSpline:
     Parameters
     ----------
     x : array_like, shape (n,)
-        Abscissas.
+        Abscissas. `n` must be larger than 5.
     y : array_like, shape (n,)
-        Ordinates.
+        Ordinates. `n` must be larger than 5.
     w : array_like, shape (n,), optional
         Vector of weights. Default is ``np.ones_like(x)``.
     lam : float, (:math:`\lambda \geq 0`), optional

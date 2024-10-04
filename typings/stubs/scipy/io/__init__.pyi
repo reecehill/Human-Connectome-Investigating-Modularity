@@ -11,7 +11,7 @@ from ._harwell_boeing import hb_read, hb_write
 from . import arff, harwell_boeing, idl, mmio, netcdf, wavfile
 from scipy._lib._testutils import PytestTester
 
-u"""
+"""
 ==================================
 Input and output (:mod:`scipy.io`)
 ==================================

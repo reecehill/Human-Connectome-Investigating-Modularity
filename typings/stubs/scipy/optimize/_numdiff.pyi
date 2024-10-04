@@ -198,7 +198,7 @@ def approx_derivative(fun, x0, method=..., rel_step=..., abs_step=..., f0=..., b
     """
     ...
 
-def check_derivative(fun, jac, x0, bounds=..., args=..., kwargs=...): # -> float64:
+def check_derivative(fun, jac, x0, bounds=..., args=..., kwargs=...): # -> float64 | Any:
     """Check correctness of a function computing derivatives (Jacobian or
     gradient) by comparison with a finite difference approximation.
 

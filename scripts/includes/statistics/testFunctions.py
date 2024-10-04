@@ -1,7 +1,7 @@
 from typing import Union
 import pandas as pd
 from includes.statistics import Float
-def generate_interpretation(test_name: str, score: "Union[float,Float]") -> str:
+def generate_interpretation(test_name: str, score: "Float") -> str:
     # Define a function to generate interpretations
     if test_name in ["Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"]:
         if score == 0.0:
@@ -26,7 +26,7 @@ def generate_interpretation(test_name: str, score: "Union[float,Float]") -> str:
             return "Positive agreement."
     return "Score interpretation not available."
 
-def convertResultsToDataFrames(results_x_truth_with_range, results_y_truth_with_range) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def convertResultsToDataFrames(results_x_truth_with_range: "list[tuple[Float | str]]", results_y_truth_with_range: "list[tuple[Float | str]]") -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]":
     # Convert results to DataFrames
     df_x_truth_with_range = pd.DataFrame(results_x_truth_with_range, columns=[
         "Statistical Test", "Score: (x real, y real)", "Score: (x real, y random)", 

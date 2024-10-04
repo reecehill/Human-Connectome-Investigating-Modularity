@@ -13,8 +13,8 @@ from ._dia import *
 from ._bsr import *
 from ._construct import *
 from ._extract import *
+from ._matrix import spmatrix
 from ._matrix_io import *
-from ._arrays import bsr_array, coo_array, csc_array, csr_array, dia_array, dok_array, lil_array
 from . import base, bsr, compressed, construct, coo, csc, csgraph, csr, data, dia, dok, extract, lil, sparsetools, sputils
 from scipy._lib._testutils import PytestTester
 
@@ -24,6 +24,12 @@ Sparse matrices (:mod:`scipy.sparse`)
 =====================================
 
 .. currentmodule:: scipy.sparse
+
+.. toctree::
+   :hidden:
+
+   sparse.csgraph
+   sparse.linalg
 
 SciPy 2-D sparse array package for numeric data.
 
@@ -68,6 +74,7 @@ Sparse array classes
    dia_array - Sparse array with DIAgonal storage
    dok_array - Dictionary Of Keys based sparse array
    lil_array - Row-based list of lists sparse array
+   sparray - Sparse array base class
 
 Sparse matrix classes
 ---------------------

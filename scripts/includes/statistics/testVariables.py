@@ -3,12 +3,13 @@ from typing import Any, Callable, Union
 from sklearn.metrics import mutual_info_score, normalized_mutual_info_score, adjusted_mutual_info_score
 from sklearn.metrics import v_measure_score, homogeneity_score, adjusted_rand_score, fowlkes_mallows_score
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 Float = Union[float, np.float16, np.float32, np.float64]
 
 import numpy as np
 # Define range information for each test
-test_ranges: dict[str, str] = {
+test_ranges: "dict[str, str]" = {
     "Mutual Information Score": "Unbounded (non-negative)",
     "Normalized Mutual Information": "[0, 1]",
     "Adjusted Mutual Information": "[-1, 1]",

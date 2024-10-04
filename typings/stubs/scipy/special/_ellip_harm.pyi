@@ -149,7 +149,7 @@ def ellip_harm_2(h2, k2, n, p, s): # -> Any:
     ...
 
 _ellip_normal_vec = ...
-def ellip_normal(h2, k2, n, p):
+def ellip_normal(h2, k2, n, p): # -> Any:
     r"""
     Ellipsoidal harmonic normalization constants gamma^p_n
 

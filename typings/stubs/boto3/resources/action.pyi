@@ -23,7 +23,7 @@ class ServiceAction:
     def __init__(self, action_model, factory=..., service_context=...) -> None:
         ...
     
-    def __call__(self, parent, *args, **kwargs): # -> dict[Unknown, Unknown] | list[Unknown] | Any | None:
+    def __call__(self, parent, *args, **kwargs): # -> Any | dict[Any, Any] | list[Any] | None:
         """
         Perform the action's request operation after building operation
         parameters and build any defined resources from the response.
@@ -55,7 +55,7 @@ class BatchAction(ServiceAction):
     :type service_context: :py:class:`~boto3.utils.ServiceContext`
     :param service_context: Context about the AWS service
     """
-    def __call__(self, parent, *args, **kwargs): # -> list[Unknown]:
+    def __call__(self, parent, *args, **kwargs): # -> list[Any]:
         """
         Perform the batch action's operation on every page of results
         from the collection.

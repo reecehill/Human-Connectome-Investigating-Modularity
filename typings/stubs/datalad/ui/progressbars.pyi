@@ -8,14 +8,14 @@ Should not be imported until we know that interface needs it
 """
 class ProgressBarBase:
     """Base class for any progress bar"""
-    def __init__(self, label=..., fill_text=..., total=..., out=..., unit=..., initial=...) -> None:
+    def __init__(self, label=..., fill_text=..., total=..., out=..., unit=...) -> None:
         ...
     
     def refresh(self): # -> None:
         """Force update"""
         ...
     
-    def update(self, size, increment=...): # -> None:
+    def update(self, size, increment=..., total=...): # -> None:
         ...
     
     @property
@@ -69,6 +69,9 @@ class LogProgressBar(ProgressBarBase):
     def __init__(self, *args, **kwargs) -> None:
         ...
     
+    def start(self, initial=...): # -> None:
+        ...
+    
     def finish(self, partial=...): # -> None:
         ...
     
@@ -96,10 +99,10 @@ class tqdmProgressBar(ProgressBarBase):
             """
         ...
     
-    def update(self, size, increment=...): # -> None:
+    def update(self, size, increment=..., total=...): # -> None:
         ...
     
-    def start(self): # -> None:
+    def start(self, initial=...): # -> None:
         ...
     
     def refresh(self): # -> None:

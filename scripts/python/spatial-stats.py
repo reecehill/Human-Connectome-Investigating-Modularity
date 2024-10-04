@@ -1,5 +1,10 @@
 # type: ignore
 
+# !!!!!!!!!!!!!!!!!!!!!!!
+# THIS FILE DOES NOT CALCULATE SPATIAL STATS YET. DO NOT USE.
+# !!!!!!!!!!!!!!!!!!!!!!!
+
+
 # Re-importing necessary libraries and preparing data again
 from typing import Annotated, Union
 import numpy as np

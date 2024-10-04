@@ -12,9 +12,6 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def __init__(self, arg1, shape=..., dtype=..., copy=...) -> None:
         ...
     
-    def getnnz(self, axis=...): # -> int | NDArray[intp] | NDArray[Any]:
-        ...
-    
     def check_format(self, full_check=...): # -> None:
         """check whether the matrix format is valid
 
@@ -65,7 +62,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
         """
         ...
     
-    def tocoo(self, copy=...): # -> coo_matrix:
+    def tocoo(self, copy=...): # -> coo_array:
         ...
     
     def toarray(self, order=..., out=...): # -> NDArray[float64]:

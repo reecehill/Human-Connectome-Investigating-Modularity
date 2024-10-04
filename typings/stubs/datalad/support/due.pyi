@@ -29,7 +29,7 @@ License:    BSD-2
 __version__ = ...
 class InactiveDueCreditCollector:
     """Just a stub at the Collector which would not do anything"""
-    def dcite(self, *args, **kwargs): # -> (func: Unknown) -> Unknown:
+    def dcite(self, *args, **kwargs): # -> Callable[..., Any]:
         """If I could cite I would"""
         ...
     
@@ -40,5 +40,5 @@ class InactiveDueCreditCollector:
     
 
 
-if 'due' in locals() and nothasattr(due, 'cite'):
+if 'due' in locals() and not hasattr(due, 'cite'):
     ...

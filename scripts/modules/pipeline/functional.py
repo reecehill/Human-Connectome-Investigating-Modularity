@@ -159,7 +159,7 @@ def createRoiScalarFiles(subjectId: str) -> bool:
                       '-name',
                       'L_precentral',
                       '-map',
-                      '100307_aparc'
+                      f'{subjectId}_aparc'
                       ]),
       call(cmdLabel="wb_command",
               cmd=[
@@ -170,7 +170,7 @@ def createRoiScalarFiles(subjectId: str) -> bool:
                       '-name',
                       'R_precentral',
                       '-map',
-                      '100307_aparc'
+                      f'{subjectId}_aparc'
                       ]),
       call(cmdLabel="wb_command",
               cmd=[

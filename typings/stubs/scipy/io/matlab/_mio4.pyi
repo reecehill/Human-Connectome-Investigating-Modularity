@@ -38,7 +38,7 @@ class VarReader4:
         ''' Read and return header for variable '''
         ...
     
-    def array_from_header(self, hdr, process=...): # -> coo_matrix | NDArray[complexfloating[Any, Any]] | ndarray[Any, Any]:
+    def array_from_header(self, hdr, process=...): # -> NDArray[complexfloating[Any, Any]] | ndarray[Any, Any]:
         ...
     
     def read_sub_array(self, hdr, copy=...): # -> ndarray[Any, Any]:
@@ -91,7 +91,7 @@ class VarReader4:
         '''
         ...
     
-    def read_sparse_array(self, hdr): # -> coo_matrix:
+    def read_sparse_array(self, hdr):
         ''' Read and return sparse matrix type
 
         Parameters
@@ -166,7 +166,7 @@ class MatFile4Reader(MatFileReader):
         '''
         ...
     
-    def read_var_array(self, header, process=...): # -> coo_matrix | NDArray[complexfloating[Any, Any]] | ndarray[Any, Any]:
+    def read_var_array(self, header, process=...): # -> NDArray[complexfloating[Any, Any]] | ndarray[Any, Any]:
         ''' Read array, given `header`
 
         Parameters

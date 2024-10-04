@@ -110,7 +110,8 @@ def line_search_wolfe2(f, myfprime, xk, pk, gfk=..., old_fval=..., old_old_fval=
     xk : ndarray
         Starting point.
     pk : ndarray
-        Search direction.
+        Search direction. The search direction must be a descent direction
+        for the algorithm to converge.
     gfk : ndarray, optional
         Gradient value for x=xk (xk being the current parameter
         estimate). Will be recomputed if omitted.
@@ -163,6 +164,11 @@ def line_search_wolfe2(f, myfprime, xk, pk, gfk=..., old_fval=..., old_old_fval=
     Uses the line search algorithm to enforce strong Wolfe
     conditions. See Wright and Nocedal, 'Numerical Optimization',
     1999, pp. 59-61.
+
+    The search direction `pk` must be a descent direction (e.g.
+    ``-myfprime(xk)``) to find a step length that satisfies the strong Wolfe
+    conditions. If the search direction is not a descent direction (e.g.
+    ``myfprime(xk)``), then `alpha`, `new_fval`, and `new_slope` will be None.
 
     Examples
     --------

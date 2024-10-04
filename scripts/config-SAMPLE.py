@@ -6,6 +6,7 @@
 import multiprocessing
 from typing import Optional
 from includes.automated import *
+from includes.all_subjects import all_healthy_young_adults
 # import includes.all_subjects
 
 
@@ -76,8 +77,8 @@ DOWNSAMPLE_RATE = 0.1 # NOTE: Default should be 0.1 (float).
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-#ALL_SUBJECTS: "list[str]" = includes.all_subjects.all_subjects
-ALL_SUBJECTS: "list[str]" = ["100610"]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
+# ALL_SUBJECTS: "list[str]" = ["100610"]
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------

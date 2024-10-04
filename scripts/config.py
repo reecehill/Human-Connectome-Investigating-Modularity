@@ -5,6 +5,7 @@
 import multiprocessing
 from typing import Literal, Optional, Union
 from includes.automated import *
+from includes.all_subjects import all_healthy_young_adults
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
 # CPU_THREADS = 10
@@ -66,10 +67,10 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY= False
-RUN_MAPPING = False
+RUN_PROCESS_TRACTOGRAPHY = True
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY= True
+RUN_MAPPING = True
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -191,8 +192,8 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value w
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-#ALL_SUBJECTS: "list[str]" = includes.all_subjects.all_subjects
-ALL_SUBJECTS: "list[str]" = ["100307"]
+# ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
+ALL_SUBJECTS: "list[str]" = ["100206"]
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------

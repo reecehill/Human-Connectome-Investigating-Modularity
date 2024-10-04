@@ -81,7 +81,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
             except Exception as e:
                 raise
             
-           
+
             try:
                 # ------------------------------------------------------------
                 # [START] Load the global saver and upload current configuration.

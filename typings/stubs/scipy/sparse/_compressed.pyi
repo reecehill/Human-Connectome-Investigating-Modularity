@@ -8,18 +8,23 @@ from ._index import IndexMixin
 """Base class for sparse matrix formats using compressed storage."""
 __all__ = []
 class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
-    """base matrix class for compressed row- and column-oriented matrices"""
+    """
+    base array/matrix class for compressed row- and column-oriented arrays/matrices
+    """
     def __init__(self, arg1, shape=..., dtype=..., copy=...) -> None:
         ...
     
     def check_format(self, full_check=...): # -> None:
-        """check whether the matrix format is valid
+        """Check whether the array/matrix respects the CSR or CSC format.
 
         Parameters
         ----------
         full_check : bool, optional
-            If `True`, rigorous check, O(N) operations. Otherwise
-            basic check, O(1) operations (default True).
+            If `True`, run rigorous check, scanning arrays for valid values.
+            Note that activating those check might copy arrays for casting,
+            modifying indices and index pointers' inplace.
+            If `False`, run basic checks on attributes. O(1) operations.
+            Default is `True`.
         """
         ...
     
@@ -42,12 +47,10 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
         ...
     
     def multiply(self, other):
-        """Point-wise multiplication by another matrix, vector, or
-        scalar.
-        """
+        """Point-wise multiplication by array/matrix, vector, or scalar."""
         ...
     
-    def diagonal(self, k=...): # -> NDArray[Any] | NDArray[float64]:
+    def diagonal(self, k=...): # -> NDArray[float64]:
         ...
     
     def maximum(self, other): # -> Self:
@@ -57,7 +60,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
         ...
     
     def sum(self, axis=..., dtype=..., out=...): # -> matrix[Any, Any] | Any:
-        """Sum the matrix over the given axis.  If the axis is None, sum
+        """Sum the array/matrix over the given axis.  If the axis is None, sum
         over both rows and columns, returning a scalar.
         """
         ...
@@ -65,32 +68,62 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def tocoo(self, copy=...): # -> coo_array:
         ...
     
-    def toarray(self, order=..., out=...): # -> NDArray[float64]:
+    def toarray(self, order=..., out=...):
         ...
     
     def eliminate_zeros(self): # -> None:
-        """Remove zero entries from the matrix
+        """Remove zero entries from the array/matrix
 
         This is an *in place* operation.
         """
         ...
     
-    has_canonical_format = ...
+    @property
+    def has_canonical_format(self) -> bool:
+        """Whether the array/matrix has sorted indices and no duplicates
+
+        Returns
+            - True: if the above applies
+            - False: otherwise
+
+        has_canonical_format implies has_sorted_indices, so if the latter flag
+        is False, so will the former be; if the former is found True, the
+        latter flag is also set.
+        """
+        ...
+    
+    @has_canonical_format.setter
+    def has_canonical_format(self, val: bool): # -> None:
+        ...
+    
     def sum_duplicates(self): # -> None:
-        """Eliminate duplicate matrix entries by adding them together
+        """Eliminate duplicate entries by adding them together
 
         This is an *in place* operation.
         """
         ...
     
-    has_sorted_indices = ...
+    @property
+    def has_sorted_indices(self) -> bool:
+        """Whether the indices are sorted
+
+        Returns
+            - True: if the indices of the array/matrix are in sorted order
+            - False: otherwise
+        """
+        ...
+    
+    @has_sorted_indices.setter
+    def has_sorted_indices(self, val: bool): # -> None:
+        ...
+    
     def sorted_indices(self):
-        """Return a copy of this matrix with sorted indices
+        """Return a copy of this array/matrix with sorted indices
         """
         ...
     
     def sort_indices(self): # -> None:
-        """Sort the indices of this matrix *in place*
+        """Sort the indices of this array/matrix *in place*
         """
         ...
     

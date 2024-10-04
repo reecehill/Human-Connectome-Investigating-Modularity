@@ -6,7 +6,7 @@ from ._ni_docstrings import docfiller
 
 __all__ = ['spline_filter1d', 'spline_filter', 'geometric_transform', 'map_coordinates', 'affine_transform', 'shift', 'zoom', 'rotate']
 @docfiller
-def spline_filter1d(input, order=..., axis=..., output=..., mode=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def spline_filter1d(input, order=..., axis=..., output=..., mode=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Calculate a 1-D spline filter along the given axis.
 
@@ -31,6 +31,10 @@ def spline_filter1d(input, order=..., axis=..., output=..., mode=...): # -> NDAr
     spline_filter1d : ndarray
         The filtered input.
 
+    See Also
+    --------
+    spline_filter : Multidimensional spline filter.
+
     Notes
     -----
     All of the interpolation functions in `ndimage` do spline interpolation of
@@ -48,10 +52,6 @@ def spline_filter1d(input, order=..., axis=..., output=..., mode=...): # -> NDAr
 
     .. versionadded:: 1.6.0
         Complex-valued support added.
-
-    See Also
-    --------
-    spline_filter : Multidimensional spline filter.
 
     Examples
     --------
@@ -76,11 +76,25 @@ def spline_filter1d(input, order=..., axis=..., output=..., mode=...): # -> NDAr
     """
     ...
 
-def spline_filter(input, order=..., output=..., mode=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+@docfiller
+def spline_filter(input, order=..., output=..., mode=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Multidimensional spline filter.
 
-    For more details, see `spline_filter1d`.
+    Parameters
+    ----------
+    %(input)s
+    order : int, optional
+        The order of the spline, default is 3.
+    output : ndarray or dtype, optional
+        The array in which to place the output, or the dtype of the returned
+        array. Default is ``numpy.float64``.
+    %(mode_interp_mirror)s
+
+    Returns
+    -------
+    spline_filter : ndarray
+        Filtered array. Has the same shape as `input`.
 
     See Also
     --------
@@ -122,7 +136,7 @@ def spline_filter(input, order=..., output=..., mode=...): # -> NDArray[float64]
     ...
 
 @docfiller
-def geometric_transform(input, mapping, output_shape=..., output=..., order=..., mode=..., cval=..., prefilter=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def geometric_transform(input, mapping, output_shape=..., output=..., order=..., mode=..., cval=..., prefilter=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Apply an arbitrary geometric transform.
 
@@ -230,7 +244,7 @@ def geometric_transform(input, mapping, output_shape=..., output=..., order=...,
     ...
 
 @docfiller
-def map_coordinates(input, coordinates, output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def map_coordinates(input, coordinates, output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Map the input array to new coordinates by interpolation.
 
@@ -303,7 +317,7 @@ def map_coordinates(input, coordinates, output=..., order=..., mode=..., cval=..
     ...
 
 @docfiller
-def affine_transform(input, matrix, offset=..., output_shape=..., output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def affine_transform(input, matrix, offset=..., output_shape=..., output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Apply an affine transformation.
 
@@ -388,7 +402,7 @@ def affine_transform(input, matrix, offset=..., output_shape=..., output=..., or
     ...
 
 @docfiller
-def shift(input, shift, output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def shift(input, shift, output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Shift an array.
 
@@ -415,6 +429,10 @@ def shift(input, shift, output=..., order=..., mode=..., cval=..., prefilter=...
     shift : ndarray
         The shifted input.
 
+    See Also
+    --------
+    affine_transform : Affine transformations
+
     Notes
     -----
     For complex-valued `input`, this function shifts the real and imaginary
@@ -423,11 +441,42 @@ def shift(input, shift, output=..., order=..., mode=..., cval=..., prefilter=...
     .. versionadded:: 1.6.0
         Complex-valued support added.
 
+    Examples
+    --------
+    Import the necessary modules and an exemplary image.
+
+    >>> from scipy.ndimage import shift
+    >>> import matplotlib.pyplot as plt
+    >>> from scipy import datasets
+    >>> image = datasets.ascent()
+
+    Shift the image vertically by 20 pixels.
+
+    >>> image_shifted_vertically = shift(image, (20, 0))
+
+    Shift the image vertically by -200 pixels and horizontally by 100 pixels.
+
+    >>> image_shifted_both_directions = shift(image, (-200, 100))
+
+    Plot the original and the shifted images.
+
+    >>> fig, axes = plt.subplots(3, 1, figsize=(4, 12))
+    >>> plt.gray()  # show the filtered result in grayscale
+    >>> top, middle, bottom = axes
+    >>> for ax in axes:
+    ...     ax.set_axis_off()  # remove coordinate system
+    >>> top.imshow(image)
+    >>> top.set_title("Original image")
+    >>> middle.imshow(image_shifted_vertically)
+    >>> middle.set_title("Vertically shifted image")
+    >>> bottom.imshow(image_shifted_both_directions)
+    >>> bottom.set_title("Image shifted in both directions")
+    >>> fig.tight_layout()
     """
     ...
 
 @docfiller
-def zoom(input, zoom, output=..., order=..., mode=..., cval=..., prefilter=..., *, grid_mode=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def zoom(input, zoom, output=..., order=..., mode=..., cval=..., prefilter=..., *, grid_mode=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Zoom an array.
 
@@ -499,7 +548,7 @@ def zoom(input, zoom, output=..., order=..., mode=..., cval=..., prefilter=..., 
     ...
 
 @docfiller
-def rotate(input, angle, axes=..., reshape=..., output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def rotate(input, angle, axes=..., reshape=..., output=..., order=..., mode=..., cval=..., prefilter=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Rotate an array.
 

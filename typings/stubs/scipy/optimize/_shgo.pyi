@@ -27,12 +27,12 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
         Any additional fixed parameters needed to completely specify the
         objective function.
     constraints : {Constraint, dict} or List of {Constraint, dict}, optional
-        Constraints definition. Only for COBYLA, SLSQP and trust-constr.
+        Constraints definition. Only for COBYLA, COBYQA, SLSQP and trust-constr.
         See the tutorial [5]_ for further details on specifying constraints.
 
         .. note::
 
-           Only COBYLA, SLSQP, and trust-constr local minimize methods
+           Only COBYLA, COBYQA, SLSQP, and trust-constr local minimize methods
            currently support constraint arguments. If the ``constraints``
            sequence used in the local optimization problem is not defined in
            ``minimizer_kwargs`` and a constrained method is used then the
@@ -54,7 +54,7 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
         sampling points are generated instead of the default `n=100`. For all
         other specified values `n` sampling points are generated. For
         ``sobol``, ``halton`` and other arbitrary `sampling_methods` `n=100` or
-        another speciefied number of sampling points are generated.
+        another specified number of sampling points are generated.
     iters : int, optional
         Number of iterations used in the construction of the simplicial
         complex. Default is 1.
@@ -145,7 +145,7 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
             along with the objective function. If False, the gradient will be
             estimated numerically. ``jac`` can also be a callable returning the
             gradient of the objective. In this case, it must accept the same
-            arguments as ``fun``. (Passed to `scipy.optimize.minmize`
+            arguments as ``fun``. (Passed to `scipy.optimize.minimize`
             automatically)
 
         * hess, hessp : callable, optional
@@ -156,7 +156,7 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
             ``hessp`` will be ignored. If neither ``hess`` nor ``hessp`` is
             provided, then the Hessian product will be approximated using
             finite differences on ``jac``. ``hessp`` must compute the Hessian
-            times an arbitrary vector. (Passed to `scipy.optimize.minmize`
+            times an arbitrary vector. (Passed to `scipy.optimize.minimize`
             automatically)
 
         Algorithm settings:
@@ -254,8 +254,9 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
     The local search method may be specified using the ``minimizer_kwargs``
     parameter which is passed on to ``scipy.optimize.minimize``. By default,
     the ``SLSQP`` method is used. In general, it is recommended to use the
-    ``SLSQP`` or ``COBYLA`` local minimization if inequality constraints
-    are defined for the problem since the other methods do not use constraints.
+    ``SLSQP``, ``COBYLA``, or ``COBYQA`` local minimization if inequality
+    constraints are defined for the problem since the other methods do not use
+    constraints.
 
     The ``halton`` and ``sobol`` method points are generated using
     `scipy.stats.qmc`. Any other QMC method could be used.
@@ -407,11 +408,11 @@ def shgo(func, bounds, args=..., constraints=..., n=..., iters=..., callback=...
      success: True
          fun: 29.894378159142136
         funl: [ 2.989e+01]
-           x: [ 6.355e-01  1.137e-13  3.127e-01  5.178e-02]
-          xl: [[ 6.355e-01  1.137e-13  3.127e-01  5.178e-02]]
+           x: [ 6.355e-01  1.137e-13  3.127e-01  5.178e-02] # may vary
+          xl: [[ 6.355e-01  1.137e-13  3.127e-01  5.178e-02]] # may vary
          nit: 1
-        nfev: 142
-       nlfev: 35
+        nfev: 142 # may vary
+       nlfev: 35 # may vary
        nljev: 5
        nlhev: 0
 
@@ -540,7 +541,7 @@ class SHGO:
         Parameters
         ----------
         force_iter : int
-                     Number of starting minimizers to process (can be sepcified
+                     Number of starting minimizers to process (can be specified
                      globally or locally)
 
         """

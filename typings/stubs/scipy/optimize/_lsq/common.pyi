@@ -74,7 +74,7 @@ def solve_lsq_trust_region(n, m, uf, s, V, Delta, initial_alpha=..., rtol=..., m
     """
     ...
 
-def solve_trust_region_2d(B, g, Delta): # -> tuple[Any, Literal[True]] | tuple[Any, Literal[False]]:
+def solve_trust_region_2d(B, g, Delta): # -> tuple[NDArray[Any] | Any, Literal[True]] | tuple[Any, Literal[False]]:
     """Solve a general trust-region problem in 2 dimensions.
 
     The problem is reformulated as a 4th order algebraic equation,
@@ -183,7 +183,7 @@ def evaluate_quadratic(J, g, s, diag=...): # -> Any:
     """
     ...
 
-def in_bounds(x, lb, ub): # -> bool_:
+def in_bounds(x, lb, ub): # -> bool:
     """Check if a point lies within bounds."""
     ...
 
@@ -280,7 +280,7 @@ def print_header_linear(): # -> None:
 def print_iteration_linear(iteration, cost, cost_reduction, step_norm, optimality): # -> None:
     ...
 
-def compute_grad(J, f): # -> ndarray[Any, dtype[Any]] | ndarray[Any, Any]:
+def compute_grad(J, f):
     """Compute gradient of the least-squares cost function."""
     ...
 
@@ -288,15 +288,15 @@ def compute_jac_scale(J, scale_inv_old=...): # -> tuple[NDArray[floating[Any]] |
     """Compute variables scale based on the Jacobian matrix."""
     ...
 
-def left_multiplied_operator(J, d): # -> LinearOperator:
+def left_multiplied_operator(J, d):
     """Return diag(d) J as LinearOperator."""
     ...
 
-def right_multiplied_operator(J, d): # -> LinearOperator:
+def right_multiplied_operator(J, d):
     """Return J diag(d) as LinearOperator."""
     ...
 
-def regularized_lsq_operator(J, diag): # -> LinearOperator:
+def regularized_lsq_operator(J, diag):
     """Return a matrix arising in regularized least squares as LinearOperator.
 
     The matrix is
@@ -306,14 +306,14 @@ def regularized_lsq_operator(J, diag): # -> LinearOperator:
     """
     ...
 
-def right_multiply(J, d, copy=...): # -> LinearOperator:
+def right_multiply(J, d, copy=...):
     """Compute J diag(d).
 
     If `copy` is False, `J` is modified in place (unless being LinearOperator).
     """
     ...
 
-def left_multiply(J, d, copy=...): # -> LinearOperator:
+def left_multiply(J, d, copy=...):
     """Compute diag(d) J.
 
     If `copy` is False, `J` is modified in place (unless being LinearOperator).
@@ -324,7 +324,7 @@ def check_termination(dF, F, dx_norm, x_norm, ratio, ftol, xtol): # -> Literal[4
     """Check termination condition for nonlinear least squares."""
     ...
 
-def scale_for_robust_loss_function(J, f, rho): # -> tuple[Any | LinearOperator, Any]:
+def scale_for_robust_loss_function(J, f, rho): # -> tuple[Any, Any]:
     """Scale Jacobian and residuals for a robust loss function.
 
     Arrays are modified in place.

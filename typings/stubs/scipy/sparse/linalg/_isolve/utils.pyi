@@ -11,7 +11,7 @@ def coerce(x, y): # -> str:
 def id(x):
     ...
 
-def make_system(A, M, x0, b): # -> tuple[LinearOperator | MatrixLinearOperator, IdentityOperator | LinearOperator | MatrixLinearOperator, NDArray[Any] | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | Any, ndarray[Any, dtype[Any]], Callable[..., Any]]:
+def make_system(A, M, x0, b): # -> tuple[LinearOperator | MatrixLinearOperator, IdentityOperator | LinearOperator | MatrixLinearOperator, NDArray[Any] | ndarray[Any, dtype[Any]] | Any, ndarray[Any, dtype[Any]], Callable[..., Any]]:
     """Make a linear system Ax=b
 
     Parameters

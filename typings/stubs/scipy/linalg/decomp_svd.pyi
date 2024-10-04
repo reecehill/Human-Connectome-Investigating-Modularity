@@ -6,6 +6,6 @@ __all__ = ['svd', 'svdvals', 'diagsvd', 'orth', 'subspace_angles', 'null_space',
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

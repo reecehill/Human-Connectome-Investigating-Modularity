@@ -35,7 +35,9 @@ def to_numpy_code(code): # -> str:
     Examples
     --------
     >>> import sys
-    >>> sys_is_le == (sys.byteorder == 'little')
+    >>> from scipy.io.matlab._byteordercodes import to_numpy_code
+    >>> sys_is_le = (sys.byteorder == 'little')
+    >>> sys_is_le
     True
     >>> to_numpy_code('big')
     '>'

@@ -35,7 +35,7 @@ def norm(x):
     """Compute RMS norm."""
     ...
 
-def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol): # -> float:
+def select_initial_step(fun, t0, y0, t_bound, max_step, f0, direction, order, rtol, atol): # -> float:
     """Empirically select a good initial step.
 
     The algorithm is described in [1]_.
@@ -48,6 +48,11 @@ def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol): # -> flo
         Initial value of the independent variable.
     y0 : ndarray, shape (n,)
         Initial value of the dependent variable.
+    t_bound : float
+        End-point of integration interval; used to ensure that t0+step<=tbound 
+        and that fun is only evaluated in the interval [t0,tbound]
+    max_step : float
+        Maximum allowable step size.
     f0 : ndarray, shape (n,)
         Initial value of the derivative, i.e., ``fun(t0, y0)``.
     direction : float
@@ -95,13 +100,21 @@ class OdeSolution:
     interpolants : list of DenseOutput with n_segments elements
         Local interpolants. An i-th interpolant is assumed to be defined
         between ``ts[i]`` and ``ts[i + 1]``.
+    alt_segment : boolean
+        Requests the alternative interpolant segment selection scheme. At each
+        solver integration point, two interpolant segments are available. The
+        default (False) and alternative (True) behaviours select the segment
+        for which the requested time corresponded to ``t`` and ``t_old``,
+        respectively. This functionality is only relevant for testing the
+        interpolants' accuracy: different integrators use different
+        construction strategies.
 
     Attributes
     ----------
     t_min, t_max : float
         Time range of the interpolation.
     """
-    def __init__(self, ts, interpolants) -> None:
+    def __init__(self, ts, interpolants, alt_segment=...) -> None:
         ...
     
     def __call__(self, t): # -> ndarray[Any, dtype[Any]]:
@@ -128,7 +141,7 @@ NUM_JAC_DIFF_BIG = ...
 NUM_JAC_MIN_FACTOR = ...
 NUM_JAC_FACTOR_INCREASE = ...
 NUM_JAC_FACTOR_DECREASE = ...
-def num_jac(fun, t, y, f, threshold, factor, sparsity=...): # -> tuple[NDArray[float64], Any] | tuple[Any, Any] | tuple[csc_array, Any]:
+def num_jac(fun, t, y, f, threshold, factor, sparsity=...): # -> tuple[NDArray[float64], Any] | tuple[Any, Any]:
     """Finite differences Jacobian approximation tailored for ODE solvers.
 
     This function computes finite difference approximation to the Jacobian

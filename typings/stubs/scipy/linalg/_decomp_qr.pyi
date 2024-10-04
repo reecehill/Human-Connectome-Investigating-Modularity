@@ -9,7 +9,7 @@ def safecall(f, name, *args, **kwargs):
     error return values"""
     ...
 
-def qr(a, overwrite_a=..., lwork=..., mode=..., pivoting=..., check_finite=...): # -> tuple[NDArray[Any], Any] | tuple[NDArray[Any]] | tuple[tuple[Any, Any], NDArray[Any], Any] | tuple[tuple[Any, Any], NDArray[Any]] | tuple[Any, NDArray[Any], Any] | tuple[Any, NDArray[Any]]:
+def qr(a, overwrite_a=..., lwork=..., mode=..., pivoting=..., check_finite=...): # -> tuple[NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[NDArray[Any]] | tuple[tuple[NDArray[Any], NDArray[Any]], NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[tuple[NDArray[Any], NDArray[Any]], NDArray[Any]] | tuple[NDArray[Any], NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[NDArray[Any], NDArray[Any]] | tuple[NDArray[Any], Any] | tuple[tuple[Any, Any], NDArray[Any], Any] | tuple[tuple[Any, Any], NDArray[Any]] | tuple[Any, NDArray[Any], Any] | tuple[Any, NDArray[Any]]:
     """
     Compute QR decomposition of a matrix.
 
@@ -36,8 +36,8 @@ def qr(a, overwrite_a=..., lwork=..., mode=..., pivoting=..., check_finite=...):
     pivoting : bool, optional
         Whether or not factorization should include pivoting for rank-revealing
         qr decomposition. If pivoting, compute the decomposition
-        ``A P = Q R`` as above, but where P is chosen such that the diagonal
-        of R is non-increasing.
+        ``A[:, P] = Q @ R`` as above, but where P is chosen such that the 
+        diagonal of R is non-increasing.
     check_finite : bool, optional
         Whether to check that the input matrix contains only finite numbers.
         Disabling may give a performance gain, but may result in problems
@@ -47,9 +47,10 @@ def qr(a, overwrite_a=..., lwork=..., mode=..., pivoting=..., check_finite=...):
     -------
     Q : float or complex ndarray
         Of shape (M, M), or (M, K) for ``mode='economic'``. Not returned
-        if ``mode='r'``.
+        if ``mode='r'``. Replaced by tuple ``(Q, TAU)`` if ``mode='raw'``.
     R : float or complex ndarray
-        Of shape (M, N), or (K, N) for ``mode='economic'``. ``K = min(M, N)``.
+        Of shape (M, N), or (K, N) for ``mode in ['economic', 'raw']``.
+        ``K = min(M, N)``.
     P : int ndarray
         Of shape (N,) for ``pivoting=True``. Not returned if
         ``pivoting=False``.
@@ -104,7 +105,7 @@ def qr(a, overwrite_a=..., lwork=..., mode=..., pivoting=..., check_finite=...):
     """
     ...
 
-def qr_multiply(a, c, mode=..., pivoting=..., conjugate=..., overwrite_a=..., overwrite_c=...): # -> tuple[Any, Any] | tuple[Any] | tuple[Any, NDArray[Any], Any] | tuple[Any, NDArray[Any]]:
+def qr_multiply(a, c, mode=..., pivoting=..., conjugate=..., overwrite_a=..., overwrite_c=...): # -> tuple[NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[NDArray[Any]] | tuple[NDArray[Any], NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[NDArray[Any], NDArray[Any]] | tuple[NDArray[Any], Any] | tuple[NDArray[Any], NDArray[Any], Any] | tuple[Any, NDArray[signedinteger[_32Bit]]] | tuple[Any] | tuple[Any, NDArray[Any], NDArray[signedinteger[_32Bit]]] | tuple[Any, NDArray[Any]] | tuple[Any, Any] | tuple[Any, NDArray[Any], Any]:
     """
     Calculate the QR decomposition and multiply Q with a matrix.
 
@@ -181,7 +182,7 @@ def qr_multiply(a, c, mode=..., pivoting=..., conjugate=..., overwrite_a=..., ov
     """
     ...
 
-def rq(a, overwrite_a=..., lwork=..., mode=..., check_finite=...): # -> NDArray[Any] | tuple[NDArray[Any], Any]:
+def rq(a, overwrite_a=..., lwork=..., mode=..., check_finite=...): # -> NDArray[Any] | tuple[NDArray[Any], NDArray[Any]] | tuple[NDArray[Any], Any]:
     """
     Compute RQ decomposition of a matrix.
 

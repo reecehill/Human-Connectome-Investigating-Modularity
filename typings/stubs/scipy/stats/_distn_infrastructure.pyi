@@ -137,6 +137,7 @@ def argsreduce(cond, *args): # -> list[ndarray[Any, dtype[Any]]]:
     Examples
     --------
     >>> import numpy as np
+    >>> from scipy.stats._distn_infrastructure import argsreduce
     >>> rng = np.random.default_rng()
     >>> A = rng.random((4, 5))
     >>> B = 2
@@ -289,6 +290,7 @@ class rv_generic:
         Entropy is defined base `e`:
 
         >>> import numpy as np
+        >>> from scipy.stats._distn_infrastructure import rv_discrete
         >>> drv = rv_discrete(values=((0, 1), (0.5, 0.5)))
         >>> np.allclose(drv.entropy(), np.log(2.0))
         True
@@ -440,7 +442,7 @@ class rv_generic:
         """
         ...
     
-    def support(self, *args, **kwargs): # -> tuple[Any, Any] | tuple[NDArray[bool_], NDArray[bool_]]:
+    def support(self, *args, **kwargs): # -> tuple[Any, Any] | tuple[NDArray[Any], NDArray[Any]]:
         """Support of the distribution.
 
         Parameters
@@ -872,7 +874,7 @@ class rv_continuous(rv_generic):
         ...
     
     def fit(self, data, *args, **kwds): # -> tuple[Any, ...]:
-        """
+        r"""
         Return estimates of shape (if applicable), location, and scale
         parameters from data. The default estimation method is Maximum
         Likelihood Estimation (MLE), but Method of Moments (MM)
@@ -915,8 +917,9 @@ class rv_continuous(rv_generic):
             - optimizer : The optimizer to use.  The optimizer must take
               ``func`` and starting position as the first two arguments,
               plus ``args`` (for extra arguments to pass to the
-              function to be optimized) and ``disp=0`` to suppress
-              output as keyword arguments.
+              function to be optimized) and ``disp``.
+              The ``fit`` method calls the optimizer with ``disp=0`` to suppress output.
+              The optimizer must return the estimated parameters.
 
             - method : The method to use. The default is "MLE" (Maximum
               Likelihood Estimate); "MM" (Method of Moments)
@@ -966,20 +969,59 @@ class rv_continuous(rv_generic):
         If the data contain any of ``np.nan``, ``np.inf``, or ``-np.inf``,
         the `fit` method will raise a ``RuntimeError``.
 
+        When passing a ``CensoredData`` instance to ``data``, the log-likelihood
+        function is defined as:
+
+        .. math::
+
+            l(\pmb{\theta}; k) & = \sum
+                                    \log(f(k_u; \pmb{\theta}))
+                                + \sum
+                                    \log(F(k_l; \pmb{\theta})) \\
+                                & + \sum
+                                    \log(1 - F(k_r; \pmb{\theta})) \\
+                                & + \sum
+                                    \log(F(k_{\text{high}, i}; \pmb{\theta})
+                                    - F(k_{\text{low}, i}; \pmb{\theta}))
+
+        where :math:`f` and :math:`F` are the pdf and cdf, respectively, of the
+        function being fitted, :math:`\pmb{\theta}` is the parameter vector,
+        :math:`u` are the indices of uncensored observations,
+        :math:`l` are the indices of left-censored observations,
+        :math:`r` are the indices of right-censored observations,
+        subscripts "low"/"high" denote endpoints of interval-censored observations, and
+        :math:`i` are the indices of interval-censored observations.
+
         Examples
         --------
 
         Generate some data to fit: draw random variates from the `beta`
         distribution
 
+        >>> import numpy as np
         >>> from scipy.stats import beta
         >>> a, b = 1., 2.
-        >>> x = beta.rvs(a, b, size=1000)
+        >>> rng = np.random.default_rng(172786373191770012695001057628748821561)
+        >>> x = beta.rvs(a, b, size=1000, random_state=rng)
 
         Now we can fit all four parameters (``a``, ``b``, ``loc`` and
         ``scale``):
 
         >>> a1, b1, loc1, scale1 = beta.fit(x)
+        >>> a1, b1, loc1, scale1
+        (1.0198945204435628, 1.9484708982737828, 4.372241314917588e-05, 0.9979078845964814)
+
+        The fit can be done also using a custom optimizer:
+
+        >>> from scipy.optimize import minimize
+        >>> def custom_optimizer(func, x0, args=(), disp=0):
+        ...     res = minimize(func, x0, args, method="slsqp", options={"disp": disp})
+        ...     if res.success:
+        ...         return res.x
+        ...     raise RuntimeError('optimization routine failed')
+        >>> a1, b1, loc1, scale1 = beta.fit(x, method="MLE", optimizer=custom_optimizer)
+        >>> a1, b1, loc1, scale1
+        (1.0198821087258905, 1.948484145914738, 4.3705304486881485e-05, 0.9979104663953395)
 
         We can also use some prior knowledge about the dataset: let's keep
         ``loc`` and ``scale`` fixed:
@@ -1150,7 +1192,7 @@ class rv_discrete(rv_generic):
     values : tuple of two array_like, optional
         ``(xk, pk)`` where ``xk`` are integers and ``pk`` are the non-zero
         probabilities between 0 and 1 with ``sum(pk) = 1``. ``xk``
-        and ``pk`` must have the same shape.
+        and ``pk`` must have the same shape, and ``xk`` must be unique.
     inc : integer, optional
         Increment for the support of the distribution.
         Default is 1. (other values have not been tested)
@@ -1206,14 +1248,17 @@ class rv_discrete(rv_generic):
     This class is similar to `rv_continuous`. Whether a shape parameter is
     valid is decided by an ``_argcheck`` method (which defaults to checking
     that its arguments are strictly positive.)
-    The main differences are:
+    The main differences are as follows.
 
-    - the support of the distribution is a set of integers
-    - instead of the probability density function, ``pdf`` (and the
+    - The support of the distribution is a set of integers.
+    - Instead of the probability density function, ``pdf`` (and the
       corresponding private ``_pdf``), this class defines the
       *probability mass function*, `pmf` (and the corresponding
       private ``_pmf``.)
-    - scale parameter is not defined.
+    - There is no ``scale`` parameter.
+    - The default implementations of methods (e.g. ``_cdf``) are not designed
+      for distributions with support that is unbounded below (i.e.
+      ``a=-np.inf``), so they must be overridden.
 
     To create a new discrete distribution, we would do the following:
 

@@ -6,6 +6,6 @@ __all__ = ['iterate_structure', 'generate_binary_structure', 'binary_erosion', '
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

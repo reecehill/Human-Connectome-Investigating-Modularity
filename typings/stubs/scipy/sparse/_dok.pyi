@@ -10,54 +10,6 @@ from ._index import IndexMixin
 __docformat__ = ...
 __all__ = ['dok_array', 'dok_matrix', 'isspmatrix_dok']
 class _dok_base(_spbase, IndexMixin, dict):
-    """
-    Dictionary Of Keys based sparse matrix.
-
-    This is an efficient structure for constructing sparse
-    matrices incrementally.
-
-    This can be instantiated in several ways:
-        dok_array(D)
-            with a dense matrix, D
-
-        dok_array(S)
-            with a sparse matrix, S
-
-        dok_array((M,N), [dtype])
-            create the matrix with initial shape (M,N)
-            dtype is optional, defaulting to dtype='d'
-
-    Attributes
-    ----------
-    dtype : dtype
-        Data type of the matrix
-    shape : 2-tuple
-        Shape of the matrix
-    ndim : int
-        Number of dimensions (this is always 2)
-    nnz
-        Number of nonzero elements
-
-    Notes
-    -----
-
-    Sparse matrices can be used in arithmetic operations: they support
-    addition, subtraction, multiplication, division, and matrix power.
-
-    Allows for efficient O(1) access of individual elements.
-    Duplicates are not allowed.
-    Can be efficiently converted to a coo_matrix once constructed.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from scipy.sparse import dok_array
-    >>> S = dok_array((5, 5), dtype=np.float32)
-    >>> for i in range(5):
-    ...     for j in range(5):
-    ...         S[i, j] = i + j    # Update element
-
-    """
     _format = ...
     def __init__(self, arg1, shape=..., dtype=..., copy=...) -> None:
         ...
@@ -71,16 +23,59 @@ class _dok_base(_spbase, IndexMixin, dict):
     def __len__(self): # -> int:
         ...
     
-    def get(self, key, default=...):
-        """This overrides the dict.get method, providing type checking
-        but otherwise equivalent functionality.
-        """
+    def __contains__(self, key): # -> bool:
+        ...
+    
+    def setdefault(self, key, default=..., /): # -> Any | None:
+        ...
+    
+    def __delitem__(self, key, /): # -> None:
+        ...
+    
+    def clear(self): # -> None:
+        ...
+    
+    def pop(self, /, *args): # -> Any:
+        ...
+    
+    def __reversed__(self):
+        ...
+    
+    def __or__(self, other):
+        ...
+    
+    def __ror__(self, other):
+        ...
+    
+    def __ior__(self, other):
+        ...
+    
+    def popitem(self): # -> tuple[int, Any]:
+        ...
+    
+    def items(self): # -> dict_items[int, Any]:
+        ...
+    
+    def keys(self): # -> dict_keys[int, Any]:
+        ...
+    
+    def values(self): # -> dict_values[int, Any]:
+        ...
+    
+    def get(self, key, default=...): # -> Any:
+        """This provides dict.get method functionality with type checking"""
+        ...
+    
+    def __getitem__(self, key): # -> Self | Any:
+        ...
+    
+    def __setitem__(self, key, value): # -> None:
         ...
     
     def __add__(self, other): # -> _NotImplementedType | dok_array:
         ...
     
-    def __radd__(self, other): # -> _NotImplementedType | dok_array:
+    def __radd__(self, other):
         ...
     
     def __neg__(self): # -> dok_array:
@@ -98,14 +93,27 @@ class _dok_base(_spbase, IndexMixin, dict):
     def __reduce__(self): # -> str | tuple[Any, ...]:
         ...
     
+    def diagonal(self, k=...):
+        ...
+    
     def transpose(self, axes=..., copy=...): # -> dok_array:
         ...
     
-    def conjtransp(self): # -> dok_array:
-        """Return the conjugate transpose."""
+    def conjtransp(self): # -> coo_array | dok_array:
+        """DEPRECATED: Return the conjugate transpose.
+
+        .. deprecated:: 1.14.0
+
+            `conjtransp` is deprecated and will be removed in v1.16.0.
+            Use `.T.conj()` instead.
+        """
         ...
     
     def copy(self): # -> dok_array:
+        ...
+    
+    @classmethod
+    def fromkeys(cls, iterable, value=..., /): # -> Self:
         ...
     
     def tocoo(self, copy=...): # -> coo_array:
@@ -118,6 +126,9 @@ class _dok_base(_spbase, IndexMixin, dict):
         ...
     
     def resize(self, *shape): # -> None:
+        ...
+    
+    def astype(self, dtype, casting=..., copy=...): # -> dok_array | Self:
         ...
     
 
@@ -148,17 +159,129 @@ def isspmatrix_dok(x): # -> bool:
     ...
 
 class dok_array(_dok_base, sparray):
+    """
+    Dictionary Of Keys based sparse array.
+
+    This is an efficient structure for constructing sparse
+    arrays incrementally.
+
+    This can be instantiated in several ways:
+        dok_array(D)
+            where D is a 2-D ndarray
+
+        dok_array(S)
+            with another sparse array or matrix S (equivalent to S.todok())
+
+        dok_array((M,N), [dtype])
+            create the array with initial shape (M,N)
+            dtype is optional, defaulting to dtype='d'
+
+    Attributes
+    ----------
+    dtype : dtype
+        Data type of the array
+    shape : 2-tuple
+        Shape of the array
+    ndim : int
+        Number of dimensions (this is always 2)
+    nnz
+        Number of nonzero elements
+    size
+    T
+
+    Notes
+    -----
+
+    Sparse arrays can be used in arithmetic operations: they support
+    addition, subtraction, multiplication, division, and matrix power.
+
+    - Allows for efficient O(1) access of individual elements.
+    - Duplicates are not allowed.
+    - Can be efficiently converted to a coo_array once constructed.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.sparse import dok_array
+    >>> S = dok_array((5, 5), dtype=np.float32)
+    >>> for i in range(5):
+    ...     for j in range(5):
+    ...         S[i, j] = i + j    # Update element
+
+    """
     ...
 
 
 class dok_matrix(spmatrix, _dok_base):
+    """
+    Dictionary Of Keys based sparse matrix.
+
+    This is an efficient structure for constructing sparse
+    matrices incrementally.
+
+    This can be instantiated in several ways:
+        dok_matrix(D)
+            where D is a 2-D ndarray
+
+        dok_matrix(S)
+            with another sparse array or matrix S (equivalent to S.todok())
+
+        dok_matrix((M,N), [dtype])
+            create the matrix with initial shape (M,N)
+            dtype is optional, defaulting to dtype='d'
+
+    Attributes
+    ----------
+    dtype : dtype
+        Data type of the matrix
+    shape : 2-tuple
+        Shape of the matrix
+    ndim : int
+        Number of dimensions (this is always 2)
+    nnz
+        Number of nonzero elements
+    size
+    T
+
+    Notes
+    -----
+
+    Sparse matrices can be used in arithmetic operations: they support
+    addition, subtraction, multiplication, division, and matrix power.
+
+    - Allows for efficient O(1) access of individual elements.
+    - Duplicates are not allowed.
+    - Can be efficiently converted to a coo_matrix once constructed.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.sparse import dok_matrix
+    >>> S = dok_matrix((5, 5), dtype=np.float32)
+    >>> for i in range(5):
+    ...     for j in range(5):
+    ...         S[i, j] = i + j    # Update element
+
+    """
     def set_shape(self, shape): # -> None:
         ...
     
-    def get_shape(self): # -> tuple[int, int] | tuple[int | float, int | float]:
-        """Get shape of a sparse array."""
+    def get_shape(self): # -> tuple[int, ...]:
+        """Get shape of a sparse matrix."""
         ...
     
     shape = ...
+    def __reversed__(self): # -> Iterator[int]:
+        ...
+    
+    def __or__(self, other): # -> dict[int, Any]:
+        ...
+    
+    def __ror__(self, other): # -> dict[int, Any]:
+        ...
+    
+    def __ior__(self, other): # -> Self:
+        ...
+    
 
 

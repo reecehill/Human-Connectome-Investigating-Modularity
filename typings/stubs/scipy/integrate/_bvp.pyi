@@ -38,7 +38,7 @@ def estimate_bc_jac(bc, ya, yb, p, bc0=...): # -> tuple[NDArray[float64], NDArra
     """
     ...
 
-def compute_jac_indices(n, m, k): # -> tuple[NDArray[Any], NDArray[bool_]]:
+def compute_jac_indices(n, m, k): # -> tuple[NDArray[Any], NDArray[Any]]:
     """Compute indices for the collocation system Jacobian construction.
 
     See `construct_global_jac` for the explanation.

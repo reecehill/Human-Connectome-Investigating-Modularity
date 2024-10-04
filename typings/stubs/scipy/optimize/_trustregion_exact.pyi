@@ -7,7 +7,7 @@ from ._trustregion import BaseQuadraticSubproblem
 
 """Nearly exact trust-region optimization subproblem."""
 __all__ = ['_minimize_trustregion_exact', 'estimate_smallest_singular_value', 'singular_leading_submatrix', 'IterativeSubproblem']
-def estimate_smallest_singular_value(U): # -> tuple[Any | floating[Any], Any]:
+def estimate_smallest_singular_value(U): # -> tuple[Any | floating[Any], Any | NDArray[floating[Any]]]:
     """Given upper triangular matrix ``U`` estimate the smallest singular
     value and the correspondent right singular vector in O(n**2) operations.
 
@@ -106,7 +106,7 @@ class IterativeSubproblem(BaseQuadraticSubproblem):
     def __init__(self, x, fun, jac, hess, hessp=..., k_easy=..., k_hard=...) -> None:
         ...
     
-    def solve(self, tr_radius): # -> tuple[Any | NDArray[float64], bool]:
+    def solve(self, tr_radius): # -> tuple[NDArray[Any] | Any | NDArray[float64], bool]:
         """Solve quadratic subproblem"""
         ...
     

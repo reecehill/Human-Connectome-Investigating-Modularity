@@ -23,7 +23,7 @@ from ._procrustes import *
 from ._decomp_update import *
 from ._sketches import *
 from ._decomp_cossin import *
-from . import basic, decomp, decomp_cholesky, decomp_lu, decomp_qr, decomp_schur, decomp_svd, flinalg, matfuncs, misc, special_matrices
+from . import basic, decomp, decomp_cholesky, decomp_lu, decomp_qr, decomp_schur, decomp_svd, matfuncs, misc, special_matrices
 from scipy._lib._testutils import PytestTester
 
 """
@@ -76,8 +76,6 @@ Basics
    pinvh - Pseudo-inverse of hermitian matrix
    kron - Kronecker product of two arrays
    khatri_rao - Khatri-Rao product of two arrays
-   tril - Construct a lower-triangular matrix from a given matrix
-   triu - Construct an upper-triangular matrix from a given matrix
    orthogonal_procrustes - Solve an orthogonal Procrustes problem
    matrix_balance - Balance matrix entries with a similarity transformation
    subspace_angles - Compute the subspace angles between two matrices
@@ -207,7 +205,6 @@ Special Matrices
    pascal - Pascal matrix
    invpascal - Inverse Pascal matrix
    toeplitz - Toeplitz matrix
-   tri - Construct a matrix filled with ones at and below a given diagonal
 
 Low-level routines
 ==================

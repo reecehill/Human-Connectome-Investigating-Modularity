@@ -21,17 +21,18 @@
     "DEBUG": true
   },
   "stubPath": "typings/stubs",
-  "venv": "env367",
+  "venvPath": ".",
+  "venv": ".venv/",
   "reportMissingImports": true,
   "reportMissingTypeStubs": true,
   "reportUnknownParameterType": true,
   "reportUntypedFunctionDecorator": true,
-  "pythonVersion": "3.10",
+  "pythonVersion": "3.11",
   "pythonPlatform": "Linux",
   "executionEnvironments": [
     {
       "root": "scripts",
-      "pythonVersion": "3.8",
+      "pythonVersion": "3.11",
       "pythonPlatform": "Linux",
       "extraPaths": []
     }

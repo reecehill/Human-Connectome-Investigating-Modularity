@@ -151,14 +151,14 @@ class IterOpInv(LinearOperator):
     
 
 
-def get_inv_matvec(M, hermitian=..., tol=...): # -> Callable[..., ndarray[Any, dtype[Any]] | ndarray[Any, Any]]:
+def get_inv_matvec(M, hermitian=..., tol=...): # -> Callable[..., ndarray[Any, dtype[Any]] | Any]:
     ...
 
-def get_OPinv_matvec(A, M, sigma, hermitian=..., tol=...): # -> Callable[..., ndarray[Any, dtype[Any]] | ndarray[Any, Any]]:
+def get_OPinv_matvec(A, M, sigma, hermitian=..., tol=...): # -> Callable[..., ndarray[Any, dtype[Any]] | Any]:
     ...
 
 _ARPACK_LOCK = ...
-def eigs(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., tol=..., return_eigenvectors=..., Minv=..., OPinv=..., OPpart=...): # -> NDArray[Any] | tuple[NDArray[Any] | Any, NDArray[Any] | Any, NDArray[Any] | Any] | tuple[NDArray[Any] | Any, NDArray[Any] | Any] | tuple[Any, Any]:
+def eigs(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., tol=..., return_eigenvectors=..., Minv=..., OPinv=..., OPpart=...): # -> NDArray[Any] | NDArray[floating[_64Bit]] | tuple[NDArray[Any] | NDArray[floating[_64Bit]] | Any, NDArray[floating[_64Bit]] | NDArray[Any], NDArray[floating[_64Bit]] | NDArray[Any]] | tuple[NDArray[Any] | NDArray[floating[_64Bit]] | Any, NDArray[floating[_64Bit]] | NDArray[Any]] | tuple[NDArray[Any] | Any, NDArray[Any] | Any, NDArray[Any] | Any] | tuple[NDArray[Any] | Any, NDArray[Any] | Any] | tuple[Any, Any]:
     """
     Find k eigenvalues and eigenvectors of the square matrix A.
 
@@ -312,7 +312,7 @@ def eigs(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., to
     """
     ...
 
-def eigsh(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., tol=..., return_eigenvectors=..., Minv=..., OPinv=..., mode=...): # -> tuple[Any | ndarray[Any, _dtype], Any | NDArray[Any]] | ndarray[Any, _dtype] | tuple[Any, Any]:
+def eigsh(A, k=..., M=..., sigma=..., which=..., v0=..., ncv=..., maxiter=..., tol=..., return_eigenvectors=..., Minv=..., OPinv=..., mode=...): # -> tuple[Any | ndarray[Any, _dtype[Any]] | ndarray[Any, _dtype[floating[_64Bit]]], Any | NDArray[floating[_64Bit]] | NDArray[Any]] | ndarray[Any, _dtype[Any]] | ndarray[Any, _dtype[floating[_64Bit]]] | tuple[Any, Any]:
     """
     Find k eigenvalues and eigenvectors of the real symmetric square matrix
     or complex Hermitian matrix A.

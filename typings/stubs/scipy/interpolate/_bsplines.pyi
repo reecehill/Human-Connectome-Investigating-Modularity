@@ -54,6 +54,7 @@ class BSpline:
     derivative
     antiderivative
     integrate
+    insert_knot
     construct_fast
     design_matrix
     from_power_basis
@@ -154,7 +155,7 @@ class BSpline:
         ...
     
     @property
-    def tck(self): # -> tuple[NDArray[floating[_64Bit]], NDArray[Any] | NDArray[complexfloating[_NBitDouble, _NBitDouble] | floating[_NBitDouble]], int]:
+    def tck(self): # -> tuple[NDArray[floating[_64Bit]], NDArray[Any] | NDArray[complexfloating[_64Bit, _64Bit] | floating[_64Bit]], int]:
         """Equivalent to ``(self.t, self.c, self.k)`` (read-only).
         """
         ...
@@ -296,7 +297,7 @@ class BSpline:
         """
         ...
     
-    def __call__(self, x, nu=..., extrapolate=...): # -> ndarray[Any, dtype[complexfloating[_NBitDouble, _NBitDouble] | floating[_NBitDouble]]]:
+    def __call__(self, x, nu=..., extrapolate=...):
         """
         Evaluate a spline function.
 
@@ -368,7 +369,7 @@ class BSpline:
         """
         ...
     
-    def integrate(self, a, b, extrapolate=...): # -> list[Any] | tuple[Any, ...] | Any:
+    def integrate(self, a, b, extrapolate=...): # -> list[Any] | tuple[Any, ...]:
         """Compute a definite integral of the spline.
 
         Parameters
@@ -492,6 +493,77 @@ class BSpline:
         References
         ----------
         .. [1] Tom Lyche and Knut Morken, Spline Methods, 2005, Section 3.1.2
+
+        """
+        ...
+    
+    def insert_knot(self, x, m=...): # -> Self:
+        """Insert a new knot at `x` of multiplicity `m`.
+
+        Given the knots and coefficients of a B-spline representation, create a
+        new B-spline with a knot inserted `m` times at point `x`.
+
+        Parameters
+        ----------
+        x : float
+            The position of the new knot
+        m : int, optional
+            The number of times to insert the given knot (its multiplicity).
+            Default is 1.
+
+        Returns
+        -------
+        spl : BSpline object
+            A new BSpline object with the new knot inserted.
+
+        Notes
+        -----
+        Based on algorithms from [1]_ and [2]_.
+
+        In case of a periodic spline (``self.extrapolate == "periodic"``)
+        there must be either at least k interior knots t(j) satisfying
+        ``t(k+1)<t(j)<=x`` or at least k interior knots t(j) satisfying
+        ``x<=t(j)<t(n-k)``.
+
+        This routine is functionally equivalent to `scipy.interpolate.insert`.
+
+        .. versionadded:: 1.13
+
+        References
+        ----------
+        .. [1] W. Boehm, "Inserting new knots into b-spline curves.",
+            Computer Aided Design, 12, p.199-201, 1980.
+            :doi:`10.1016/0010-4485(80)90154-2`.
+        .. [2] P. Dierckx, "Curve and surface fitting with splines, Monographs on
+            Numerical Analysis", Oxford University Press, 1993.
+
+        See Also
+        --------
+        scipy.interpolate.insert
+
+        Examples
+        --------
+        You can insert knots into a B-spline:
+
+        >>> import numpy as np
+        >>> from scipy.interpolate import BSpline, make_interp_spline
+        >>> x = np.linspace(0, 10, 5)
+        >>> y = np.sin(x)
+        >>> spl = make_interp_spline(x, y, k=3)
+        >>> spl.t
+        array([ 0.,  0.,  0.,  0.,  5., 10., 10., 10., 10.])
+
+        Insert a single knot
+
+        >>> spl_1 = spl.insert_knot(3)
+        >>> spl_1.t
+        array([ 0.,  0.,  0.,  0.,  3.,  5., 10., 10., 10., 10.])
+
+        Insert a multiple knot
+
+        >>> spl_2 = spl.insert_knot(8, m=3)
+        >>> spl_2.t
+        array([ 0.,  0.,  0.,  0.,  5.,  8.,  8.,  8., 10., 10., 10., 10.])
 
         """
         ...
@@ -766,9 +838,9 @@ def make_smoothing_spline(x, y, w=..., lam=...): # -> BSpline:
     Parameters
     ----------
     x : array_like, shape (n,)
-        Abscissas. `n` must be larger than 5.
+        Abscissas. `n` must be at least 5.
     y : array_like, shape (n,)
-        Ordinates. `n` must be larger than 5.
+        Ordinates. `n` must be at least 5.
     w : array_like, shape (n,), optional
         Vector of weights. Default is ``np.ones_like(x)``.
     lam : float, (:math:`\lambda \geq 0`), optional
@@ -847,6 +919,13 @@ def make_smoothing_spline(x, y, w=..., lam=...): # -> BSpline:
     >>> plt.legend(loc='best')
     >>> plt.show()
 
+    """
+    ...
+
+def fpcheck(x, t, k): # -> None:
+    """ Check consistency of the data vector `x` and the knot vector `t`.
+
+    Return None if inputs are consistent, raises a ValueError otherwise.
     """
     ...
 

@@ -185,7 +185,7 @@ class VertexCacheField(VertexCacheBase):
             constraint functions
         workers : int  optional
             Uses `multiprocessing.Pool <multiprocessing>`) to compute the field
-             functions in parrallel.
+             functions in parallel.
 
         """
         ...

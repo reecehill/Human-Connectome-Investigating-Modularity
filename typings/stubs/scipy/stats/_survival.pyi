@@ -49,7 +49,7 @@ class EmpiricalDistributionFunction:
         """
         ...
     
-    def plot(self, ax=..., **matplotlib_kwargs):
+    def plot(self, ax=..., **matplotlib_kwargs): # -> list[Line2D]:
         """Plot the empirical distribution function
 
         Available only if ``matplotlib`` is installed.
@@ -360,8 +360,8 @@ def logrank(x: npt.ArrayLike | CensoredData, y: npt.ArrayLike | CensoredData, al
 
     :math:`i` denotes the group (i.e. it may assume values :math:`x` or
     :math:`y`, or it may be omitted to refer to the combined sample)
-    :math:`j` denotes the time (at which an event occured),
-    :math:`N` is the number of subjects at risk just before an event occured,
+    :math:`j` denotes the time (at which an event occurred),
+    :math:`N` is the number of subjects at risk just before an event occurred,
     and :math:`O` is the observed number of events at that time.
 
     The ``statistic`` :math:`Z_x` returned by `logrank` is the (signed) square
@@ -422,7 +422,7 @@ def logrank(x: npt.ArrayLike | CensoredData, y: npt.ArrayLike | CensoredData, al
     >>> ecdf_x = stats.ecdf(x)
     >>> ecdf_x.sf.plot(ax, label='Astrocytoma')
     >>> ecdf_y = stats.ecdf(y)
-    >>> ecdf_x.sf.plot(ax, label='Glioblastoma')
+    >>> ecdf_y.sf.plot(ax, label='Glioblastoma')
     >>> ax.set_xlabel('Time to death (weeks)')
     >>> ax.set_ylabel('Empirical SF')
     >>> plt.legend()
@@ -435,9 +435,9 @@ def logrank(x: npt.ArrayLike | CensoredData, y: npt.ArrayLike | CensoredData, al
 
     >>> res = stats.logrank(x=x, y=y)
     >>> res.statistic
-    -2.73799...
+    -2.73799
     >>> res.pvalue
-    0.00618...
+    0.00618
 
     The p-value is less than 1%, so we can consider the data to be evidence
     against the null hypothesis in favor of the alternative that there is a

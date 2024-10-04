@@ -13,7 +13,7 @@ features are:
     - exponential format for float values, and int format
 
 """
-__all__ = ["MalformedHeader", "hb_read", "hb_write", "HBInfo", "HBFile", "HBMatrixType"]
+__all__ = ["hb_read", "hb_write"]
 class MalformedHeader(Exception):
     ...
 
@@ -166,14 +166,16 @@ def hb_read(path_or_open_file): # -> csc_matrix:
     We can read and write a harwell-boeing format file:
 
     >>> from scipy.io import hb_read, hb_write
-    >>> from scipy.sparse import csr_matrix, eye
-    >>> data = csr_matrix(eye(3))  # create a sparse matrix
+    >>> from scipy.sparse import csr_array, eye
+    >>> data = csr_array(eye(3))  # create a sparse array
     >>> hb_write("data.hb", data)  # write a hb file
     >>> print(hb_read("data.hb"))  # read a hb file
-      (0, 0)	1.0
-      (1, 1)	1.0
-      (2, 2)	1.0
-
+    <Compressed Sparse Column sparse matrix of dtype 'float64'
+        with 3 stored elements and shape (3, 3)>
+        Coords	Values
+        (0, 0)	1.0
+        (1, 1)	1.0
+        (2, 2)	1.0
     """
     ...
 
@@ -208,14 +210,16 @@ def hb_write(path_or_open_file, m, hb_info=...): # -> None:
     We can read and write a harwell-boeing format file:
 
     >>> from scipy.io import hb_read, hb_write
-    >>> from scipy.sparse import csr_matrix, eye
-    >>> data = csr_matrix(eye(3))  # create a sparse matrix
+    >>> from scipy.sparse import csr_array, eye
+    >>> data = csr_array(eye(3))  # create a sparse array
     >>> hb_write("data.hb", data)  # write a hb file
     >>> print(hb_read("data.hb"))  # read a hb file
-      (0, 0)	1.0
-      (1, 1)	1.0
-      (2, 2)	1.0
-
+    <Compressed Sparse Column sparse matrix of dtype 'float64'
+        with 3 stored elements and shape (3, 3)>
+        Coords	Values
+        (0, 0)	1.0
+        (1, 1)	1.0
+        (2, 2)	1.0
     """
     ...
 

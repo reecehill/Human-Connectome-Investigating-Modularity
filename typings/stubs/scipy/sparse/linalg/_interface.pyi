@@ -17,6 +17,7 @@ able to represent such matrices efficiently. First, we need a compact way to
 represent an all-ones matrix::
 
     >>> import numpy as np
+    >>> from scipy.sparse.linalg._interface import LinearOperator
     >>> class Ones(LinearOperator):
     ...     def __init__(self, shape):
     ...         super().__init__(dtype=None, shape=shape)
@@ -28,6 +29,7 @@ amount of storage, independent of ``shape``. The ``_matvec`` method specifies
 how this linear operator multiplies with (operates on) a vector. We can now
 add this operator to a sparse matrix that stores only offsets from one::
 
+    >>> from scipy.sparse.linalg._interface import aslinearoperator
     >>> from scipy.sparse import csr_matrix
     >>> offsets = csr_matrix([[1, 0, 2], [0, -1, 0], [0, 0, 3]])
     >>> A = aslinearoperator(offsets) + Ones(offsets.shape)
@@ -143,7 +145,7 @@ class LinearOperator:
         """
         ...
     
-    def matvec(self, x): # -> ndarray[Any, dtype[Any]] | ndarray[Any, Any]:
+    def matvec(self, x): # -> ndarray[Any, dtype[Any]]:
         """Matrix-vector multiplication.
 
         Performs the operation y=A*x where A is an MxN linear
@@ -168,7 +170,7 @@ class LinearOperator:
         """
         ...
     
-    def rmatvec(self, x): # -> ndarray[Any, dtype[Any]] | ndarray[Any, Any]:
+    def rmatvec(self, x): # -> ndarray[Any, dtype[Any]]:
         """Adjoint matrix-vector multiplication.
 
         Performs the operation y = A^H * x where A is an MxN linear
@@ -193,7 +195,7 @@ class LinearOperator:
         """
         ...
     
-    def matmat(self, X): # -> matrix[Any, dtype[Any]] | matrix[Any, Any] | ndarray[Any, dtype[Any]]:
+    def matmat(self, X): # -> ndarray[Any, dtype[Any]]:
         """Matrix-matrix multiplication.
 
         Performs the operation y=A*X where A is an MxN linear
@@ -218,7 +220,7 @@ class LinearOperator:
         """
         ...
     
-    def rmatmat(self, X): # -> matrix[Any, dtype[Any]] | matrix[Any, Any] | ndarray[Any, dtype[Any]] | Any:
+    def rmatmat(self, X): # -> ndarray[Any, dtype[Any]] | Any:
         """Adjoint matrix-matrix multiplication.
 
         Performs the operation y = A^H * x where A is an MxN linear
@@ -245,13 +247,13 @@ class LinearOperator:
     def __call__(self, x):
         ...
     
-    def __mul__(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def __mul__(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]]:
         ...
     
     def __truediv__(self, other): # -> _ScaledLinearOperator:
         ...
     
-    def dot(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def dot(self, x): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]]:
         """Matrix-matrix or matrix-vector multiplication.
 
         Parameters
@@ -268,7 +270,7 @@ class LinearOperator:
         """
         ...
     
-    def __matmul__(self, other): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]] | ndarray[Any, Any] | matrix[Any, dtype[Any]] | matrix[Any, Any]:
+    def __matmul__(self, other): # -> _ProductLinearOperator | _ScaledLinearOperator | ndarray[Any, dtype[Any]]:
         ...
     
     def __rmatmul__(self, other): # -> _ScaledLinearOperator | _ProductLinearOperator | Any:

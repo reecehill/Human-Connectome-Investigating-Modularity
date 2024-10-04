@@ -78,6 +78,13 @@ def label(input, structure=..., output=...): # -> tuple[ndarray[Any, Any] | NDAr
     entry 2 in the input is connected to 1,
     but 1 is not connected to 2.
 
+    References
+    ----------
+    .. [1] James R. Weaver, "Centrosymmetric (cross-symmetric)
+       matrices, their basic properties, eigenvalues, and
+       eigenvectors." The American Mathematical Monthly 92.10
+       (1985): 711-717.
+
     Examples
     --------
     Create an image with some features, then label it using the default
@@ -126,14 +133,6 @@ def label(input, structure=..., output=...): # -> tuple[ndarray[Any, Any] | NDAr
            [0, 0, 0, 1, 0, 0],
            [2, 2, 0, 0, 1, 0],
            [0, 0, 0, 1, 0, 0]])
-
-    References
-    ----------
-
-    .. [1] James R. Weaver, "Centrosymmetric (cross-symmetric)
-       matrices, their basic properties, eigenvalues, and
-       eigenvectors." The American Mathematical Monthly 92.10
-       (1985): 711-717.
 
     """
     ...
@@ -186,7 +185,9 @@ def find_objects(input, max_label=...):
            [0, 0, 0, 0, 1, 0],
            [0, 0, 0, 0, 0, 0]])
     >>> ndimage.find_objects(a)
-    [(slice(2, 5, None), slice(2, 5, None)), (slice(0, 2, None), slice(0, 3, None)), (slice(0, 1, None), slice(5, 6, None))]
+    [(slice(2, 5, None), slice(2, 5, None)),
+     (slice(0, 2, None), slice(0, 3, None)),
+     (slice(0, 1, None), slice(5, 6, None))]
     >>> ndimage.find_objects(a, max_label=2)
     [(slice(2, 5, None), slice(2, 5, None)), (slice(0, 2, None), slice(0, 3, None))]
     >>> ndimage.find_objects(a == 1, max_label=2)
@@ -225,6 +226,11 @@ def value_indices(arr, *, ignore_value=...): # -> Any:
         This dictionary can occupy significant memory, usually several times
         the size of the input array.
 
+    See Also
+    --------
+    label, maximum, median, minimum_position, extrema, sum, mean, variance,
+    standard_deviation, numpy.where, numpy.unique
+
     Notes
     -----
     For a small array with few distinct values, one might use
@@ -253,11 +259,6 @@ def value_indices(arr, *, ignore_value=...): # -> Any:
 
     .. versionadded:: 1.10.0
 
-    See Also
-    --------
-    label, maximum, median, minimum_position, extrema, sum, mean, variance,
-    standard_deviation, numpy.where, numpy.unique
-
     Examples
     --------
     >>> import numpy as np
@@ -280,7 +281,7 @@ def value_indices(arr, *, ignore_value=...): # -> Any:
     value in the input array.
 
     >>> val_indices.keys()
-    dict_keys([0, 1, 2, 3])
+    dict_keys([np.int64(0), np.int64(1), np.int64(2), np.int64(3)])
 
     The entry for each value is an index tuple, locating the elements
     with that value.
@@ -300,7 +301,7 @@ def value_indices(arr, *, ignore_value=...): # -> Any:
 
     >>> val_indices = ndimage.value_indices(a, ignore_value=0)
     >>> val_indices.keys()
-    dict_keys([1, 2, 3])
+    dict_keys([np.int64(1), np.int64(2), np.int64(3)])
 
     """
     ...
@@ -892,7 +893,7 @@ def maximum_position(input, labels=..., index=...): # -> tuple[Any, ...] | list[
         returned specifying the location of the ``first`` maximal value
         of `input`.
 
-    See also
+    See Also
     --------
     label, minimum, median, maximum_position, extrema, sum, mean, variance,
     standard_deviation
@@ -1104,7 +1105,7 @@ def histogram(input, min, max, bins, labels=..., index=...): # -> Any | NDArray[
     """
     ...
 
-def watershed_ift(input, markers, structure=..., output=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def watershed_ift(input, markers, structure=..., output=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Apply watershed from markers using image foresting transform algorithm.
 

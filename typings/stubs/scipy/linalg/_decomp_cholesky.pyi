@@ -112,7 +112,7 @@ def cho_factor(a, lower=..., overwrite_a=..., check_finite=...): # -> tuple[NDAr
     """
     ...
 
-def cho_solve(c_and_lower, b, overwrite_b=..., check_finite=...):
+def cho_solve(c_and_lower, b, overwrite_b=..., check_finite=...): # -> NDArray[Any]:
     """Solve the linear equations A x = b, given the Cholesky factorization of A.
 
     Parameters
@@ -150,7 +150,7 @@ def cho_solve(c_and_lower, b, overwrite_b=..., check_finite=...):
     """
     ...
 
-def cholesky_banded(ab, overwrite_ab=..., lower=..., check_finite=...):
+def cholesky_banded(ab, overwrite_ab=..., lower=..., check_finite=...): # -> NDArray[Any]:
     """
     Cholesky decompose a banded Hermitian positive-definite matrix
 
@@ -212,7 +212,7 @@ def cholesky_banded(ab, overwrite_ab=..., lower=..., check_finite=...):
     """
     ...
 
-def cho_solve_banded(cb_and_lower, b, overwrite_b=..., check_finite=...):
+def cho_solve_banded(cb_and_lower, b, overwrite_b=..., check_finite=...): # -> NDArray[Any]:
     """
     Solve the linear equations ``A x = b``, given the Cholesky factorization of
     the banded Hermitian ``A``.

@@ -39,6 +39,7 @@ Helpers
    :toctree: generated/
 
    discrepancy
+   geometric_discrepancy
    update_discrepancy
    scale
 

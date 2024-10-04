@@ -19,7 +19,7 @@ Functions
 __all__ = ['approx_jacobian', 'fmin_slsqp']
 __docformat__ = ...
 _epsilon = ...
-def approx_jacobian(x, func, epsilon, *args): # -> NDArray[Any]:
+def approx_jacobian(x, func, epsilon, *args):
     """
     Approximate the Jacobian matrix of a callable function.
 

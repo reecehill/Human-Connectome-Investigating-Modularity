@@ -182,7 +182,7 @@ class LazyOperatorNormInfo:
     
     def d(self, p):
         """
-        Lazily estimate d_p(A) ~= || A^p ||^(1/p) where ||.|| is the 1-norm.
+        Lazily estimate :math:`d_p(A) ~= || A^p ||^(1/p)` where :math:`||.||` is the 1-norm.
         """
         ...
     

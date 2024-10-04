@@ -6,7 +6,7 @@ from . import _ni_docstrings
 
 __all__ = ['correlate1d', 'convolve1d', 'gaussian_filter1d', 'gaussian_filter', 'prewitt', 'sobel', 'generic_laplace', 'laplace', 'gaussian_laplace', 'generic_gradient_magnitude', 'gaussian_gradient_magnitude', 'correlate', 'convolve', 'uniform_filter1d', 'uniform_filter', 'minimum_filter1d', 'maximum_filter1d', 'minimum_filter', 'maximum_filter', 'rank_filter', 'median_filter', 'percentile_filter', 'generic_filter1d', 'generic_filter']
 @_ni_docstrings.docfiller
-def correlate1d(input, weights, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def correlate1d(input, weights, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D correlation along the given axis.
 
     The lines of the array along the given axis are correlated with the
@@ -23,6 +23,11 @@ def correlate1d(input, weights, axis=..., output=..., mode=..., cval=..., origin
     %(cval)s
     %(origin)s
 
+    Returns
+    -------
+    result : ndarray
+        Correlation result. Has the same shape as `input`.
+
     Examples
     --------
     >>> from scipy.ndimage import correlate1d
@@ -32,7 +37,7 @@ def correlate1d(input, weights, axis=..., output=..., mode=..., cval=..., origin
     ...
 
 @_ni_docstrings.docfiller
-def convolve1d(input, weights, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def convolve1d(input, weights, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D convolution along the given axis.
 
     The lines of the array along the given axis are convolved with the
@@ -63,7 +68,7 @@ def convolve1d(input, weights, axis=..., output=..., mode=..., cval=..., origin=
     ...
 
 @_ni_docstrings.docfiller
-def gaussian_filter1d(input, sigma, axis=..., order=..., output=..., mode=..., cval=..., truncate=..., *, radius=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def gaussian_filter1d(input, sigma, axis=..., order=..., output=..., mode=..., cval=..., truncate=..., *, radius=...): # -> NDArray[float64] | NDArray[Any]:
     """1-D Gaussian filter.
 
     Parameters
@@ -121,7 +126,7 @@ def gaussian_filter1d(input, sigma, axis=..., order=..., output=..., mode=..., c
     ...
 
 @_ni_docstrings.docfiller
-def gaussian_filter(input, sigma, order=..., output=..., mode=..., cval=..., truncate=..., *, radius=..., axes=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def gaussian_filter(input, sigma, order=..., output=..., mode=..., cval=..., truncate=..., *, radius=..., axes=...): # -> NDArray[float64] | NDArray[Any]:
     """Multidimensional Gaussian filter.
 
     Parameters
@@ -207,7 +212,7 @@ def gaussian_filter(input, sigma, order=..., output=..., mode=..., cval=..., tru
     ...
 
 @_ni_docstrings.docfiller
-def prewitt(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def prewitt(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a Prewitt filter.
 
     Parameters
@@ -218,24 +223,49 @@ def prewitt(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float
     %(mode_multiple)s
     %(cval)s
 
+    Returns
+    -------
+    prewitt : ndarray
+        Filtered array. Has the same shape as `input`.
+
+    See Also
+    --------
+    sobel: Sobel filter
+
+    Notes
+    -----
+    This function computes the one-dimensional Prewitt filter.
+    Horizontal edges are emphasised with the horizontal transform (axis=0),
+    vertical edges with the vertical transform (axis=1), and so on for higher
+    dimensions. These can be combined to give the magnitude.
+
     Examples
     --------
     >>> from scipy import ndimage, datasets
     >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure()
-    >>> plt.gray()  # show the filtered result in grayscale
-    >>> ax1 = fig.add_subplot(121)  # left side
-    >>> ax2 = fig.add_subplot(122)  # right side
+    >>> import numpy as np
     >>> ascent = datasets.ascent()
-    >>> result = ndimage.prewitt(ascent)
-    >>> ax1.imshow(ascent)
-    >>> ax2.imshow(result)
+    >>> prewitt_h = ndimage.prewitt(ascent, axis=0)
+    >>> prewitt_v = ndimage.prewitt(ascent, axis=1)
+    >>> magnitude = np.sqrt(prewitt_h ** 2 + prewitt_v ** 2)
+    >>> magnitude *= 255 / np.max(magnitude) # Normalization
+    >>> fig, axes = plt.subplots(2, 2, figsize = (8, 8))
+    >>> plt.gray()
+    >>> axes[0, 0].imshow(ascent)
+    >>> axes[0, 1].imshow(prewitt_h)
+    >>> axes[1, 0].imshow(prewitt_v)
+    >>> axes[1, 1].imshow(magnitude)
+    >>> titles = ["original", "horizontal", "vertical", "magnitude"]
+    >>> for i, ax in enumerate(axes.ravel()):
+    ...     ax.set_title(titles[i])
+    ...     ax.axis("off")
     >>> plt.show()
+
     """
     ...
 
 @_ni_docstrings.docfiller
-def sobel(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def sobel(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a Sobel filter.
 
     Parameters
@@ -246,10 +276,15 @@ def sobel(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64
     %(mode_multiple)s
     %(cval)s
 
+    Returns
+    -------
+    sobel : ndarray
+        Filtered array. Has the same shape as `input`.
+
     Notes
     -----
     This function computes the axis-specific Sobel gradient.
-    The horizontal edges can emphasised with the horizontal trasform (axis=0),
+    The horizontal edges can be emphasised with the horizontal transform (axis=0),
     the vertical edges with the vertical transform (axis=1) and so on for higher
     dimensions. These can be combined to give the magnitude.
 
@@ -279,7 +314,7 @@ def sobel(input, axis=..., output=..., mode=..., cval=...): # -> NDArray[float64
     ...
 
 @_ni_docstrings.docfiller
-def generic_laplace(input, derivative2, output=..., mode=..., cval=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def generic_laplace(input, derivative2, output=..., mode=..., cval=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any]:
     """
     N-D Laplace filter using a provided second derivative function.
 
@@ -298,11 +333,17 @@ def generic_laplace(input, derivative2, output=..., mode=..., cval=..., extra_ar
     %(cval)s
     %(extra_keywords)s
     %(extra_arguments)s
+
+    Returns
+    -------
+    generic_laplace : ndarray
+        Filtered array. Has the same shape as `input`.
+
     """
     ...
 
 @_ni_docstrings.docfiller
-def laplace(input, output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def laplace(input, output=..., mode=..., cval=...): # -> NDArray[float64] | NDArray[Any]:
     """N-D Laplace filter based on approximate second derivatives.
 
     Parameters
@@ -311,6 +352,11 @@ def laplace(input, output=..., mode=..., cval=...): # -> NDArray[float64] | NDAr
     %(output)s
     %(mode_multiple)s
     %(cval)s
+
+    Returns
+    -------
+    laplace : ndarray
+        Filtered array. Has the same shape as `input`.
 
     Examples
     --------
@@ -329,7 +375,7 @@ def laplace(input, output=..., mode=..., cval=...): # -> NDArray[float64] | NDAr
     ...
 
 @_ni_docstrings.docfiller
-def gaussian_laplace(input, sigma, output=..., mode=..., cval=..., **kwargs): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def gaussian_laplace(input, sigma, output=..., mode=..., cval=..., **kwargs): # -> NDArray[float64] | NDArray[Any]:
     """Multidimensional Laplace filter using Gaussian second derivatives.
 
     Parameters
@@ -343,6 +389,11 @@ def gaussian_laplace(input, sigma, output=..., mode=..., cval=..., **kwargs): # 
     %(mode_multiple)s
     %(cval)s
     Extra keyword arguments will be passed to gaussian_filter().
+
+    Returns
+    -------
+    gaussian_laplace : ndarray
+        Filtered array. Has the same shape as `input`.
 
     Examples
     --------
@@ -365,7 +416,7 @@ def gaussian_laplace(input, sigma, output=..., mode=..., cval=..., **kwargs): # 
     ...
 
 @_ni_docstrings.docfiller
-def generic_gradient_magnitude(input, derivative, output=..., mode=..., cval=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def generic_gradient_magnitude(input, derivative, output=..., mode=..., cval=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any]:
     """Gradient magnitude using a provided gradient function.
 
     Parameters
@@ -386,11 +437,17 @@ def generic_gradient_magnitude(input, derivative, output=..., mode=..., cval=...
     %(cval)s
     %(extra_keywords)s
     %(extra_arguments)s
+
+    Returns
+    -------
+    generic_gradient_matnitude : ndarray
+        Filtered array. Has the same shape as `input`.
+
     """
     ...
 
 @_ni_docstrings.docfiller
-def gaussian_gradient_magnitude(input, sigma, output=..., mode=..., cval=..., **kwargs): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def gaussian_gradient_magnitude(input, sigma, output=..., mode=..., cval=..., **kwargs): # -> NDArray[float64] | NDArray[Any]:
     """Multidimensional gradient magnitude using Gaussian derivatives.
 
     Parameters
@@ -427,7 +484,7 @@ def gaussian_gradient_magnitude(input, sigma, output=..., mode=..., cval=..., **
     ...
 
 @_ni_docstrings.docfiller
-def correlate(input, weights, output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def correlate(input, weights, output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Multidimensional correlation.
 
@@ -488,7 +545,7 @@ def correlate(input, weights, output=..., mode=..., cval=..., origin=...): # -> 
     ...
 
 @_ni_docstrings.docfiller
-def convolve(input, weights, output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def convolve(input, weights, output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """
     Multidimensional convolution.
 
@@ -596,7 +653,7 @@ def convolve(input, weights, output=..., mode=..., cval=..., origin=...): # -> N
     ...
 
 @_ni_docstrings.docfiller
-def uniform_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def uniform_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D uniform filter along the given axis.
 
     The lines of the array along the given axis are filtered with a
@@ -613,6 +670,11 @@ def uniform_filter1d(input, size, axis=..., output=..., mode=..., cval=..., orig
     %(cval)s
     %(origin)s
 
+    Returns
+    -------
+    result : ndarray
+        Filtered array. Has same shape as `input`.
+
     Examples
     --------
     >>> from scipy.ndimage import uniform_filter1d
@@ -622,7 +684,7 @@ def uniform_filter1d(input, size, axis=..., output=..., mode=..., cval=..., orig
     ...
 
 @_ni_docstrings.docfiller
-def uniform_filter(input, size=..., output=..., mode=..., cval=..., origin=..., *, axes=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def uniform_filter(input, size=..., output=..., mode=..., cval=..., origin=..., *, axes=...): # -> NDArray[float64] | NDArray[Any]:
     """Multidimensional uniform filter.
 
     Parameters
@@ -673,7 +735,7 @@ def uniform_filter(input, size=..., output=..., mode=..., cval=..., origin=..., 
     ...
 
 @_ni_docstrings.docfiller
-def minimum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def minimum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D minimum filter along the given axis.
 
     The lines of the array along the given axis are filtered with a
@@ -689,6 +751,11 @@ def minimum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., orig
     %(mode_reflect)s
     %(cval)s
     %(origin)s
+
+    Returns
+    -------
+    result : ndarray.
+        Filtered image. Has the same shape as `input`.
 
     Notes
     -----
@@ -711,7 +778,7 @@ def minimum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., orig
     ...
 
 @_ni_docstrings.docfiller
-def maximum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def maximum_filter1d(input, size, axis=..., output=..., mode=..., cval=..., origin=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D maximum filter along the given axis.
 
     The lines of the array along the given axis are filtered with a
@@ -972,7 +1039,7 @@ def percentile_filter(input, percentile, size=..., footprint=..., output=..., mo
     ...
 
 @_ni_docstrings.docfiller
-def generic_filter1d(input, function, filter_size, axis=..., output=..., mode=..., cval=..., origin=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def generic_filter1d(input, function, filter_size, axis=..., output=..., mode=..., cval=..., origin=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a 1-D filter along the given axis.
 
     `generic_filter1d` iterates over the lines of the array, calling the
@@ -996,6 +1063,11 @@ def generic_filter1d(input, function, filter_size, axis=..., output=..., mode=..
     %(origin)s
     %(extra_arguments)s
     %(extra_keywords)s
+
+    Returns
+    -------
+    generic_filter1d : ndarray
+        Filtered array. Has the same shape as `input`.
 
     Notes
     -----
@@ -1036,7 +1108,7 @@ def generic_filter1d(input, function, filter_size, axis=..., output=..., mode=..
     ...
 
 @_ni_docstrings.docfiller
-def generic_filter(input, function, size=..., footprint=..., output=..., mode=..., cval=..., origin=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any] | NDArray[generic]:
+def generic_filter(input, function, size=..., footprint=..., output=..., mode=..., cval=..., origin=..., extra_arguments=..., extra_keywords=...): # -> NDArray[float64] | NDArray[Any]:
     """Calculate a multidimensional filter using the given function.
 
     At each element the provided function is called. The input values
@@ -1055,6 +1127,11 @@ def generic_filter(input, function, size=..., footprint=..., output=..., mode=..
     %(origin_multiple)s
     %(extra_arguments)s
     %(extra_keywords)s
+
+    Returns
+    -------
+    generic_filter : ndarray
+        Filtered array. Has the same shape as `input`.
 
     Notes
     -----
@@ -1093,14 +1170,14 @@ def generic_filter(input, function, size=..., footprint=..., output=..., mode=..
 
     >>> import numpy as np
     >>> from scipy import datasets
-    >>> from scipy.ndimage import generic_filter
+    >>> from scipy.ndimage import zoom, generic_filter
     >>> import matplotlib.pyplot as plt
-    >>> ascent = datasets.ascent()
+    >>> ascent = zoom(datasets.ascent(), 0.5)
 
-    Compute a maximum filter with kernel size 10 by passing a simple NumPy
+    Compute a maximum filter with kernel size 5 by passing a simple NumPy
     aggregation function as argument to `function`.
 
-    >>> maximum_filter_result = generic_filter(ascent, np.amax, [10, 10])
+    >>> maximum_filter_result = generic_filter(ascent, np.amax, [5, 5])
 
     While a maximmum filter could also directly be obtained using
     `maximum_filter`, `generic_filter` allows generic Python function or
@@ -1114,7 +1191,7 @@ def generic_filter(input, function, size=..., footprint=..., output=..., mode=..
 
     Plot the original and filtered images.
 
-    >>> fig, axes = plt.subplots(3, 1, figsize=(4, 12))
+    >>> fig, axes = plt.subplots(3, 1, figsize=(3, 9))
     >>> plt.gray()  # show the filtered result in grayscale
     >>> top, middle, bottom = axes
     >>> for ax in axes:
@@ -1122,7 +1199,7 @@ def generic_filter(input, function, size=..., footprint=..., output=..., mode=..
     >>> top.imshow(ascent)
     >>> top.set_title("Original image")
     >>> middle.imshow(maximum_filter_result)
-    >>> middle.set_title("Maximum filter, Kernel: 10x10")
+    >>> middle.set_title("Maximum filter, Kernel: 5x5")
     >>> bottom.imshow(custom_filter_result)
     >>> bottom.set_title("Custom filter, Kernel: 5x5")
     >>> fig.tight_layout()

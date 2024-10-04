@@ -35,7 +35,7 @@ def group_columns(A, order=...):
     """
     ...
 
-def approx_derivative(fun, x0, method=..., rel_step=..., abs_step=..., f0=..., bounds=..., sparsity=..., as_linear_operator=..., args=..., kwargs=...): # -> LinearOperator | NDArray[float64] | csr_matrix:
+def approx_derivative(fun, x0, method=..., rel_step=..., abs_step=..., f0=..., bounds=..., sparsity=..., as_linear_operator=..., args=..., kwargs=...): # -> NDArray[float64] | csr_matrix:
     """Compute finite difference approximation of the derivatives of a
     vector-valued function.
 
@@ -198,7 +198,7 @@ def approx_derivative(fun, x0, method=..., rel_step=..., abs_step=..., f0=..., b
     """
     ...
 
-def check_derivative(fun, jac, x0, bounds=..., args=..., kwargs=...): # -> float64 | Any:
+def check_derivative(fun, jac, x0, bounds=..., args=..., kwargs=...): # -> Any:
     """Check correctness of a function computing derivatives (Jacobian or
     gradient) by comparison with a finite difference approximation.
 

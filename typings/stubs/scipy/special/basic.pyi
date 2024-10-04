@@ -6,6 +6,6 @@ __all__ = ['ai_zeros', 'assoc_laguerre', 'bei_zeros', 'beip_zeros', 'ber_zeros',
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

@@ -59,7 +59,7 @@ def solve_sylvester(a, b, q): # -> Any:
     """
     ...
 
-def solve_continuous_lyapunov(a, q):
+def solve_continuous_lyapunov(a, q): # -> Any:
     """
     Solves the continuous Lyapunov equation :math:`AX + XA^H = Q`.
 
@@ -111,7 +111,7 @@ def solve_continuous_lyapunov(a, q):
     ...
 
 solve_lyapunov = ...
-def solve_discrete_lyapunov(a, q, method=...): # -> NDArray[floating[_NBitDouble]]:
+def solve_discrete_lyapunov(a, q, method=...): # -> NDArray[floating[_64Bit]] | Any:
     """
     Solves the discrete Lyapunov equation :math:`AXA^H - X + Q = 0`.
 
@@ -159,9 +159,8 @@ def solve_discrete_lyapunov(a, q, method=...): # -> NDArray[floating[_NBitDouble
 
     References
     ----------
-    .. [1] Hamilton, James D. Time Series Analysis, Princeton: Princeton
-       University Press, 1994.  265.  Print.
-       http://doc1.lbfl.li/aca/FLMF037168.pdf
+    .. [1] "Lyapunov equation", Wikipedia,
+       https://en.wikipedia.org/wiki/Lyapunov_equation#Discrete_time
     .. [2] Gajic, Z., and M.T.J. Qureshi. 2008.
        Lyapunov Matrix Equation in System Stability and Control.
        Dover Books on Engineering Series. Dover Publications.
@@ -184,7 +183,7 @@ def solve_discrete_lyapunov(a, q, method=...): # -> NDArray[floating[_NBitDouble
     """
     ...
 
-def solve_continuous_are(a, b, q, r, e=..., s=..., balanced=...):
+def solve_continuous_are(a, b, q, r, e=..., s=..., balanced=...): # -> Any:
     r"""
     Solves the continuous-time algebraic Riccati equation (CARE).
 
@@ -304,7 +303,7 @@ def solve_continuous_are(a, b, q, r, e=..., s=..., balanced=...):
     """
     ...
 
-def solve_discrete_are(a, b, q, r, e=..., s=..., balanced=...):
+def solve_discrete_are(a, b, q, r, e=..., s=..., balanced=...): # -> Any:
     r"""
     Solves the discrete-time algebraic Riccati equation (DARE).
 

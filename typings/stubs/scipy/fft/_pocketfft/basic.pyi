@@ -27,30 +27,6 @@ def c2r(forward, x, n=..., axis=..., norm=..., overwrite_x=..., workers=..., *, 
 
 hfft = ...
 irfft = ...
-def fft2(x, s=..., axes=..., norm=..., overwrite_x=..., workers=..., *, plan=...): # -> Any:
-    """
-    2-D discrete Fourier transform.
-    """
-    ...
-
-def ifft2(x, s=..., axes=..., norm=..., overwrite_x=..., workers=..., *, plan=...): # -> Any:
-    """
-    2-D discrete inverse Fourier transform of real or complex sequence.
-    """
-    ...
-
-def rfft2(x, s=..., axes=..., norm=..., overwrite_x=..., workers=..., *, plan=...): # -> Any:
-    """
-    2-D discrete Fourier transform of a real sequence
-    """
-    ...
-
-def irfft2(x, s=..., axes=..., norm=..., overwrite_x=..., workers=..., *, plan=...): # -> Any:
-    """
-    2-D discrete inverse Fourier transform of a real sequence
-    """
-    ...
-
 def hfft2(x, s=..., axes=..., norm=..., overwrite_x=..., workers=..., *, plan=...): # -> Any:
     """
     2-D discrete Fourier transform of a Hermitian sequence

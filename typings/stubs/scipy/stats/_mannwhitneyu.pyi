@@ -6,27 +6,36 @@ from ._axis_nan_policy import _axis_nan_policy_factory
 
 class _MWU:
     '''Distribution of MWU statistic under the null hypothesis'''
-    def __init__(self) -> None:
-        '''Minimal initializer'''
+    def __init__(self, n1, n2) -> None:
         ...
     
-    def pmf(self, k, m, n): # -> Any:
+    def set_shapes(self, n1, n2): # -> None:
         ...
     
-    def pmf_recursive(self, k, m, n): # -> Any:
-        '''Probability mass function, recursive version'''
+    def reset(self): # -> None:
         ...
     
-    def pmf_iterative(self, k, m, n): # -> Any:
-        '''Probability mass function, iterative version'''
+    def pmf(self, k): # -> Any:
         ...
     
-    def cdf(self, k, m, n): # -> ndarray[Any, dtype[Any]]:
+    def cdf(self, k): # -> ndarray[Any, dtype[Any]]:
         '''Cumulative distribution function'''
         ...
     
-    def sf(self, k, m, n): # -> ndarray[Any, dtype[Any]]:
+    def sf(self, k): # -> ndarray[Any, dtype[Any]]:
         '''Survival function'''
+        ...
+    
+    def build_sigma_array(self, a): # -> ndarray[Any, dtype[Any]]:
+        ...
+    
+    def build_u_freqs_array(self, maxu): # -> Any:
+        """
+        Build all the array of frequencies for u from 0 to maxu.
+        Assumptions:
+          n1 <= n2
+          maxu <= n1 * n2 / 2
+        """
         ...
     
 
@@ -64,12 +73,20 @@ def mannwhitneyu(x, y, use_continuity=..., alternative=..., axis=..., method=...
         * 'greater': the distribution underlying `x` is stochastically greater
           than the distribution underlying `y`, i.e. *F(u) < G(u)* for all *u*.
 
+        Note that the mathematical expressions in the alternative hypotheses
+        above describe the CDFs of the underlying distributions. The directions
+        of the inequalities appear inconsistent with the natural language
+        description at first glance, but they are not. For example, suppose
+        *X* and *Y* are random variables that follow distributions with CDFs
+        *F* and *G*, respectively. If *F(u) > G(u)* for all *u*, samples drawn
+        from *X* tend to be less than those drawn from *Y*.
+
         Under a more restrictive set of assumptions, the alternative hypotheses
         can be expressed in terms of the locations of the distributions;
         see [5] section 5.1.
     axis : int, optional
         Axis along which to perform the test. Default is 0.
-    method : {'auto', 'asymptotic', 'exact'}, optional
+    method : {'auto', 'asymptotic', 'exact'} or `PermutationMethod` instance, optional
         Selects the method used to calculate the *p*-value.
         Default is 'auto'. The following options are available.
 
@@ -81,6 +98,9 @@ def mannwhitneyu(x, y, use_continuity=..., alternative=..., axis=..., method=...
         * ``'auto'``: chooses ``'exact'`` when the size of one of the samples
           is less than or equal to 8 and there are no ties;
           chooses ``'asymptotic'`` otherwise.
+        * `PermutationMethod` instance. In this case, the p-value
+          is computed using `permutation_test` with the provided
+          configuration options and other appropriate settings.
 
     Returns
     -------
@@ -97,17 +117,19 @@ def mannwhitneyu(x, y, use_continuity=..., alternative=..., axis=..., method=...
     -----
     If ``U1`` is the statistic corresponding with sample `x`, then the
     statistic corresponding with sample `y` is
-    `U2 = `x.shape[axis] * y.shape[axis] - U1``.
+    ``U2 = x.shape[axis] * y.shape[axis] - U1``.
 
     `mannwhitneyu` is for independent samples. For related / paired samples,
     consider `scipy.stats.wilcoxon`.
 
     `method` ``'exact'`` is recommended when there are no ties and when either
-    sample size is less than 8 [1]_. The implementation follows the recurrence
-    relation originally proposed in [1]_ as it is described in [3]_.
+    sample size is less than 8 [1]_. The implementation follows the algorithm
+    reported in [3]_.
     Note that the exact method is *not* corrected for ties, but
     `mannwhitneyu` will not raise errors or warnings if there are ties in the
-    data.
+    data. If there are ties and either samples is small (fewer than ~10
+    observations), consider passing an instance of `PermutationMethod`
+    as the `method` to perform a permutation test.
 
     The Mann-Whitney U test is a non-parametric version of the t-test for
     independent samples. When the means of samples from the populations
@@ -124,9 +146,9 @@ def mannwhitneyu(x, y, use_continuity=..., alternative=..., axis=..., method=...
            Mathematical Statistics, Vol. 18, pp. 50-60, 1947.
     .. [2] Mann-Whitney U Test, Wikipedia,
            http://en.wikipedia.org/wiki/Mann-Whitney_U_test
-    .. [3] A. Di Bucchianico, "Combinatorics, computer algebra, and the
-           Wilcoxon-Mann-Whitney test", Journal of Statistical Planning and
-           Inference, Vol. 79, pp. 349-364, 1999.
+    .. [3] Andreas Löffler,
+           "Über eine Partition der nat. Zahlen und ihr Anwendung beim U-Test",
+           Wiss. Z. Univ. Halle, XXXII'83 pp. 87-89.
     .. [4] Rosie Shier, "Statistics: 2.3 The Mann-Whitney U Test", Mathematics
            Learning Support Centre, 2004.
     .. [5] Michael P. Fay and Michael A. Proschan. "Wilcoxon-Mann-Whitney
@@ -235,7 +257,9 @@ def mannwhitneyu(x, y, use_continuity=..., alternative=..., axis=..., method=...
     >>> from scipy.stats import ttest_ind
     >>> res = ttest_ind(females, males, alternative="less")
     >>> print(res)
-    Ttest_indResult(statistic=-2.239334696520584, pvalue=0.030068441095757924)
+    TtestResult(statistic=-2.239334696520584,
+                pvalue=0.030068441095757924,
+                df=7.0)
 
     Under this assumption, the *p*-value would be low enough to reject the
     null hypothesis in favor of the alternative.

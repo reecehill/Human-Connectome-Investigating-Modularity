@@ -34,7 +34,6 @@ def line_search_wolfe1(f, fprime, xk, pk, gfk=..., old_fval=..., old_old_fval=..
         Current point
     pk : array_like
         Search direction
-
     gfk : array_like, optional
         Gradient of `f` at point `xk`
     old_fval : float, optional
@@ -50,6 +49,10 @@ def line_search_wolfe1(f, fprime, xk, pk, gfk=..., old_fval=..., old_old_fval=..
         As in `line_search_wolfe1`
     gval : array
         Gradient of `f` at the final point
+
+    Notes
+    -----
+    Parameters `c1` and `c2` must satisfy ``0 < c1 < c2 < 1``.
 
     """
     ...
@@ -93,6 +96,16 @@ def scalar_search_wolfe1(phi, derphi, phi0=..., old_phi0=..., derphi0=..., c1=..
     Notes
     -----
     Uses routine DCSRCH from MINPACK.
+    
+    Parameters `c1` and `c2` must satisfy ``0 < c1 < c2 < 1`` as described in [1]_.
+
+    References
+    ----------
+    
+    .. [1] Nocedal, J., & Wright, S. J. (2006). Numerical optimization.
+       In Springer Series in Operations Research and Financial Engineering.
+       (Springer Series in Operations Research and Financial Engineering).
+       Springer Nature.
 
     """
     ...

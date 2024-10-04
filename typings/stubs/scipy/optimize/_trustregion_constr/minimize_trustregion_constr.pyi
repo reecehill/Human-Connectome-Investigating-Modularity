@@ -8,7 +8,7 @@ class HessianLinearOperator:
     def __init__(self, hessp, n) -> None:
         ...
     
-    def __call__(self, x, *args): # -> LinearOperator:
+    def __call__(self, x, *args):
         ...
     
 
@@ -22,7 +22,7 @@ class LagrangianHessian:
     def __init__(self, n, objective_hess, constraints_hess) -> None:
         ...
     
-    def __call__(self, x, v_eq=..., v_ineq=...): # -> LinearOperator:
+    def __call__(self, x, v_eq=..., v_ineq=...):
         ...
     
 

@@ -32,6 +32,10 @@ def lambertw(z, k=..., tol=...): # -> Any:
     w : array
         `w` will have the same shape as `z`.
 
+    See Also
+    --------
+    wrightomega : the Wright Omega function
+
     Notes
     -----
     All branches are supported by `lambertw`:
@@ -56,10 +60,6 @@ def lambertw(z, k=..., tol=...): # -> Any:
     asymptotic approximation (O(log(w)) or `O(w)`) as the initial estimate.
 
     The definition, implementation and choice of branches is based on [2]_.
-
-    See Also
-    --------
-    wrightomega : the Wright Omega function
 
     References
     ----------

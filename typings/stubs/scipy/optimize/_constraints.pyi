@@ -263,7 +263,7 @@ class PreparedConstraint:
     def __init__(self, constraint, x0, sparse_jacobian=..., finite_diff_bounds=...) -> None:
         ...
     
-    def violation(self, x): # -> NDArray[bool_]:
+    def violation(self, x): # -> NDArray[Any]:
         """How much the constraint is exceeded by.
 
         Parameters

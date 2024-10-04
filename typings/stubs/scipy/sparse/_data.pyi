@@ -13,10 +13,17 @@ from ._base import _spbase
 """
 __all__ = []
 class _data_matrix(_spbase):
-    def __init__(self) -> None:
+    def __init__(self, arg1) -> None:
         ...
     
-    dtype = ...
+    @property
+    def dtype(self):
+        ...
+    
+    @dtype.setter
+    def dtype(self, newtype): # -> None:
+        ...
+    
     def __abs__(self):
         ...
     
@@ -50,9 +57,17 @@ class _data_matrix(_spbase):
 
         Parameters
         ----------
-        n : n is a scalar
+        n : scalar
+            n is a non-zero scalar (nonzero avoids dense ones creation)
+            If zero power is desired, special case it to use `np.ones`
 
         dtype : If dtype is not specified, the current dtype will be preserved.
+
+        Raises
+        ------
+        NotImplementedError : if n is a zero scalar
+            If zero power is desired, special case it to use
+            `np.ones(A.shape, dtype=A.dtype)`
         """
         ...
     
@@ -65,14 +80,14 @@ class _minmax_mixin:
     """
     def max(self, axis=..., out=...):
         """
-        Return the maximum of the matrix or maximum along an axis.
+        Return the maximum of the array/matrix or maximum along an axis.
         This takes all elements into account, not just the non-zero ones.
 
         Parameters
         ----------
         axis : {-2, -1, 0, 1, None} optional
             Axis along which the sum is computed. The default is to
-            compute the maximum over all the matrix elements, returning
+            compute the maximum over all elements, returning
             a scalar (i.e., `axis` = `None`).
 
         out : None, optional
@@ -89,7 +104,7 @@ class _minmax_mixin:
 
         See Also
         --------
-        min : The minimum value of a sparse matrix along a given axis.
+        min : The minimum value of a sparse array/matrix along a given axis.
         numpy.matrix.max : NumPy's implementation of 'max' for matrices
 
         """
@@ -97,14 +112,14 @@ class _minmax_mixin:
     
     def min(self, axis=..., out=...):
         """
-        Return the minimum of the matrix or maximum along an axis.
+        Return the minimum of the array/matrix or maximum along an axis.
         This takes all elements into account, not just the non-zero ones.
 
         Parameters
         ----------
         axis : {-2, -1, 0, 1, None} optional
             Axis along which the sum is computed. The default is to
-            compute the minimum over all the matrix elements, returning
+            compute the minimum over all elements, returning
             a scalar (i.e., `axis` = `None`).
 
         out : None, optional
@@ -121,7 +136,7 @@ class _minmax_mixin:
 
         See Also
         --------
-        max : The maximum value of a sparse matrix along a given axis.
+        max : The maximum value of a sparse array/matrix along a given axis.
         numpy.matrix.min : NumPy's implementation of 'min' for matrices
 
         """
@@ -129,7 +144,7 @@ class _minmax_mixin:
     
     def nanmax(self, axis=..., out=...):
         """
-        Return the maximum of the matrix or maximum along an axis, ignoring any
+        Return the maximum of the array/matrix or maximum along an axis, ignoring any
         NaNs. This takes all elements into account, not just the non-zero
         ones.
 
@@ -139,7 +154,7 @@ class _minmax_mixin:
         ----------
         axis : {-2, -1, 0, 1, None} optional
             Axis along which the maximum is computed. The default is to
-            compute the maximum over all the matrix elements, returning
+            compute the maximum over all elements, returning
             a scalar (i.e., `axis` = `None`).
 
         out : None, optional
@@ -156,9 +171,9 @@ class _minmax_mixin:
 
         See Also
         --------
-        nanmin : The minimum value of a sparse matrix along a given axis,
+        nanmin : The minimum value of a sparse array/matrix along a given axis,
                  ignoring NaNs.
-        max : The maximum value of a sparse matrix along a given axis,
+        max : The maximum value of a sparse array/matrix along a given axis,
               propagating NaNs.
         numpy.nanmax : NumPy's implementation of 'nanmax'.
 
@@ -167,7 +182,7 @@ class _minmax_mixin:
     
     def nanmin(self, axis=..., out=...):
         """
-        Return the minimum of the matrix or minimum along an axis, ignoring any
+        Return the minimum of the array/matrix or minimum along an axis, ignoring any
         NaNs. This takes all elements into account, not just the non-zero
         ones.
 
@@ -177,7 +192,7 @@ class _minmax_mixin:
         ----------
         axis : {-2, -1, 0, 1, None} optional
             Axis along which the minimum is computed. The default is to
-            compute the minimum over all the matrix elements, returning
+            compute the minimum over all elements, returning
             a scalar (i.e., `axis` = `None`).
 
         out : None, optional
@@ -194,16 +209,16 @@ class _minmax_mixin:
 
         See Also
         --------
-        nanmax : The maximum value of a sparse matrix along a given axis,
+        nanmax : The maximum value of a sparse array/matrix along a given axis,
                  ignoring NaNs.
-        min : The minimum value of a sparse matrix along a given axis,
+        min : The minimum value of a sparse array/matrix along a given axis,
               propagating NaNs.
         numpy.nanmin : NumPy's implementation of 'nanmin'.
 
         """
         ...
     
-    def argmax(self, axis=..., out=...): # -> int:
+    def argmax(self, axis=..., out=...): # -> NDArray[Any] | int:
         """Return indices of maximum elements along an axis.
 
         Implicit zero elements are also taken into account. If there are
@@ -226,7 +241,7 @@ class _minmax_mixin:
         """
         ...
     
-    def argmin(self, axis=..., out=...): # -> int:
+    def argmin(self, axis=..., out=...): # -> NDArray[Any] | int:
         """Return indices of minimum elements along an axis.
 
         Implicit zero elements are also taken into account. If there are

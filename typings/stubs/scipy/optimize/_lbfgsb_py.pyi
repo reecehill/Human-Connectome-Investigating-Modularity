@@ -54,7 +54,7 @@ def fmin_l_bfgs_b(func, x0, fprime=..., args=..., approx_grad=..., bounds=..., m
     pgtol : float, optional
         The iteration will stop when
         ``max{|proj g_i | i = 1, ..., n} <= pgtol``
-        where ``pg_i`` is the i-th component of the projected gradient.
+        where ``proj g_i`` is the i-th component of the projected gradient.
     epsilon : float, optional
         Step size used when `approx_grad` is True, for numerically
         calculating the gradient
@@ -134,6 +134,44 @@ def fmin_l_bfgs_b(func, x0, fprime=..., args=..., approx_grad=..., bounds=..., m
       FORTRAN routines for large scale bound constrained optimization (2011),
       ACM Transactions on Mathematical Software, 38, 1.
 
+    Examples
+    --------
+    Solve a linear regression problem via `fmin_l_bfgs_b`. To do this, first we define
+    an objective function ``f(m, b) = (y - y_model)**2``, where `y` describes the
+    observations and `y_model` the prediction of the linear model as
+    ``y_model = m*x + b``. The bounds for the parameters, ``m`` and ``b``, are arbitrarily
+    chosen as ``(0,5)`` and ``(5,10)`` for this example.
+
+    >>> import numpy as np
+    >>> from scipy.optimize import fmin_l_bfgs_b
+    >>> X = np.arange(0, 10, 1)
+    >>> M = 2
+    >>> B = 3
+    >>> Y = M * X + B
+    >>> def func(parameters, *args):
+    ...     x = args[0]
+    ...     y = args[1]
+    ...     m, b = parameters
+    ...     y_model = m*x + b
+    ...     error = sum(np.power((y - y_model), 2))
+    ...     return error
+
+    >>> initial_values = np.array([0.0, 1.0])
+
+    >>> x_opt, f_opt, info = fmin_l_bfgs_b(func, x0=initial_values, args=(X, Y),
+    ...                                    approx_grad=True)
+    >>> x_opt, f_opt
+    array([1.99999999, 3.00000006]), 1.7746231151323805e-14  # may vary
+
+    The optimized parameters in ``x_opt`` agree with the ground truth parameters
+    ``m`` and ``b``. Next, let us perform a bound contrained optimization using the `bounds`
+    parameter. 
+
+    >>> bounds = [(0, 5), (5, 10)]
+    >>> x_opt, f_op, info = fmin_l_bfgs_b(func, x0=initial_values, args=(X, Y),
+    ...                                   approx_grad=True, bounds=bounds)
+    >>> x_opt, f_opt
+    array([1.65990508, 5.31649385]), 15.721334516453945  # may vary    
     """
     ...
 
@@ -166,7 +204,7 @@ class LbfgsInvHessProduct(LinearOperator):
         """Construct the operator."""
         ...
     
-    def todense(self): # -> NDArray[Any]:
+    def todense(self): # -> NDArray[float64]:
         """Return a dense array representation of this operator.
 
         Returns

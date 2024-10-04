@@ -13,6 +13,7 @@ from ._ndgriddata import *
 from ._bsplines import *
 from ._pade import *
 from ._rgi import *
+from ._ndbspline import NdBSpline
 from . import fitpack, fitpack2, interpolate, ndgriddata, polyint, rbf
 from scipy._lib._testutils import PytestTester
 
@@ -86,7 +87,7 @@ Tensor product polynomials:
    :toctree: generated/
 
    NdPPoly
-
+   NdBSpline
 
 1-D Splines
 ===========

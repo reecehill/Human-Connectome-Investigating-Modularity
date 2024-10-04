@@ -181,10 +181,15 @@ def dual_annealing(func, bounds, args=..., maxiter=..., minimizer_kwargs=..., in
     maxiter : int, optional
         The maximum number of global search iterations. Default value is 1000.
     minimizer_kwargs : dict, optional
-        Extra keyword arguments to be passed to the local minimizer
-        (`minimize`). Some important options could be:
-        ``method`` for the minimizer method to use and ``args`` for
-        objective function additional arguments.
+        Keyword arguments to be passed to the local minimizer
+        (`minimize`). An important option could be ``method`` for the minimizer
+        method to use.
+        If no keyword arguments are provided, the local minimizer defaults to
+        'L-BFGS-B' and uses the already supplied bounds. If `minimizer_kwargs`
+        is specified, then the dict must contain all parameters required to
+        control the local minimization. `args` is ignored in this dict, as it is
+        passed automatically. `bounds` is not automatically passed on to the
+        local minimizer as the method may not support them.
     initial_temp : float, optional
         The initial temperature, use higher values to facilitates a wider
         search of the energy landscape, allowing dual_annealing to escape

@@ -1,19 +1,19 @@
 # NetworkX (Python package is used to calculate network properties.)
 import numpy as np
 import numpy.typing as npt
-from scipy.io import loadmat, savemat # type: ignore
-from scipy.sparse import random as random_sparse, spmatrix
-from scipy.stats import uniform as uniform_dist
+from scipy.io.matlab import loadmat, savemat
+from scipy.sparse import random as random_sparse
+from scipy.sparse._matrix import spmatrix
+# from scipy.stats import uniform as uniform_dist
 import modules.globals as g
 import config
-from typing import Any, Literal, cast
+from typing import cast
 from networkx import from_scipy_sparse_array, Graph, draw, community as nx_community
 import networkx as nx
 from multiprocessing import Pool
-import matplotlib.pyplot as plt
-import itertools
-from collections import defaultdict, deque
-from cdlib import NodeClustering, algorithms # type: ignore
+from collections import deque
+from cdlib import algorithms
+from cdlib.classes.node_clustering import NodeClustering
 from modules.utils import prepStep
 
 def calculateModularity(subjectId: str) -> bool:
@@ -21,8 +21,8 @@ def calculateModularity(subjectId: str) -> bool:
   return findModularity(subjectId)
 
 def findModularity(subjectId: str) -> bool:
-  L_optimalGamma = np.NaN
-  R_optimalGamma = np.NaN
+  L_optimalGamma = np.nan
+  R_optimalGamma = np.nan
   L_optimalModules: 'npt.NDArray[np.int8]|NodeClustering' = np.array([])
   R_optimalModules: 'npt.NDArray[np.int8]|NodeClustering' = np.array([])
   
@@ -140,7 +140,7 @@ def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
   # Q_rands = cast('list[np.float64]', np.zeros((max(all_iterations),1)))
   Q_max = cast('list[np.float64]',np.zeros(len(all_gammas)))
 
- # Get computed adjacency matrix
+# Get computed adjacency matrix
   computed_matrix: spmatrix = getComputedMatrix(subjectId, weighted_matrix)
   G_corts: Graph = cast(Graph, from_scipy_sparse_array(computed_matrix))
 

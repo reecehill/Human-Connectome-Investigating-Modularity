@@ -160,6 +160,47 @@ class nbinom_gen(rv_discrete):
 
 
 nbinom = ...
+class betanbinom_gen(rv_discrete):
+    r"""A beta-negative-binomial discrete random variable.
+
+    %(before_notes)s
+
+    Notes
+    -----
+    The beta-negative-binomial distribution is a negative binomial
+    distribution with a probability of success `p` that follows a
+    beta distribution.
+
+    The probability mass function for `betanbinom` is:
+
+    .. math::
+
+       f(k) = \binom{n + k - 1}{k} \frac{B(a + n, b + k)}{B(a, b)}
+
+    for :math:`k \ge 0`, :math:`n \geq 0`, :math:`a > 0`,
+    :math:`b > 0`, where :math:`B(a, b)` is the beta function.
+
+    `betanbinom` takes :math:`n`, :math:`a`, and :math:`b` as shape parameters.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Beta_negative_binomial_distribution
+
+    %(after_notes)s
+
+    .. versionadded:: 1.12.0
+
+    See Also
+    --------
+    betabinom : Beta binomial distribution
+
+    %(example)s
+
+    """
+    ...
+
+
+betanbinom = ...
 class geom_gen(rv_discrete):
     r"""A geometric discrete random variable.
 
@@ -501,7 +542,47 @@ class randint_gen(rv_discrete):
 
     %(after_notes)s
 
-    %(example)s
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.stats import randint
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots(1, 1)
+
+    Calculate the first four moments:
+
+    >>> low, high = 7, 31
+    >>> mean, var, skew, kurt = randint.stats(low, high, moments='mvsk')
+
+    Display the probability mass function (``pmf``):
+
+    >>> x = np.arange(low - 5, high + 5)
+    >>> ax.plot(x, randint.pmf(x, low, high), 'bo', ms=8, label='randint pmf')
+    >>> ax.vlines(x, 0, randint.pmf(x, low, high), colors='b', lw=5, alpha=0.5)
+
+    Alternatively, the distribution object can be called (as a function) to
+    fix the shape and location. This returns a "frozen" RV object holding the
+    given parameters fixed.
+
+    Freeze the distribution and display the frozen ``pmf``:
+
+    >>> rv = randint(low, high)
+    >>> ax.vlines(x, 0, rv.pmf(x), colors='k', linestyles='-',
+    ...           lw=1, label='frozen pmf')
+    >>> ax.legend(loc='lower center')
+    >>> plt.show()
+
+    Check the relationship between the cumulative distribution function
+    (``cdf``) and its inverse, the percent point function (``ppf``):
+
+    >>> q = np.arange(low, high)
+    >>> p = randint.cdf(q, low, high)
+    >>> np.allclose(q, randint.ppf(p, low, high))
+    True
+
+    Generate random numbers:
+
+    >>> r = randint.rvs(low, high, size=1000)
 
     """
     ...
@@ -545,7 +626,7 @@ class zipf_gen(rv_discrete):
     Confirm that `zipf` is the large `n` limit of `zipfian`.
 
     >>> import numpy as np
-    >>> from scipy.stats import zipfian
+    >>> from scipy.stats import zipf, zipfian
     >>> k = np.arange(11)
     >>> np.allclose(zipf.pmf(k, a), zipfian.pmf(k, a, n=10000000))
     True
@@ -595,7 +676,7 @@ class zipfian_gen(rv_discrete):
     Confirm that `zipfian` reduces to `zipf` for large `n`, `a > 1`.
 
     >>> import numpy as np
-    >>> from scipy.stats import zipf
+    >>> from scipy.stats import zipf, zipfian
     >>> k = np.arange(11)
     >>> np.allclose(zipfian.pmf(k, a=3.5, n=10000000), zipf.pmf(k, a=3.5))
     True

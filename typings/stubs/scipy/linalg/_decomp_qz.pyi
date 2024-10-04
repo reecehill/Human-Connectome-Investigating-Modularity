@@ -240,7 +240,7 @@ def ordqz(A, B, sort=..., output=..., overwrite_a=..., overwrite_b=..., check_fi
     that would result if the 2-by-2 diagonal blocks of the real generalized
     Schur form of (A,B) were further reduced to triangular form using complex
     unitary transformations. If ALPHAI(j) is zero, then the jth eigenvalue is
-    real; if positive, then the ``j``th and ``(j+1)``st eigenvalues are a
+    real; if positive, then the ``j``\\ th and ``(j+1)``\\ st eigenvalues are a
     complex conjugate pair, with ``ALPHAI(j+1)`` negative.
 
     .. versionadded:: 0.17.0

@@ -47,7 +47,7 @@ class BarrierSubproblem:
         """
         ...
     
-    def scaling(self, z): # -> LinearOperator:
+    def scaling(self, z):
         """Returns scaling vector.
         Given by:
             scaling = [ones(n_vars), s]
@@ -75,7 +75,7 @@ class BarrierSubproblem:
         """Returns scaled Lagrangian Hessian (in relation to`s`) -> S Hs S"""
         ...
     
-    def lagrangian_hessian(self, z, v): # -> LinearOperator:
+    def lagrangian_hessian(self, z, v):
         """Returns scaled Lagrangian Hessian"""
         ...
     

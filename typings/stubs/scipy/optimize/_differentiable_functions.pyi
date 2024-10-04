@@ -81,16 +81,28 @@ class ScalarFunction:
     def __init__(self, fun, x0, args, grad, hess, finite_diff_rel_step, finite_diff_bounds, epsilon=...) -> None:
         ...
     
-    def fun(self, x):
+    @property
+    def nfev(self): # -> int:
+        ...
+    
+    @property
+    def ngev(self): # -> int:
+        ...
+    
+    @property
+    def nhev(self): # -> int:
+        ...
+    
+    def fun(self, x): # -> generic | bool | int | float | complex | str | bytes | memoryview[int]:
         ...
     
     def grad(self, x):
         ...
     
-    def hess(self, x): # -> csr_matrix | NDArray[Any] | HessianUpdateStrategy:
+    def hess(self, x): # -> csr_matrix | NDArray[Any] | HessianUpdateStrategy | None:
         ...
     
-    def fun_and_grad(self, x): # -> tuple[Any, Any]:
+    def fun_and_grad(self, x): # -> tuple[Any | generic | bool | int | float | complex | str | bytes | memoryview[int], Any]:
         ...
     
 
@@ -118,7 +130,7 @@ class VectorFunction:
     def fun(self, x):
         ...
     
-    def jac(self, x): # -> csr_matrix | LinearOperator | NDArray[float64] | NDArray[Any]:
+    def jac(self, x): # -> scipy.sparse._csr.csr_matrix | NDArray[float64]:
         ...
     
     def hess(self, x, v): # -> csr_matrix | NDArray[Any] | HessianUpdateStrategy:
@@ -136,7 +148,7 @@ class LinearVectorFunction:
     def __init__(self, A, x0, sparse_jacobian) -> None:
         ...
     
-    def fun(self, x): # -> ndarray[Any, Any] | Any | _NotImplementedType | ndarray[Any, dtype[Any]] | matrix[Any, Any]:
+    def fun(self, x): # -> NDArray[Any]:
         ...
     
     def jac(self, x): # -> csr_matrix | NDArray[Any]:

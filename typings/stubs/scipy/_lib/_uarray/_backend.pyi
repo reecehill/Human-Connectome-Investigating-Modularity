@@ -6,8 +6,8 @@ import typing
 import contextlib
 
 __all__ = ["set_backend", "set_global_backend", "skip_backend", "register_backend", "determine_backend", "determine_backend_multi", "clear_backends", "create_multimethod", "generate_multimethod", "_Function", "BackendNotImplementedError", "Dispatchable", "wrap_single_convertor", "wrap_single_convertor_instance", "all_of_type", "mark_as", "set_state", "get_state", "reset_state", "_BackendState", "_SkipBackendContext", "_SetBackendContext"]
-ArgumentExtractorType = typing.Callable[..., typing.Tuple["Dispatchable", ...]]
-ArgumentReplacerType = typing.Callable[[typing.Tuple, typing.Dict, typing.Tuple], typing.Tuple[typing.Tuple, typing.Dict]]
+ArgumentExtractorType = typing.Callable[..., tuple["Dispatchable", ...]]
+ArgumentReplacerType = typing.Callable[[tuple, dict, tuple], tuple[tuple, dict]]
 def unpickle_function(mod_name, qname, self_): # -> MethodType | ModuleType | Any:
     ...
 
@@ -17,10 +17,10 @@ def pickle_function(func): # -> tuple[Callable[..., MethodType | ModuleType | An
 def pickle_state(state): # -> tuple[Any, Any]:
     ...
 
-def pickle_set_backend_context(ctx): # -> tuple[Any, Any]:
+def pickle_set_backend_context(ctx): # -> tuple[..., Any]:
     ...
 
-def pickle_skip_backend_context(ctx): # -> tuple[Any, Any]:
+def pickle_skip_backend_context(ctx): # -> tuple[..., Any]:
     ...
 
 def get_state(): # -> Any:
@@ -62,7 +62,7 @@ def set_state(state): # -> Generator[None, Any, None]:
     """
     ...
 
-def create_multimethod(*args, **kwargs): # -> Callable[..., _Wrapped[Callable[..., Any], Tuple[Dispatchable, ...], Callable[..., Any], Any]]:
+def create_multimethod(*args, **kwargs): # -> Callable[..., _Wrapped[Callable[..., Any], tuple[Dispatchable, ...], Callable[..., Any], Any]]:
     """
     Creates a decorator for generating multimethods.
 
@@ -78,7 +78,7 @@ def create_multimethod(*args, **kwargs): # -> Callable[..., _Wrapped[Callable[..
     """
     ...
 
-def generate_multimethod(argument_extractor: ArgumentExtractorType, argument_replacer: ArgumentReplacerType, domain: str, default: typing.Optional[typing.Callable] = ...): # -> _Wrapped[Callable[..., Any], Tuple[Dispatchable, ...], Callable[..., Any], Any]:
+def generate_multimethod(argument_extractor: ArgumentExtractorType, argument_replacer: ArgumentReplacerType, domain: str, default: typing.Optional[typing.Callable] = ...): # -> _Wrapped[Callable[..., Any], tuple[Dispatchable, ...], Callable[..., Any], Any]:
     """
     Generates a multimethod.
 
@@ -90,23 +90,25 @@ def generate_multimethod(argument_extractor: ArgumentExtractorType, argument_rep
         as the desired multimethod.
     argument_replacer : ArgumentReplacerType
         A callable with the signature (args, kwargs, dispatchables), which should also
-        return an (args, kwargs) pair with the dispatchables replaced inside the args/kwargs.
+        return an (args, kwargs) pair with the dispatchables replaced inside the
+        args/kwargs.
     domain : str
         A string value indicating the domain of this multimethod.
     default: Optional[Callable], optional
-        The default implementation of this multimethod, where ``None`` (the default) specifies
-        there is no default implementation.
+        The default implementation of this multimethod, where ``None`` (the default)
+        specifies there is no default implementation.
 
     Examples
     --------
-    In this example, ``a`` is to be dispatched over, so we return it, while marking it as an ``int``.
+    In this example, ``a`` is to be dispatched over, so we return it, while marking it
+    as an ``int``.
     The trailing comma is needed because the args have to be returned as an iterable.
 
     >>> def override_me(a, b):
     ...   return Dispatchable(a, int),
 
-    Next, we define the argument replacer that replaces the dispatchables inside args/kwargs with the
-    supplied ones.
+    Next, we define the argument replacer that replaces the dispatchables inside
+    args/kwargs with the supplied ones.
 
     >>> def override_replacer(args, kwargs, dispatchables):
     ...     return (dispatchables[0], args[1]), {}
@@ -133,11 +135,12 @@ def generate_multimethod(argument_extractor: ArgumentExtractorType, argument_rep
     See Also
     --------
     uarray
-        See the module documentation for how to override the method by creating backends.
+        See the module documentation for how to override the method by creating
+        backends.
     """
     ...
 
-def set_backend(backend, coerce=..., only=...):
+def set_backend(backend, coerce=..., only=...): # -> ...:
     """
     A context manager that sets the preferred backend.
 
@@ -157,7 +160,7 @@ def set_backend(backend, coerce=..., only=...):
     """
     ...
 
-def skip_backend(backend):
+def skip_backend(backend): # -> ...:
     """
     A context manager that allows one to skip a given backend from processing
     entirely. This allows one to use another backend's code in a library that
@@ -318,7 +321,8 @@ def all_of_type(arg_type): # -> Callable[..., _Wrapped[Callable[..., Any], Any, 
     ... def f(a, b):
     ...     return a, Dispatchable(b, int)
     >>> f('a', 1)
-    (<Dispatchable: type=<class 'str'>, value='a'>, <Dispatchable: type=<class 'int'>, value=1>)
+    (<Dispatchable: type=<class 'str'>, value='a'>,
+     <Dispatchable: type=<class 'int'>, value=1>)
     """
     ...
 

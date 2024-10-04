@@ -10,11 +10,11 @@ class OdeResult(OptimizeResult):
     ...
 
 
-def prepare_events(events): # -> tuple[tuple[Any] | Any, NDArray[Any] | None, NDArray[float64] | None]:
-    """Standardize event functions and extract is_terminal and direction."""
+def prepare_events(events): # -> tuple[tuple[Any] | Any, NDArray[float64], NDArray[float64]]:
+    """Standardize event functions and extract attributes."""
     ...
 
-def solve_event_equation(event, sol, t_old, t): # -> tuple[Any, RootResults]:
+def solve_event_equation(event, sol, t_old, t): # -> tuple[Any, RootResults] | Any:
     """Solve an equation corresponding to an ODE event.
 
     The equation is ``event(t, y(t)) = 0``, here ``y(t)`` is known from an
@@ -39,7 +39,7 @@ def solve_event_equation(event, sol, t_old, t): # -> tuple[Any, RootResults]:
     """
     ...
 
-def handle_events(sol, events, active_events, is_terminal, t_old, t): # -> tuple[Any, ndarray[Any, dtype[Any]], bool]:
+def handle_events(sol, events, active_events, event_count, max_events, t_old, t): # -> tuple[Any, ndarray[Any, dtype[Any]], bool]:
     """Helper function to handle events.
 
     Parameters
@@ -51,8 +51,11 @@ def handle_events(sol, events, active_events, is_terminal, t_old, t): # -> tuple
         Event functions with signatures ``event(t, y)``.
     active_events : ndarray
         Indices of events which occurred.
-    is_terminal : ndarray, shape (n_events,)
-        Which events are terminal.
+    event_count : ndarray
+        Current number of occurrences for each event.
+    max_events : ndarray, shape (n_events,)
+        Number of occurrences allowed for each event before integration
+        termination is issued.
     t_old, t : float
         Previous and new values of time.
 
@@ -112,9 +115,10 @@ def solve_ivp(fun, t_span, y0, method=..., t_eval=..., dense_output=..., events=
     fun : callable
         Right-hand side of the system: the time derivative of the state ``y``
         at time ``t``. The calling signature is ``fun(t, y)``, where ``t`` is a
-        scalar and ``y`` is an ndarray with ``len(y) = len(y0)``. ``fun`` must
-        return an array of the same shape as ``y``. See `vectorized` for more
-        information.
+        scalar and ``y`` is an ndarray with ``len(y) = len(y0)``. Additional
+        arguments need to be passed if ``args`` is used (see documentation of
+        ``args`` argument). ``fun`` must return an array of the same shape as
+        ``y``. See `vectorized` for more information.
     t_span : 2-member sequence
         Interval of integration (t0, tf). The solver starts with t=t0 and
         integrates until it reaches t=tf. Both t0 and tf must be floats
@@ -176,16 +180,20 @@ def solve_ivp(fun, t_span, y0, method=..., t_eval=..., dense_output=..., events=
     events : callable, or list of callables, optional
         Events to track. If None (default), no events will be tracked.
         Each event occurs at the zeros of a continuous function of time and
-        state. Each function must have the signature ``event(t, y)`` and return
-        a float. The solver will find an accurate value of `t` at which
-        ``event(t, y(t)) = 0`` using a root-finding algorithm. By default, all
-        zeros will be found. The solver looks for a sign change over each step,
-        so if multiple zero crossings occur within one step, events may be
-        missed. Additionally each `event` function might have the following
-        attributes:
+        state. Each function must have the signature ``event(t, y)`` where
+        additional argument have to be passed if ``args`` is used (see
+        documentation of ``args`` argument). Each function must return a
+        float. The solver will find an accurate value of `t` at which
+        ``event(t, y(t)) = 0`` using a root-finding algorithm. By default,
+        all zeros will be found. The solver looks for a sign change over
+        each step, so if multiple zero crossings occur within one step,
+        events may be missed. Additionally each `event` function might
+        have the following attributes:
 
-            terminal: bool, optional
-                Whether to terminate integration if this event occurs.
+            terminal: bool or int, optional
+                When boolean, whether to terminate integration if this event occurs.
+                When integral, termination occurs after the specified the number of
+                occurences of this event.
                 Implicitly False if not assigned.
             direction: float, optional
                 Direction of a zero crossing. If `direction` is positive,
@@ -250,6 +258,8 @@ def solve_ivp(fun, t_span, y0, method=..., t_eval=..., dense_output=..., events=
               be constant. Not supported by 'LSODA'.
             * If callable, the Jacobian is assumed to depend on both
               t and y; it will be called as ``jac(t, y)``, as necessary.
+              Additional arguments have to be passed if ``args`` is
+              used (see documentation of ``args`` argument).
               For 'Radau' and 'BDF' methods, the return value might be a
               sparse matrix.
             * If None (default), the Jacobian will be approximated by
@@ -419,7 +429,8 @@ def solve_ivp(fun, t_span, y0, method=..., t_eval=..., dense_output=..., events=
     >>> print(sol.sol(sol.t_events[1][0]))
     [100.   0.]
     >>> print(sol.y_events)
-    [array([[-5.68434189e-14, -1.00000000e+01]]), array([[1.00000000e+02, 1.77635684e-15]])]
+    [array([[-5.68434189e-14, -1.00000000e+01]]),
+     array([[1.00000000e+02, 1.77635684e-15]])]
 
     As an example of a system with additional parameters, we'll implement
     the Lotka-Volterra equations [12]_.
@@ -445,6 +456,49 @@ def solve_ivp(fun, t_span, y0, method=..., t_eval=..., dense_output=..., events=
     >>> plt.legend(['x', 'y'], shadow=True)
     >>> plt.title('Lotka-Volterra System')
     >>> plt.show()
+
+    A couple examples of using solve_ivp to solve the differential
+    equation ``y' = Ay`` with complex matrix ``A``.
+
+    >>> A = np.array([[-0.25 + 0.14j, 0, 0.33 + 0.44j],
+    ...               [0.25 + 0.58j, -0.2 + 0.14j, 0],
+    ...               [0, 0.2 + 0.4j, -0.1 + 0.97j]])
+
+    Solving an IVP with ``A`` from above and ``y`` as 3x1 vector:
+
+    >>> def deriv_vec(t, y):
+    ...     return A @ y
+    >>> result = solve_ivp(deriv_vec, [0, 25],
+    ...                    np.array([10 + 0j, 20 + 0j, 30 + 0j]),
+    ...                    t_eval=np.linspace(0, 25, 101))
+    >>> print(result.y[:, 0])
+    [10.+0.j 20.+0.j 30.+0.j]
+    >>> print(result.y[:, -1])
+    [18.46291039+45.25653651j 10.01569306+36.23293216j
+     -4.98662741+80.07360388j]
+
+    Solving an IVP with ``A`` from above with ``y`` as 3x3 matrix :
+
+    >>> def deriv_mat(t, y):
+    ...     return (A @ y.reshape(3, 3)).flatten()
+    >>> y0 = np.array([[2 + 0j, 3 + 0j, 4 + 0j],
+    ...                [5 + 0j, 6 + 0j, 7 + 0j],
+    ...                [9 + 0j, 34 + 0j, 78 + 0j]])
+
+    >>> result = solve_ivp(deriv_mat, [0, 25], y0.flatten(),
+    ...                    t_eval=np.linspace(0, 25, 101))
+    >>> print(result.y[:, 0].reshape(3, 3))
+    [[ 2.+0.j  3.+0.j  4.+0.j]
+     [ 5.+0.j  6.+0.j  7.+0.j]
+     [ 9.+0.j 34.+0.j 78.+0.j]]
+    >>> print(result.y[:, -1].reshape(3, 3))
+    [[  5.67451179 +12.07938445j  17.2888073  +31.03278837j
+        37.83405768 +63.25138759j]
+     [  3.39949503 +11.82123994j  21.32530996 +44.88668871j
+        53.17531184+103.80400411j]
+     [ -2.26105874 +22.19277664j -15.1255713  +70.19616341j
+       -38.34616845+153.29039931j]]
+
 
     """
     ...

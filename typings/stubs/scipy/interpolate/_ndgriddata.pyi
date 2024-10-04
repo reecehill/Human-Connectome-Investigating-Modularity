@@ -14,7 +14,7 @@ __all__ = ['griddata', 'NearestNDInterpolator', 'LinearNDInterpolator', 'CloughT
 class NearestNDInterpolator(NDInterpolatorBase):
     """NearestNDInterpolator(x, y).
 
-    Nearest-neighbor interpolation in N > 1 dimensions.
+    Nearest-neighbor interpolator in N > 1 dimensions.
 
     .. versionadded:: 0.9
 
@@ -44,11 +44,11 @@ class NearestNDInterpolator(NDInterpolatorBase):
     griddata :
         Interpolate unstructured D-D data.
     LinearNDInterpolator :
-        Piecewise linear interpolant in N dimensions.
+        Piecewise linear interpolator in N dimensions.
     CloughTocher2DInterpolator :
-        Piecewise cubic, C1 smooth, curvature-minimizing interpolant in 2D.
+        Piecewise cubic, C1 smooth, curvature-minimizing interpolator in 2D.
     interpn : Interpolation on a regular grid or rectilinear grid.
-    RegularGridInterpolator : Interpolation on a regular or rectilinear grid
+    RegularGridInterpolator : Interpolator on a regular or rectilinear grid
                               in arbitrary dimensions (`interpn` wraps this
                               class).
 
@@ -85,7 +85,7 @@ class NearestNDInterpolator(NDInterpolatorBase):
     def __init__(self, x, y, rescale=..., tree_options=...) -> None:
         ...
     
-    def __call__(self, *args): # -> ndarray[Any, dtype[Any]]:
+    def __call__(self, *args, **query_options): # -> ndarray[Any, dtype[Any]]:
         """
         Evaluate interpolator at given points.
 
@@ -95,6 +95,12 @@ class NearestNDInterpolator(NDInterpolatorBase):
             Points where to interpolate data at.
             x1, x2, ... xn can be array-like of float with broadcastable shape.
             or x1 can be array-like of float with shape ``(..., ndim)``
+        **query_options
+            This allows ``eps``, ``p``, ``distance_upper_bound``, and ``workers``
+            being passed to the cKDTree's query function to be explicitly set.
+            See `scipy.spatial.cKDTree.query` for an overview of the different options.
+
+            .. versionadded:: 1.12.0
 
         """
         ...
@@ -155,13 +161,13 @@ def griddata(points, values, xi, method=..., fill_value=..., rescale=...): # -> 
     See Also
     --------
     LinearNDInterpolator :
-        Piecewise linear interpolant in N dimensions.
+        Piecewise linear interpolator in N dimensions.
     NearestNDInterpolator :
-        Nearest-neighbor interpolation in N dimensions.
+        Nearest-neighbor interpolator in N dimensions.
     CloughTocher2DInterpolator :
-        Piecewise cubic, C1 smooth, curvature-minimizing interpolant in 2D.
+        Piecewise cubic, C1 smooth, curvature-minimizing interpolator in 2D.
     interpn : Interpolation on a regular grid or rectilinear grid.
-    RegularGridInterpolator : Interpolation on a regular or rectilinear grid
+    RegularGridInterpolator : Interpolator on a regular or rectilinear grid
                               in arbitrary dimensions (`interpn` wraps this
                               class).
 

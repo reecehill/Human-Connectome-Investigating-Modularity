@@ -113,8 +113,8 @@ Traceback (most recent call last):
     ...
 uarray.BackendNotImplementedError: ...
 
-The last possibility is if we don't have ``__ua_convert__``, in which case the job is left
-up to ``__ua_function__``, but putting things back into arrays after conversion will not be
-possible.
+The last possibility is if we don't have ``__ua_convert__``, in which case the job is
+left up to ``__ua_function__``, but putting things back into arrays after conversion
+will not be possible.
 """
 __version__ = ...

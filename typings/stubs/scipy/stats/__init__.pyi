@@ -11,20 +11,22 @@ from ._multicomp import *
 from ._binomtest import binomtest
 from ._binned_statistic import *
 from ._kde import gaussian_kde
-from . import biasedurn, contingency, kde, morestats, mstats, mstats_basic, mstats_extras, mvn, qmc, statlib, stats
+from . import biasedurn, contingency, kde, morestats, mstats, mstats_basic, mstats_extras, mvn, qmc, stats
 from ._multivariate import *
 from .contingency import chi2_contingency
 from ._censored_data import CensoredData
-from ._resampling import BootstrapMethod, MonteCarloMethod, PermutationMethod, bootstrap, monte_carlo_test, permutation_test
+from ._resampling import BootstrapMethod, MonteCarloMethod, PermutationMethod, bootstrap, monte_carlo_test, permutation_test, power
 from ._entropy import *
 from ._hypotests import *
 from ._rvs_sampling import rvs_ratio_uniforms
 from ._page_trend_test import page_trend_test
 from ._mannwhitneyu import mannwhitneyu
+from ._bws_test import bws_test
 from ._fit import fit, goodness_of_fit
 from ._covariance import Covariance
 from ._sensitivity_analysis import *
 from ._survival import *
+from ._mgc import multiscale_graphcorr
 from scipy._lib._testutils import PytestTester
 
 """
@@ -126,6 +128,8 @@ Continuous distributions
    invgamma          -- Inverse Gamma
    invgauss          -- Inverse Gaussian
    invweibull        -- Inverse Weibull
+   irwinhall         -- Irwin-Hall
+   jf_skew_t         -- Jones and Faddy Skew-T
    johnsonsb         -- Johnson SB
    johnsonsu         -- Johnson SU
    kappa4            -- Kappa 4 parameter
@@ -235,6 +239,7 @@ Discrete distributions
 
    bernoulli                -- Bernoulli
    betabinom                -- Beta-Binomial
+   betanbinom               -- Beta-Negative Binomial
    binom                    -- Binomial
    boltzmann                -- Boltzmann (Truncated Discrete Exponential)
    dlaplace                 -- Discrete Laplacian
@@ -312,6 +317,8 @@ Frequency statistics
    binned_statistic_2d  -- Compute a 2-D binned statistic for a set of data.
    binned_statistic_dd  -- Compute a d-D binned statistic for a set of data.
 
+.. _hypotests:
+
 Hypothesis Tests and related functions
 ======================================
 SciPy has many functions for performing hypothesis tests that return a
@@ -335,6 +342,7 @@ drawn from a specified distribution or a distribution with specified properties
 
    ttest_1samp
    binomtest
+   quantile_test
    skewtest
    kurtosistest
    normaltest
@@ -409,6 +417,7 @@ Some tests are specifically for comparing two samples.
    poisson_means_test
    ttest_ind
    mannwhitneyu
+   bws_test
    ranksums
    brunnermunzel
    mood
@@ -449,6 +458,7 @@ at the cost of greater computational requirements and stochastic results.
    monte_carlo_test
    permutation_test
    bootstrap
+   power
 
 Instances of the following object can be passed into some hypothesis test
 functions to perform a resampling or Monte Carlo version of the hypothesis
@@ -473,13 +483,6 @@ tests) are listed above.
    combine_pvalues
    false_discovery_control
 
-Deprecated and Legacy Functions
--------------------------------
-
-.. autosummary::
-   :toctree: generated/
-
-   binom_test
 
 The following functions are related to the tests above but do not belong in the
 above categories.
@@ -538,6 +541,7 @@ Statistical distances
    :toctree: generated/
 
    wasserstein_distance
+   wasserstein_distance_nd
    energy_distance
 
 Sampling

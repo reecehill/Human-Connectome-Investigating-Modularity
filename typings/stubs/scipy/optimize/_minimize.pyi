@@ -44,6 +44,7 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
             - 'L-BFGS-B'    :ref:`(see here) <optimize.minimize-lbfgsb>`
             - 'TNC'         :ref:`(see here) <optimize.minimize-tnc>`
             - 'COBYLA'      :ref:`(see here) <optimize.minimize-cobyla>`
+            - 'COBYQA'      :ref:`(see here) <optimize.minimize-cobyqa>`
             - 'SLSQP'       :ref:`(see here) <optimize.minimize-slsqp>`
             - 'trust-constr':ref:`(see here) <optimize.minimize-trustconstr>`
             - 'dogleg'      :ref:`(see here) <optimize.minimize-dogleg>`
@@ -110,18 +111,18 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
         parameters.
     bounds : sequence or `Bounds`, optional
         Bounds on variables for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell,
-        trust-constr, and COBYLA methods. There are two ways to specify the
-        bounds:
+        trust-constr, COBYLA, and COBYQA methods. There are two ways to specify
+        the bounds:
 
             1. Instance of `Bounds` class.
             2. Sequence of ``(min, max)`` pairs for each element in `x`. None
                is used to specify no bound.
 
     constraints : {Constraint, dict} or List of {Constraint, dict}, optional
-        Constraints definition. Only for COBYLA, SLSQP and trust-constr.
+        Constraints definition. Only for COBYLA, COBYQA, SLSQP and trust-constr.
 
-        Constraints for 'trust-constr' are defined as a single object or a
-        list of objects specifying constraints to the optimization problem.
+        Constraints for 'trust-constr' and 'cobyqa' are defined as a single object
+        or a list of objects specifying constraints to the optimization problem.
         Available constraints are:
 
             - `LinearConstraint`
@@ -142,6 +143,7 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
         Equality constraint means that the constraint function result is to
         be zero whereas inequality means that it is to be non-negative.
         Note that COBYLA only supports inequality constraints.
+
     tol : float, optional
         Tolerance for termination. When `tol` is specified, the selected
         minimization algorithm sets some relevant solver-specific tolerance(s)
@@ -166,7 +168,7 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
         All methods except TNC, SLSQP, and COBYLA support a callable with
         the signature:
 
-            ``callback(OptimizeResult: intermediate_result)``
+            ``callback(intermediate_result: OptimizeResult)``
 
         where ``intermediate_result`` is a keyword parameter containing an
         `OptimizeResult` with attributes ``x`` and ``fun``, the present values
@@ -299,6 +301,13 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
     constraints functions 'fun' may return either a single number
     or an array or list of numbers.
 
+    Method :ref:`COBYQA <optimize.minimize-cobyqa>` uses the Constrained
+    Optimization BY Quadratic Approximations (COBYQA) method [18]_. The
+    algorithm is a derivative-free trust-region SQP method based on quadratic
+    approximations to the objective function and each nonlinear constraint. The
+    bounds are treated as unrelaxable constraints, in the sense that the
+    algorithm always respects them throughout the optimization process.
+
     Method :ref:`SLSQP <optimize.minimize-slsqp>` uses Sequential
     Least SQuares Programming to minimize a function of several
     variables with any combination of bounds, equality and inequality
@@ -308,13 +317,13 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
     large floating values.
 
     Method :ref:`trust-constr <optimize.minimize-trustconstr>` is a
-    trust-region algorithm for constrained optimization. It swiches
+    trust-region algorithm for constrained optimization. It switches
     between two implementations depending on the problem definition.
     It is the most versatile constrained minimization algorithm
     implemented in SciPy and the most appropriate for large-scale problems.
     For equality constrained problems it is an implementation of Byrd-Omojokun
     Trust-Region SQP method described in [17]_ and in [5]_, p. 549. When
-    inequality constraints are imposed as well, it swiches to the trust-region
+    inequality constraints are imposed as well, it switches to the trust-region
     interior point method described in [16]_. This interior point algorithm,
     in turn, solves inequality constraints by introducing slack variables
     and solving a sequence of equality-constrained barrier problems
@@ -430,6 +439,10 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
     .. [17] Lalee, Marucha, Jorge Nocedal, and Todd Plantega. 1998. On the
         implementation of an algorithm for large-scale equality constrained
         optimization. SIAM Journal on Optimization 8.3: 682-706.
+    .. [18] Ragonneau, T. M. *Model-Based Derivative-Free Optimization Methods
+        and Software*. PhD thesis, Department of Applied Mathematics, The Hong
+        Kong Polytechnic University, Hong Kong, China, 2022. URL:
+        https://theses.lib.polyu.edu.hk/handle/200/12294.
 
     Examples
     --------
@@ -461,11 +474,13 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
     >>> print(res.message)
     Optimization terminated successfully.
     >>> res.hess_inv
-    array([[ 0.00749589,  0.01255155,  0.02396251,  0.04750988,  0.09495377],  # may vary
-           [ 0.01255155,  0.02510441,  0.04794055,  0.09502834,  0.18996269],
-           [ 0.02396251,  0.04794055,  0.09631614,  0.19092151,  0.38165151],
-           [ 0.04750988,  0.09502834,  0.19092151,  0.38341252,  0.7664427 ],
-           [ 0.09495377,  0.18996269,  0.38165151,  0.7664427,   1.53713523]])
+    array([
+        [ 0.00749589,  0.01255155,  0.02396251,  0.04750988,  0.09495377],  # may vary
+        [ 0.01255155,  0.02510441,  0.04794055,  0.09502834,  0.18996269],
+        [ 0.02396251,  0.04794055,  0.09631614,  0.19092151,  0.38165151],
+        [ 0.04750988,  0.09502834,  0.19092151,  0.38341252,  0.7664427 ],
+        [ 0.09495377,  0.18996269,  0.38165151,  0.7664427,   1.53713523]
+    ])
 
 
     Next, consider a minimization problem with several constraints (namely
@@ -494,7 +509,7 @@ def minimize(fun, x0, args=..., method=..., jac=..., hess=..., hessp=..., bounds
     ...
 
 def minimize_scalar(fun, bracket=..., bounds=..., args=..., method=..., tol=..., options=...): # -> OptimizeResult:
-    """Minimization of scalar function of one variable.
+    """Local minimization of scalar function of one variable.
 
     Parameters
     ----------
@@ -573,6 +588,12 @@ def minimize_scalar(fun, bracket=..., bounds=..., args=..., method=..., tol=...,
     Method :ref:`Bounded <optimize.minimize_scalar-bounded>` can
     perform bounded minimization [2]_ [3]_. It uses the Brent method to find a
     local minimum in the interval x1 < xopt < x2.
+
+    Note that the Brent and Golden methods do not guarantee success unless a
+    valid ``bracket`` triple is provided. If a three-point bracket cannot be
+    found, consider `scipy.optimize.minimize`. Also, all methods are intended
+    only for local minimization. When the function of interest has more than
+    one local minimum, consider :ref:`global_optimization`.
 
     **Custom minimizers**
 

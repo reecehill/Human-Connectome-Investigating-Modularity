@@ -68,7 +68,7 @@ class CanonicalConstraint:
     
 
 
-def initial_constraints_as_canonical(n, prepared_constraints, sparse_jacobian): # -> tuple[NDArray[Any] | NDArray[float64], NDArray[Any] | NDArray[float64], NDArray[Any] | Any | csr_matrix | csc_matrix | coo_matrix | NDArray[float64], NDArray[Any] | Any | csr_matrix | csc_matrix | coo_matrix | NDArray[float64]]:
+def initial_constraints_as_canonical(n, prepared_constraints, sparse_jacobian): # -> tuple[NDArray[Any] | NDArray[float64], NDArray[Any] | NDArray[float64], NDArray[Any] | Any | csr_matrix | NDArray[float64], NDArray[Any] | Any | csr_matrix | NDArray[float64]]:
     """Convert initial values of the constraints to the canonical format.
 
     The purpose to avoid one additional call to the constraints at the initial

@@ -6,6 +6,6 @@ __all__ = ['LinAlgError', 'LinAlgWarning', 'norm', 'get_blas_funcs', 'get_lapack
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

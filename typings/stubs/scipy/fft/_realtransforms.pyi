@@ -20,8 +20,8 @@ def dctn(x, type=..., s=..., axes=..., norm=..., overwrite_x=..., workers=..., *
         The shape of the result. If both `s` and `axes` (see below) are None,
         `s` is ``x.shape``; if `s` is None but `axes` is not None, then `s` is
         ``numpy.take(x.shape, axes, axis=0)``.
-        If ``s[i] > x.shape[i]``, the ith dimension is padded with zeros.
-        If ``s[i] < x.shape[i]``, the ith dimension is truncated to length
+        If ``s[i] > x.shape[i]``, the ith dimension of the input is padded with zeros.
+        If ``s[i] < x.shape[i]``, the ith dimension of the input is truncated to length
         ``s[i]``.
         If any element of `s` is -1, the size of the corresponding dimension of
         `x` is used.
@@ -83,8 +83,8 @@ def idctn(x, type=..., s=..., axes=..., norm=..., overwrite_x=..., workers=..., 
         The shape of the result.  If both `s` and `axes` (see below) are
         None, `s` is ``x.shape``; if `s` is None but `axes` is
         not None, then `s` is ``numpy.take(x.shape, axes, axis=0)``.
-        If ``s[i] > x.shape[i]``, the ith dimension is padded with zeros.
-        If ``s[i] < x.shape[i]``, the ith dimension is truncated to length
+        If ``s[i] > x.shape[i]``, the ith dimension of the input is padded with zeros.
+        If ``s[i] < x.shape[i]``, the ith dimension of the input is truncated to length
         ``s[i]``.
         If any element of `s` is -1, the size of the corresponding dimension of
         `x` is used.
@@ -146,8 +146,8 @@ def dstn(x, type=..., s=..., axes=..., norm=..., overwrite_x=..., workers=..., o
         The shape of the result.  If both `s` and `axes` (see below) are None,
         `s` is ``x.shape``; if `s` is None but `axes` is not None, then `s` is
         ``numpy.take(x.shape, axes, axis=0)``.
-        If ``s[i] > x.shape[i]``, the ith dimension is padded with zeros.
-        If ``s[i] < x.shape[i]``, the ith dimension is truncated to length
+        If ``s[i] > x.shape[i]``, the ith dimension of the input is padded with zeros.
+        If ``s[i] < x.shape[i]``, the ith dimension of the input is truncated to length
         ``s[i]``.
         If any element of `shape` is -1, the size of the corresponding dimension
         of `x` is used.
@@ -209,8 +209,8 @@ def idstn(x, type=..., s=..., axes=..., norm=..., overwrite_x=..., workers=..., 
         The shape of the result.  If both `s` and `axes` (see below) are None,
         `s` is ``x.shape``; if `s` is None but `axes` is not None, then `s` is
         ``numpy.take(x.shape, axes, axis=0)``.
-        If ``s[i] > x.shape[i]``, the ith dimension is padded with zeros.
-        If ``s[i] < x.shape[i]``, the ith dimension is truncated to length
+        If ``s[i] > x.shape[i]``, the ith dimension of the input is padded with zeros.
+        If ``s[i] < x.shape[i]``, the ith dimension of the input is truncated to length
         ``s[i]``.
         If any element of `s` is -1, the size of the corresponding dimension of
         `x` is used.
@@ -569,7 +569,7 @@ def dst(x, type=..., n=..., axis=..., norm=..., overwrite_x=..., workers=..., or
 
         y_k = 2 \sum_{n=0}^{N-1} x_n \sin\left(\frac{\pi(k+1)(2n+1)}{2N}\right)
 
-    If ``orthogonalize=True``, ``y[0]`` is divided :math:`\sqrt{2}` which, when
+    If ``orthogonalize=True``, ``y[-1]`` is divided :math:`\sqrt{2}` which, when
     combined with ``norm="ortho"``, makes the corresponding matrix of
     coefficients orthonormal (``O @ O.T = np.eye(N)``).
 
@@ -584,7 +584,7 @@ def dst(x, type=..., n=..., axis=..., norm=..., overwrite_x=..., workers=..., or
         y_k = (-1)^k x_{N-1} + 2 \sum_{n=0}^{N-2} x_n \sin\left(
         \frac{\pi(2k+1)(n+1)}{2N}\right)
 
-    If ``orthogonalize=True``, ``x[0]`` is multiplied by :math:`\sqrt{2}`
+    If ``orthogonalize=True``, ``x[-1]`` is multiplied by :math:`\sqrt{2}`
     which, when combined with ``norm="ortho"``, makes the corresponding matrix
     of coefficients orthonormal (``O @ O.T = np.eye(N)``).
 

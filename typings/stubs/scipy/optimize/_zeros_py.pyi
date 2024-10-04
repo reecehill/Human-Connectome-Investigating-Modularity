@@ -12,6 +12,7 @@ _ECONVERGED = ...
 _ESIGNERR = ...
 _ECONVERR = ...
 _EVALUEERR = ...
+_ECALLBACK = ...
 _EINPROGRESS = ...
 CONVERGED = ...
 SIGNERR = ...
@@ -34,17 +35,19 @@ class RootResults(OptimizeResult):
         True if the routine converged.
     flag : str
         Description of the cause of termination.
+    method : str
+        Root finding method used.
 
     """
-    def __init__(self, root, iterations, function_calls, flag) -> None:
+    def __init__(self, root, iterations, function_calls, flag, method) -> None:
         ...
     
 
 
-def results_c(full_output, r): # -> tuple[Any, RootResults]:
+def results_c(full_output, r, method): # -> tuple[Any, RootResults]:
     ...
 
-def newton(func, x0, fprime=..., args=..., tol=..., maxiter=..., fprime2=..., x1=..., rtol=..., full_output=..., disp=...): # -> result | NDArray[Any] | NDArray[floating[Any]] | tuple[ndarray[Any, dtype[Any]] | Any, RootResults] | tuple[Any, RootResults] | tuple[Any | NDArray[floating[Any]], RootResults]:
+def newton(func, x0, fprime=..., args=..., tol=..., maxiter=..., fprime2=..., x1=..., rtol=..., full_output=..., disp=...): # -> result | NDArray[Any] | NDArray[floating[Any]] | tuple[NDArray[floating[Any]] | Any, RootResults] | tuple[Any, RootResults]:
     """
     Find a root of a real or complex function using the Newton-Raphson
     (or secant or Halley's) method.
@@ -222,7 +225,7 @@ def newton(func, x0, fprime=..., args=..., tol=..., maxiter=..., fprime2=..., x1
     """
     ...
 
-def bisect(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults]:
+def bisect(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults] | Any:
     """
     Find root of a function within an interval using bisection.
 
@@ -296,7 +299,7 @@ def bisect(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., 
     """
     ...
 
-def ridder(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults]:
+def ridder(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults] | Any:
     """
     Find a root of a function in an interval using Ridder's method.
 
@@ -382,7 +385,7 @@ def ridder(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., 
     """
     ...
 
-def brentq(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults]:
+def brentq(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults] | Any:
     """
     Find a root of a function in a bracketing interval using Brent's method.
 
@@ -501,7 +504,7 @@ def brentq(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., 
     """
     ...
 
-def brenth(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults]:
+def brenth(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., disp=...): # -> tuple[Any, RootResults] | Any:
     """Find a root of a function in a bracketing interval using Brent's
     method with hyperbolic extrapolation.
 
@@ -509,7 +512,7 @@ def brenth(f, a, b, args=..., xtol=..., rtol=..., maxiter=..., full_output=..., 
     between the arguments a and b that uses hyperbolic extrapolation instead of
     inverse quadratic extrapolation. Bus & Dekker (1975) guarantee convergence
     for this method, claiming that the upper bound of function evaluations here
-    is 4 or 5 times lesser than that for bisection.
+    is 4 or 5 times that of bisection.
     f(a) and f(b) cannot have the same signs. Generally, on a par with the
     brent routine, but not as heavily tested. It is a safe version of the
     secant method that uses hyperbolic extrapolation.
@@ -740,6 +743,7 @@ def toms748(f, a, b, args=..., k=..., xtol=..., rtol=..., maxiter=..., full_outp
      function_calls: 11
          iterations: 5
                root: 1.0
+             method: toms748
     """
     ...
 

@@ -6,6 +6,6 @@ __all__ = ['SpecialFunctionWarning', 'SpecialFunctionError']
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

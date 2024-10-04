@@ -116,14 +116,16 @@ class multivariate_normal_gen(multi_rv_generic):
         Probability density function.
     logpdf(x, mean=None, cov=1, allow_singular=False)
         Log of the probability density function.
-    cdf(x, mean=None, cov=1, allow_singular=False, maxpts=1000000*dim, abseps=1e-5, releps=1e-5, lower_limit=None)  # noqa
+    cdf(x, mean=None, cov=1, allow_singular=False, maxpts=1000000*dim, abseps=1e-5, releps=1e-5, lower_limit=None)
         Cumulative distribution function.
     logcdf(x, mean=None, cov=1, allow_singular=False, maxpts=1000000*dim, abseps=1e-5, releps=1e-5)
         Log of the cumulative distribution function.
     rvs(mean=None, cov=1, size=1, random_state=None)
         Draw random samples from a multivariate normal distribution.
-    entropy()
+    entropy(mean=None, cov=1)
         Compute the differential entropy of the multivariate normal.
+    fit(x, fix_mean=None, fix_cov=None)
+        Fit a multivariate normal distribution to data.
 
     Parameters
     ----------
@@ -356,6 +358,31 @@ class multivariate_normal_gen(multi_rv_generic):
         Notes
         -----
         %(_mvn_doc_callparams_note)s
+
+        """
+        ...
+    
+    def fit(self, x, fix_mean=..., fix_cov=...): # -> tuple[Any, Any]:
+        """Fit a multivariate normal distribution to data.
+
+        Parameters
+        ----------
+        x : ndarray (m, n)
+            Data the distribution is fitted to. Must have two axes.
+            The first axis of length `m` represents the number of vectors
+            the distribution is fitted to. The second axis of length `n`
+            determines the dimensionality of the fitted distribution.
+        fix_mean : ndarray(n, )
+            Fixed mean vector. Must have length `n`.
+        fix_cov: ndarray (n, n)
+            Fixed covariance matrix. Must have shape `(n, n)`.
+
+        Returns
+        -------
+        mean : ndarray (n, )
+            Maximum likelihood estimate of the mean vector
+        cov : ndarray (n, n)
+            Maximum likelihood estimate of the covariance matrix
 
         """
         ...
@@ -719,6 +746,8 @@ class dirichlet_gen(multi_rv_generic):
         The mean of the Dirichlet distribution
     var(alpha)
         The variance of the Dirichlet distribution
+    cov(alpha)
+        The covariance of the Dirichlet distribution
     entropy(alpha)
         Compute the differential entropy of the Dirichlet distribution.
 
@@ -874,6 +903,20 @@ class dirichlet_gen(multi_rv_generic):
         """
         ...
     
+    def cov(self, alpha):
+        """Covariance matrix of the Dirichlet distribution.
+
+        Parameters
+        ----------
+        %(_dirichlet_doc_default_callparams)s
+
+        Returns
+        -------
+        cov : ndarray
+            The covariance matrix of the distribution.
+        """
+        ...
+    
     def entropy(self, alpha):
         """
         Differential entropy of the Dirichlet distribution.
@@ -890,7 +933,7 @@ class dirichlet_gen(multi_rv_generic):
         """
         ...
     
-    def rvs(self, alpha, size=..., random_state=...): # -> ndarray[Any, dtype[float64]]:
+    def rvs(self, alpha, size=..., random_state=...): # -> NDArray[float64]:
         """
         Draw random samples from a Dirichlet distribution.
 
@@ -929,10 +972,13 @@ class dirichlet_frozen(multi_rv_frozen):
     def var(self):
         ...
     
+    def cov(self):
+        ...
+    
     def entropy(self):
         ...
     
-    def rvs(self, size=..., random_state=...): # -> ndarray[Any, dtype[float64]]:
+    def rvs(self, size=..., random_state=...): # -> NDArray[float64]:
         ...
     
 
@@ -1108,7 +1154,7 @@ class wishart_gen(multi_rv_generic):
         """
         ...
     
-    def mean(self, df, scale): # -> ndarray[Any, dtype[bool_]] | ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
+    def mean(self, df, scale): # -> ndarray[Any, dtype[bool]] | ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
         """Mean of the Wishart distribution.
 
         Parameters
@@ -1139,7 +1185,7 @@ class wishart_gen(multi_rv_generic):
         """
         ...
     
-    def var(self, df, scale): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]]:
+    def var(self, df, scale): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
         """Variance of the Wishart distribution.
 
         Parameters
@@ -1166,8 +1212,8 @@ class wishart_gen(multi_rv_generic):
         Returns
         -------
         rvs : ndarray
-            Random variates of shape (`size`) + (`dim`, `dim), where `dim` is
-            the dimension of the scale matrix.
+            Random variates of shape (`size`) + (``dim``, ``dim``), where
+            ``dim`` is the dimension of the scale matrix.
 
         Notes
         -----
@@ -1225,13 +1271,13 @@ class wishart_frozen(multi_rv_frozen):
     def pdf(self, x): # -> Any:
         ...
     
-    def mean(self): # -> ndarray[Any, dtype[bool_]] | ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
+    def mean(self): # -> ndarray[Any, dtype[bool]] | ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
         ...
     
     def mode(self): # -> None:
         ...
     
-    def var(self): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]]:
+    def var(self): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]] | ndarray[Any, dtype[signedinteger[Any]]] | Any:
         ...
     
     def rvs(self, size=..., random_state=...): # -> ndarray[Any, dtype[float64]]:
@@ -1311,6 +1357,10 @@ class invwishart_gen(wishart_gen):
     inverse Gamma distribution with parameters shape = :math:`\frac{\nu}{2}`
     and scale = :math:`\frac{1}{2}`.
 
+    Instead of inverting a randomly generated Wishart matrix as described in [2],
+    here the algorithm in [4] is used to directly generate a random inverse-Wishart
+    matrix without inversion.
+
     .. versionadded:: 0.16.0
 
     References
@@ -1323,6 +1373,8 @@ class invwishart_gen(wishart_gen):
     .. [3] Gupta, M. and Srivastava, S. "Parametric Bayesian Estimation of
            Differential Entropy and Relative Entropy". Entropy 12, 818 - 843.
            2010.
+    .. [4] S.D. Axen, "Efficiently generating inverse-Wishart matrices and
+           their Cholesky factors", :arXiv:`2310.15884v1`. 2023.
 
     Examples
     --------
@@ -1424,7 +1476,7 @@ class invwishart_gen(wishart_gen):
         """
         ...
     
-    def mode(self, df, scale): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]]:
+    def mode(self, df, scale): # -> Any:
         """Mode of the inverse Wishart distribution.
 
         Parameters
@@ -1469,8 +1521,8 @@ class invwishart_gen(wishart_gen):
         Returns
         -------
         rvs : ndarray
-            Random variates of shape (`size`) + (`dim`, `dim), where `dim` is
-            the dimension of the scale matrix.
+            Random variates of shape (`size`) + (``dim``, ``dim``), where
+            ``dim`` is the dimension of the scale matrix.
 
         Notes
         -----
@@ -1514,7 +1566,7 @@ class invwishart_frozen(multi_rv_frozen):
     def mean(self): # -> None:
         ...
     
-    def mode(self): # -> ndarray[Any, dtype[complexfloating[Any, Any]]] | ndarray[Any, dtype[floating[Any]]]:
+    def mode(self): # -> Any:
         ...
     
     def var(self): # -> None:
@@ -1741,7 +1793,7 @@ class multinomial_gen(multi_rv_generic):
         """
         ...
     
-    def rvs(self, n, p, size=..., random_state=...): # -> ndarray[Any, dtype[int64]] | ndarray[Any, dtype[int_]]:
+    def rvs(self, n, p, size=..., random_state=...): # -> NDArray[int64] | NDArray[long]:
         """Draw random samples from a Multinomial distribution.
 
         Parameters
@@ -1800,7 +1852,7 @@ class multinomial_frozen(multi_rv_frozen):
     def entropy(self): # -> NDArray[Any]:
         ...
     
-    def rvs(self, size=..., random_state=...): # -> ndarray[Any, dtype[int64]] | ndarray[Any, dtype[int_]]:
+    def rvs(self, size=..., random_state=...): # -> NDArray[int64] | NDArray[long]:
         ...
     
 
@@ -2237,7 +2289,7 @@ class unitary_group_gen(multi_rv_generic):
     Parameters
     ----------
     dim : scalar
-        Dimension of matrices
+        Dimension of matrices, must be greater than 1.
     seed : {None, int, np.random.RandomState, np.random.Generator}, optional
         Used for drawing random variates.
         If `seed` is `None`, the `~np.random.RandomState` singleton is used.
@@ -2402,9 +2454,9 @@ class multivariate_t_gen(multi_rv_generic):
 
     References
     ----------
-    [1]     Arellano-Valle et al. "Shannon Entropy and Mutual Information for
-            Multivariate Skew-Elliptical Distributions". Scandinavian Journal
-            of Statistics. Vol. 40, issue 1.
+    .. [1] Arellano-Valle et al. "Shannon Entropy and Mutual Information for
+           Multivariate Skew-Elliptical Distributions". Scandinavian Journal
+           of Statistics. Vol. 40, issue 1.
 
     Examples
     --------
@@ -2594,6 +2646,7 @@ class multivariate_t_frozen(multi_rv_frozen):
         Examples
         --------
         >>> import numpy as np
+        >>> from scipy.stats import multivariate_t
         >>> loc = np.zeros(3)
         >>> shape = np.eye(3)
         >>> df = 10
@@ -2741,7 +2794,7 @@ class multivariate_hypergeom_gen(multi_rv_generic):
            http://www.randomservices.org/random/urn/MultiHypergeometric.html
     .. [2] Thomas J. Sargent and John Stachurski, 2020,
            Multivariate Hypergeometric Distribution
-           https://python.quantecon.org/_downloads/pdf/multi_hyper.pdf
+           https://python.quantecon.org/multi_hyper.html
     """
     def __init__(self, seed=...) -> None:
         ...
@@ -3447,7 +3500,7 @@ class dirichlet_multinomial_gen(multi_rv_generic):
         """
         ...
     
-    def mean(self, alpha, n): # -> NDArray[float64]:
+    def mean(self, alpha, n): # -> NDArray[Any]:
         """Mean of a Dirichlet multinomial distribution.
 
         Parameters
@@ -3462,7 +3515,7 @@ class dirichlet_multinomial_gen(multi_rv_generic):
         """
         ...
     
-    def var(self, alpha, n): # -> NDArray[floating[Any]]:
+    def var(self, alpha, n): # -> NDArray[float64]:
         """The variance of the Dirichlet multinomial distribution.
 
         Parameters
@@ -3506,10 +3559,10 @@ class dirichlet_multinomial_frozen(multi_rv_frozen):
     def pmf(self, x): # -> Any:
         ...
     
-    def mean(self): # -> NDArray[float64]:
+    def mean(self): # -> NDArray[Any]:
         ...
     
-    def var(self): # -> NDArray[floating[Any]]:
+    def var(self): # -> NDArray[float64]:
         ...
     
     def cov(self): # -> NDArray[floating[Any]]:
@@ -3591,7 +3644,7 @@ class vonmises_fisher_gen(multi_rv_generic):
     direction :math:`\mathbf{\mu}`.
 
     In dimensions 2 and 3, specialized algorithms are used for fast sampling
-    [2]_, [3]_. For dimenions of 4 or higher the rejection sampling algorithm
+    [2]_, [3]_. For dimensions of 4 or higher the rejection sampling algorithm
     described in [4]_ is utilized. This implementation is partially based on
     the geomstats package [5]_, [6]_.
 

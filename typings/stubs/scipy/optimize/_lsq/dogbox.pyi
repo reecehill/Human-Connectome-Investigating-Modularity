@@ -44,7 +44,7 @@ References
             Mathematics, Corfu, Greece, 2004.
 .. [NumOpt] J. Nocedal and S. J. Wright, "Numerical optimization, 2nd edition".
 """
-def lsmr_operator(Jop, d, active_set): # -> LinearOperator:
+def lsmr_operator(Jop, d, active_set):
     """Compute LinearOperator to use in LSMR by dogbox algorithm.
 
     `active_set` mask is used to excluded active variables from computations
@@ -68,7 +68,7 @@ def find_intersection(x, tr_bounds, lb, ub): # -> tuple[Any, Any, Any, Any, Any,
     """
     ...
 
-def dogleg_step(x, newton_step, g, a, b, tr_bounds, lb, ub): # -> tuple[Any, NDArray[Any], Literal[False]] | tuple[Any, NDArray[Any], bool_]:
+def dogleg_step(x, newton_step, g, a, b, tr_bounds, lb, ub): # -> tuple[Any, NDArray[Any], Literal[False]] | tuple[Any, NDArray[Any], bool]:
     """Find dogleg step in a rectangular region.
 
     Returns

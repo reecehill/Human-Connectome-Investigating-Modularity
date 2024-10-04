@@ -55,7 +55,7 @@ def set_global_backend(backend, coerce=..., only=..., try_last=...): # -> None:
     We can set the global fft backend:
 
     >>> from scipy.fft import fft, set_global_backend
-    >>> set_global_backend("scipy")  # Sets global backend. "scipy" is the default backend.
+    >>> set_global_backend("scipy")  # Sets global backend (default is "scipy").
     >>> fft([1])  # Calls the global backend
     array([1.+0.j])
     """
@@ -90,14 +90,16 @@ def register_backend(backend): # -> None:
     ...          return NotImplemented
     >>> set_global_backend(NoopBackend())  # Set the invalid backend as global
     >>> register_backend("scipy")  # Register a new backend
-    >>> fft([1])  # The registered backend is called because the global backend returns `NotImplemented`
+    # The registered backend is called because
+    # the global backend returns `NotImplemented`
+    >>> fft([1])
     array([1.+0.j])
     >>> set_global_backend("scipy")  # Restore global backend to default
 
     """
     ...
 
-def set_backend(backend, coerce=..., only=...):
+def set_backend(backend, coerce=..., only=...): # -> ...:
     """Context manager to set the backend within a fixed scope.
 
     Upon entering the ``with`` statement, the given backend will be added to
@@ -127,7 +129,7 @@ def set_backend(backend, coerce=..., only=...):
     """
     ...
 
-def skip_backend(backend):
+def skip_backend(backend): # -> ...:
     """Context manager to skip a backend within a fixed scope.
 
     Within the context of a ``with`` statement, the given backend will not be

@@ -34,11 +34,11 @@ class _AProd:
         ...
     
     @property
-    def shape(self): # -> tuple[Any, ...]:
+    def shape(self):
         ...
     
     @property
-    def dtype(self): # -> dtype[Any]:
+    def dtype(self):
         ...
     
 

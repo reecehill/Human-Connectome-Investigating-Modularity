@@ -7,7 +7,7 @@ from scipy.sparse.linalg._interface import LinearOperator
 """
 Sparse matrix functions
 """
-__all__ = ['expm', 'inv']
+__all__ = ['expm', 'inv', 'matrix_power']
 UPPER_TRIANGULAR = ...
 def inv(A):
     """
@@ -36,11 +36,11 @@ def inv(A):
     >>> A = csc_matrix([[1., 0.], [1., 2.]])
     >>> Ainv = inv(A)
     >>> Ainv
-    <2x2 sparse matrix of type '<class 'numpy.float64'>'
-        with 3 stored elements in Compressed Sparse Column format>
+    <Compressed Sparse Column sparse matrix of dtype 'float64'
+        with 3 stored elements and shape (2, 2)>
     >>> A.dot(Ainv)
-    <2x2 sparse matrix of type '<class 'numpy.float64'>'
-        with 2 stored elements in Compressed Sparse Column format>
+    <Compressed Sparse Column sparse matrix of dtype 'float64'
+        with 2 stored elements and shape (2, 2)>
     >>> A.dot(Ainv).toarray()
     array([[ 1.,  0.],
            [ 0.,  1.]])
@@ -137,19 +137,19 @@ class _ExpmPadeHelper:
         ...
     
     @property
-    def d4_loose(self): # -> floating[Any] | Any:
+    def d4_loose(self): # -> floating[Any]:
         ...
     
     @property
-    def d6_loose(self): # -> floating[Any] | Any:
+    def d6_loose(self): # -> floating[Any]:
         ...
     
     @property
-    def d8_loose(self): # -> floating[Any] | Any:
+    def d8_loose(self): # -> floating[Any]:
         ...
     
     @property
-    def d10_loose(self): # -> floating[Any] | Any:
+    def d10_loose(self): # -> floating[Any]:
         ...
     
     def pade3(self): # -> tuple[Any, Any]:
@@ -207,12 +207,67 @@ def expm(A):
            [0, 0, 3]], dtype=int64)
     >>> Aexp = expm(A)
     >>> Aexp
-    <3x3 sparse matrix of type '<class 'numpy.float64'>'
-        with 3 stored elements in Compressed Sparse Column format>
+    <Compressed Sparse Column sparse matrix of dtype 'float64'
+        with 3 stored elements and shape (3, 3)>
     >>> Aexp.toarray()
     array([[  2.71828183,   0.        ,   0.        ],
            [  0.        ,   7.3890561 ,   0.        ],
            [  0.        ,   0.        ,  20.08553692]])
+    """
+    ...
+
+def matrix_power(A, power):
+    """
+    Raise a square matrix to the integer power, `power`.
+
+    For non-negative integers, ``A**power`` is computed using repeated
+    matrix multiplications. Negative integers are not supported. 
+
+    Parameters
+    ----------
+    A : (M, M) square sparse array or matrix
+        sparse array that will be raised to power `power`
+    power : int
+        Exponent used to raise sparse array `A`
+
+    Returns
+    -------
+    A**power : (M, M) sparse array or matrix
+        The output matrix will be the same shape as A, and will preserve
+        the class of A, but the format of the output may be changed.
+    
+    Notes
+    -----
+    This uses a recursive implementation of the matrix power. For computing
+    the matrix power using a reasonably large `power`, this may be less efficient
+    than computing the product directly, using A @ A @ ... @ A.
+    This is contingent upon the number of nonzero entries in the matrix. 
+
+    .. versionadded:: 1.12.0
+
+    Examples
+    --------
+    >>> from scipy import sparse
+    >>> A = sparse.csc_array([[0,1,0],[1,0,1],[0,1,0]])
+    >>> A.todense()
+    array([[0, 1, 0],
+           [1, 0, 1],
+           [0, 1, 0]])
+    >>> (A @ A).todense()
+    array([[1, 0, 1],
+           [0, 2, 0],
+           [1, 0, 1]])
+    >>> A2 = sparse.linalg.matrix_power(A, 2)
+    >>> A2.todense()
+    array([[1, 0, 1],
+           [0, 2, 0],
+           [1, 0, 1]])
+    >>> A4 = sparse.linalg.matrix_power(A, 4)
+    >>> A4.todense()
+    array([[2, 0, 2],
+           [0, 4, 0],
+           [2, 0, 2]])
+
     """
     ...
 

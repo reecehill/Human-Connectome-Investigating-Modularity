@@ -196,7 +196,7 @@ class HalfspaceIntersection(_QhullUser):
         ...
     
     @property
-    def dual_vertices(self) -> NDArray[np.int_]:
+    def dual_vertices(self) -> NDArray[np.integer]:
         ...
     
 

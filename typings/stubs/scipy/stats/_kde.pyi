@@ -371,7 +371,7 @@ class gaussian_kde:
         ...
     
     @property
-    def inv_cov(self):
+    def inv_cov(self): # -> NDArray[floating[Any]] | NDArray[complexfloating[Any, Any]] | Any:
         ...
     
     def pdf(self, x):
@@ -415,11 +415,11 @@ class gaussian_kde:
         ...
     
     @property
-    def weights(self): # -> NDArray[floating[Any]]:
+    def weights(self): # -> Any:
         ...
     
     @property
-    def neff(self): # -> floating[Any]:
+    def neff(self):
         ...
     
 

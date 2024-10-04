@@ -6,6 +6,6 @@ __all__ = ['label', 'find_objects', 'labeled_comprehension', 'sum', 'mean', 'var
 def __dir__(): # -> list[str]:
     ...
 
-def __getattr__(name): # -> Any:
+def __getattr__(name): # -> Any | None:
     ...
 

@@ -125,8 +125,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
 
     # Prepare results storage
-    results_x_truth_with_range: list[tuple[Union[Float,str]]] = []
-    results_y_truth_with_range: list[tuple[Union[Float,str]]] = []
+    results_x_truth_with_range: list[tuple[str, Float, Float, Float, str, str]] = []
+    results_y_truth_with_range: list[tuple[str, Float, Float, Float, str, str]] = []
 
     # Run tests for X as truth
     for test_name, test_func in test_functions_with_range:
@@ -147,7 +147,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                 y_final
                 )
 
-            newResult: tuple[Union[Float,str]] = (
+            newResult: tuple[str, Float, Float, Float, str, str] = (
                 test_name, 
                 score_x_defined, 
                 score_x_imported_random_y, 
@@ -157,6 +157,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
             )
             
             results_x_truth_with_range.append(newResult)
+
         except Exception as e:
             print(f"Error running {test_name} with x as truth: {e}")
 
@@ -194,7 +195,6 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
     # For tests not requiring truth, take x.
     df_x_truth_with_range, df_y_truth_with_range, df_no_truth_with_range = convertResultsToDataFrames(results_x_truth_with_range, results_y_truth_with_range)
 
-    
     # Write results to Excel
     with pd.ExcelWriter(path=pathToOutputtedXlsx, engine='xlsxwriter') as writer:
         df_x_truth_with_range.to_excel(writer, sheet_name='X as Truth', index=False)

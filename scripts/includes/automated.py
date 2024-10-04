@@ -56,7 +56,7 @@ SUBJECT_STAT_DIR: Path = Path()
 # [START] EXECUTABLE PATHS
 # ----------
 def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
-  if(userSubmitted is None or userSubmitted is ""):
+  if(userSubmitted == None or userSubmitted == ""):
     pathToExecutable =  \
       which(executable) or \
       getoutput(f"find $HOME -wholename '*/{executable}/*' -name '{executableAlias}' -type f -executable") or \
@@ -82,7 +82,7 @@ def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, 
 
 
 def getSpmDir(userSubmitted: str = "") -> Path:
-  if (userSubmitted is ""):
+  if (userSubmitted == ""):
     try:
       return (Path.home() / "spm12").resolve(strict=True)
     except Exception:

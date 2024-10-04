@@ -12,13 +12,13 @@ load(fileToLoad, ...
 
 if strcmp(downsample,'no') % method for no downsample
     faceROI_L=hi_faceROIidL(:,1);
-    faceROI_R=hi_faceROIidR(:,1);
+    %faceROI_R=hi_faceROIidR(:,1);
     labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_faceROIidSubCor];
     %faceROI_L=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_faceROIidSubCor+length(filenames)];
 else
     labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_faceROIidSubCor];
     faceROI_L=lo_faceROIidL(:,1);
-    faceROI_R=lo_faceROIidR(:,1);
+    %faceROI_R=lo_faceROIidR(:,1);
     %faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_faceROIidSubCor+length(filenames)];
 end
 
@@ -44,15 +44,13 @@ for conditionIndex=1:length(conditions)
     % Left hemisphere functional modules
     [moduleFacevert_L ,moduleFacevert_R, ~] = getModuleByFaceVertex(pathToFile,subject,upper(condition));
 
-    minModule_L = min(cat(1,moduleFacevert_L.id));
-    maxModule_L = max(cat(1,moduleFacevert_L.id));
-    [lo_faceModuleL,~] = loopROIAndAssignLabels(minModule_L, maxModule_L, lo_glpfaces, moduleFacevert_L);
+    allModules_L = unique(cat(1,moduleFacevert_L.id));
+    [lo_faceModuleL,~] = loopROIAndAssignLabels(1, length(allModules_L), lo_glpfaces, moduleFacevert_L);
     lo_faceModuleL = lo_faceModuleL(:,4);
 
     % Right hemisphere functional modules
-    minModule_R = min(cat(1,moduleFacevert_R.id));
-    maxModule_R = max(cat(1,moduleFacevert_R.id));
-    [lo_faceModuleR,~] = loopROIAndAssignLabels(minModule_R, maxModule_R, lo_grpfaces, moduleFacevert_R);
+    allModules_R = unique(cat(1,moduleFacevert_R.id));
+    [lo_faceModuleR,~] = loopROIAndAssignLabels(1,  length(allModules_R), lo_grpfaces, moduleFacevert_R);
     lo_faceModuleR = lo_faceModuleR(:,4);
 
 

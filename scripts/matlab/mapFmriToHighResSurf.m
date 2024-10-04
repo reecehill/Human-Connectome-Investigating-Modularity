@@ -22,7 +22,7 @@ disp('Mapping fMRI (32k) to high-res surface')
 disp(['Type: ' num2str(type) ' (' class(type) ')'])
 
 disp('loading labelSRF.mat');
-fileToLoad=[pathToFile,'/',subjectId,'/labelSRF.mat'];
+fileToLoad=[pathToFile,'/labelSRF.mat'];
 
 if strcmp(downsample,'yes')
     load(fileToLoad, "nfl","nfr","nvl","nvr"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"

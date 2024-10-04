@@ -13,14 +13,12 @@ function [facesROI,faceToNodeMap] = loopROIAndAssignLabels(ROI_startIndex, ROI_e
         faceToNodeMap(:,1) = 1:1:length(faces);
 
 
-        allRois = unique([ROIfacevert(:).id]);
-        firstRoiIndex = find(allRois==ROI_startIndex);
-        lastRoiIndexx = find(allRois==ROI_endIndex);
+        %allRois = unique([ROIfacevert(:).id]);
         minNOfSharedNodes = 2;
         maxNOfSharedNodes = 3; % As a triangle has 3 nodes.
 
-        for roiIndex=firstRoiIndex:lastRoiIndexx
-            roiName = allRois(roiIndex);
+        for roiIndex=ROI_startIndex:ROI_endIndex
+            % roiName = allRois(roiIndex);
             nodeIds = ROIfacevert(roiIndex).faces(:,1);
 
             % Get the faces attached to these nodes
@@ -43,11 +41,11 @@ function [facesROI,faceToNodeMap] = loopROIAndAssignLabels(ROI_startIndex, ROI_e
                 faceToNodeMap(attachedFaces(faceIdsSetWithNodeValue,2),2+1) = faces(attachedFaces(faceIdsSetWithNodeValue,2),2);
                 faceToNodeMap(attachedFaces(faceIdsSetWithNodeValue,3),3+1) = faces(attachedFaces(faceIdsSetWithNodeValue,3),3);
                 
-               
+
 
                 %% Set variables.
                 % Face id to include roi.
-                facesROI(faceIdsSetWithNodeValue,4) = roiName;
+                facesROI(faceIdsSetWithNodeValue,4) = roiIndex;
             end
 
         end     

@@ -22,7 +22,7 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 DSI_STUDIO_TRACKING_METHOD = 0 # 0:streamline (default), 1:rk4 
 DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 50000
+DSI_STUDIO_FIBRE_COUNT = 500000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -67,10 +67,10 @@ PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = True
-RUN_CALC_FUNC_MODULARITY = True
-RUN_CALC_STRUC_MODULARITY= True
-RUN_MAPPING = True
+RUN_PROCESS_TRACTOGRAPHY = False
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY= False
+RUN_MAPPING = False
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -95,8 +95,8 @@ DESIRED_FMRI_MAPS: "list[str]" = [
   '$subjectId$_tfMRI_MOTOR_level2_LH_hp200_s2_MSMAll',
   '$subjectId$_tfMRI_MOTOR_level2_RH_hp200_s2_MSMAll',
   '$subjectId$_tfMRI_MOTOR_level2_T_hp200_s2_MSMAll'] # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
-CLUSTER_THRESHOLD: float = 90 # fMRI values above this percentile will indicate a cluster.
-CLUSTER_MIN_AREA: float = 5.0 # in mm
+CLUSTER_THRESHOLD: float = 95 # fMRI values above this percentile will indicate a cluster.
+CLUSTER_MIN_AREA: float = 5.0 # fMRI values above this area (mm) will indicate a cluster.
 # ----------
 # [END] FMRI PARAMETERS
 # ----------
@@ -160,7 +160,18 @@ IMAGES = {
         }
     },
   },
-  "DIFFUSION" : {}, # TODO: #Not used
+  "DIFFUSION" : {
+    "STANDARD_RES" : {
+      "DATA": {
+        "FOLDER": "",
+        "PATH": ""
+        },
+      "NODIF_BRAIN_MASK": {
+        "FOLDER": "T1w/Diffusion/",
+        "PATH": "nodif_brain_mask.nii.gz" # This is just used to get an image of same dimensions as diffusion data (its filesize is KB)!
+      }
+      }
+    },
   "T1w": {
     "STANDARD_RES": {
       "MASKS": {

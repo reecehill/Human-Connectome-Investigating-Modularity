@@ -114,7 +114,7 @@ def convertMatlabDataToPython(subjectId: str) -> bool:
   return True
 
 def getComputedMatrix(subjectId: str, weighted_matrix: str) -> spmatrix:
-   # Get computed adjacency matrix
+  # Get computed adjacency matrix
   matrices = loadmat(config.SUBJECT_DIR / 'matrices.mat') # type: ignore
   matrix: spmatrix = matrices[weighted_matrix]  # variable in mat file 
   return matrix

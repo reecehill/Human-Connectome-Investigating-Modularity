@@ -8,8 +8,9 @@ import string
 from scipy.stats import mode
 from includes.statistics import test_ranges, test_functions_with_range, generate_interpretation, convertResultsToDataFrames
 from pathlib import Path
-
 from includes.statistics.testVariables import Float
+from random import shuffle
+
 
 def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputtedXlsx: Path) -> None:
     # Function to generate a random word
@@ -24,10 +25,13 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
     # Padding/smoothing function
     def enlarge_mask_with_mode_priority(mask: "pd.Series[int]", n: int, mode_method: str):
-        padded_mask = mask.copy(deep=True)
-        possibleIndexes = padded_mask.index
-        valueCounts = padded_mask.value_counts().drop([-1], errors='ignore')
-        for idx in possibleIndexes:
+        if n == 1:
+            # No padding needed
+            return mask
+        padded_mask: pd.Series[int] = mask.copy(deep=True).sample(frac=1) # random
+        possibleIndexes: pd.Index[Any] = padded_mask.index
+        valueCounts: pd.Series[int] = padded_mask.value_counts().drop([-1], errors='ignore')
+        for idx in possibleIndexes: 
             # Define window for smoothing
             start_window = max(0, idx - n)
             end_window = min(possibleIndexes.max(), idx + n + 1)
@@ -47,8 +51,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                 if(pd.Series(currentModules == -1).all()):
                     mode_value = -1
                 else:
-                    modulesBySize = valueCounts[currentModules[currentModules != -1]]
-                    largestModule = modulesBySize.idxmax()
+                    modulesBySize: "pd.Series[int]" = valueCounts[currentModules[currentModules != -1]]
+                    largestModule: float = float(modulesBySize.idxmax())
                     mode_value = largestModule
             else:
                 raise ValueError(f'Invalid mode_method: {mode_method}. Expected "window" or "roi".')
@@ -61,33 +65,39 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
     # Cleaning data to exclude NaN values
     def switch(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
-        idsOfNonNan: pd.Series = (x > 0) & (y > 0) # All modules begin counting from 1 onwards.
         x_out: pd.Series
         y_out: pd.Series
-        print(f'n of structural modules: {len(x.unique())}')
-        print(f'n of functional modules: {len(y.unique())}')
         if(nan_handler == 'mask'):
+            idsOfNonNan = (x > 0) & (y > 1) # All modules begin counting from 1 onwards.
             x_out = x[idsOfNonNan]
             y_out = y[idsOfNonNan]
         elif(nan_handler == 'ffill'):
-            y_out = y.ffill().bfill()
-            x_out = x.ffill().bfill()
-        elif(nan_handler == 'smoothed'):
-            y_smoothed = y.fillna(value=int(-1), axis=0, inplace=False)
-            y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=2, mode_method='roi')
+            x_filled = x.replace(-1,np.nan).ffill(limit=1).bfill(limit=1)
+            
+            y_filled = y.replace(to_replace=[-1,0,1],value=np.nan).ffill(limit=2,limit_area="inside").bfill(limit=2,limit_area="inside") # type: ignore
+
+            x_out, y_out = x_filled, y_filled
+            
+        elif(nan_handler == 'smoothed'):         
+            x_filtered, y_filtered = switch("mask", x, y)
+            
+            y_smoothed = y_filtered.fillna(value=int(-1), axis=0, inplace=False)
+            y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=0, mode_method='roi')
             y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=1, mode_method='window')
-            y_filtered = y_smoothed[idsOfNonNan]
-            y_out = y_filtered
-            x_smoothed = x.fillna(value=int(-1), axis=0, inplace=False)
-            x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=1, mode_method='window')
-            x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=1, mode_method='roi')
-            x_filtered = x_smoothed[idsOfNonNan]
-            x_out = x_filtered
+            
+            x_smoothed = x_filtered.fillna(value=int(-1), axis=0, inplace=False)
+            x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=0, mode_method='window')
+            x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=5, mode_method='roi')
+            
+
+            x_out, y_out = x_filtered, y_filtered
         else:
             raise ValueError(f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill" or "smoothed".')
-        print(f'n of structural modules (post-{nan_handler}): {len(x_out.unique())}')
-        print(f'n of functional modules (post-{nan_handler}): {len(y_out.unique())}')
+        diffInStrucAndFnModules: int = len(x_out.unique()) - len(y_out.unique())
+        print(f'Struc. modules: #{len(x.unique())} -> #{len(x_out.unique())} | Fn modules: #{len(y.unique())} -> #{len(y_out.unique())} (post-{nan_handler}) ['+'{0:{1}}'.format(diffInStrucAndFnModules, '+' if diffInStrucAndFnModules else '')+']')
+
         return x_out, y_out
+
 
     def convertNumericalModuleToWords(xory: "Union[pd.Series[int],npt.NDArray[np.int8]]") -> "pd.Series[str]":
         # Step 1: Get unique labels in x and y
@@ -117,8 +127,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
         return x_as_words, y_as_words
 
-    # Mask, or smooth module names.
-    x_clean, y_clean = switch(nan_handler="mask", x=x, y=y)
+    # Mask, or smoothed module names.
+    x_clean, y_clean = switch(nan_handler="smoothed", x=x, y=y)
 
     # For absolute confidence that Python is not converting strings to integers, convert labels to random words.
     x_final, y_final = convertNumericalModulesToWords(x_clean, y_clean)
@@ -189,6 +199,14 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
             ))
         except Exception as e:
             print(f"Error running {test_name} with y as truth: {e}")
+            results_y_truth_with_range.append((
+                f'{test_name} - failed', 
+                np.nan, 
+                np.nan, 
+                np.nan, 
+                generate_interpretation(test_name, np.nan),
+                test_ranges[test_name]
+            ))
 
         # Convert results to DataFrames
 

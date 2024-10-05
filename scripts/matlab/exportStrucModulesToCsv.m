@@ -1,6 +1,6 @@
 function [] = exportStrucModulesToCsv(pathToFile,subject,downsample)
 
-disp('loading modules.mat');
+disp('loading optimal_struc_modules.mat');
 useROI = true;
 fileToLoad=[pathToFile,'/optimal_struc_modules.mat'];
 load(fileToLoad, ...
@@ -98,11 +98,15 @@ modulesByFace.right_structural_modulesByROIId(rightNaNValues,2) = -1;
 % Convert to string and drop index.
 modulesByFace.left_structural_modulesByROIId = string(modulesByFace.left_structural_modulesByROIId(:,2));
 modulesByFace.right_structural_modulesByROIId = string(modulesByFace.right_structural_modulesByROIId(:,2));
+modulesByFace.left_structural_modulesByAllId = string(modulesByFace.left_structural_modulesByAllId(:,2));
+modulesByFace.right_structural_modulesByAllId = string(modulesByFace.right_structural_modulesByAllId(:,2));
+
+
 
 writematrix(modulesByFace.left_structural_modulesByROIId',[pathToFile,'/exported_modules/left_structural_modules.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
 writematrix(modulesByFace.right_structural_modulesByROIId',[pathToFile,'/exported_modules/right_structural_modules.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
-writematrix(modulesByFace.left_structural_modulesByAllId(:,2)',[pathToFile,'/exported_modules/all_left_structural_modules.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
-writematrix(modulesByFace.right_structural_modulesByAllId(:,2)',[pathToFile,'/exported_modules/all_right_structural_modules.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(modulesByFace.left_structural_modulesByAllId',[pathToFile,'/exported_modules/all_left_structural_modules.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(modulesByFace.right_structural_modulesByAllId',[pathToFile,'/exported_modules/all_right_structural_modules.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
 
 
 % Additionally, write centroid coordinates to csv.

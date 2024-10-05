@@ -178,7 +178,7 @@ def trackFibres(subjectId: str) -> bool:
 
     if(config.DSI_STUDIO_USE_RECONST == False):
       cmd = cmd + [
-                 f'--other_slices={Path(t1wFile).resolve(True)}'
+        f'--other_slices={Path(t1wFile).resolve(True)}'
       ]
 
     # Limit tracks to only those that pass through the precentral gyri.
@@ -186,18 +186,18 @@ def trackFibres(subjectId: str) -> bool:
     rhTractFile: str = destinationFile.replace("/1m","/"+"R_"+"1m")
     if (config.DSI_STUDIO_USE_ROI):
       if(config.NORMALISE_TO_MNI152):
-        lhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
-        rhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
+        lhRoiFilePath_dti: Path = Path(str(config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]).replace(".nii.gz",".dti_space.nii.gz")).resolve(strict=True)
+        rhRoiFilePath_dti: Path = Path(str(config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]).replace(".nii.gz",".dti_space.nii.gz")).resolve(strict=True)
 
         #Run command on left hemisphere.
         lhCmd = cmd.copy()
         lhCmd = lhCmd + [
-           f'--tip_iteration=16',
-           f'--output={lhTractFile}',
+          f'--tip_iteration=16',
+          f'--output={lhTractFile}',
           # f'--lim={roiFile.resolve(strict=True)},dilation',
-          f'--seed={lhRoiFilePath.resolve(strict=True)}',
+          f'--seed={lhRoiFilePath_dti}',
           # f'--end2={roiFile.resolve(strict=True)},dilation',
-          f'--nend={lhRoiFilePath.resolve(strict=True)},negate'
+          f'--nend={lhRoiFilePath_dti},negate'
         ]
         iterationSuccess.append(call(cmdLabel="DSIStudio",
               cmd=lhCmd))
@@ -205,12 +205,12 @@ def trackFibres(subjectId: str) -> bool:
         #Run command on right hemisphere.
         rhCmd = cmd.copy()
         rhCmd = rhCmd + [
-           f'--tip_iteration=16',
-           f'--output={rhTractFile}',
+          f'--tip_iteration=16',
+          f'--output={rhTractFile}',
           # f'--lim={roiFile.resolve(strict=True)},dilation',
-          f'--seed={rhRoiFilePath.resolve(strict=True)}',
+          f'--seed={rhRoiFilePath_dti.resolve(strict=True)}',
           # f'--end2={roiFile.resolve(strict=True)},dilation',
-          f'--nend={rhRoiFilePath.resolve(strict=True)},negate'
+          f'--nend={rhRoiFilePath_dti.resolve(strict=True)},negate'
         ]
         iterationSuccess.append(call(cmdLabel="DSIStudio",
               cmd=rhCmd))
@@ -247,13 +247,20 @@ def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
                       ])
 
 def createRoiFiles(subjectId: str) -> bool:
-  lhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
-  rhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
-  inversedLhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT_INVERSED"]
-  inversedRhRoiFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT_INVERSED"]
-  labelledFilePath = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ALL_LABELS"]
+  brainMaskOfDiffusion: Path = config.SUBJECT_DIR / "T1w" / "Diffusion" / config.IMAGES["DIFFUSION"]["STANDARD_RES"]["NODIF_BRAIN_MASK"]["PATH"]
+  lhRoiFilePath: Path = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
+  rhRoiFilePath: Path = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
+  inversedLhRoiFilePath: Path = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT_INVERSED"]
+  inversedRhRoiFilePath: Path = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT_INVERSED"]
+  labelledFilePath: Path = config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["ALL_LABELS"]
+
+  _ = [getFile(localPath=fileToExist) for fileToExist in [brainMaskOfDiffusion]]
+
+  lhRoiFilePath_dti: str = str(config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]).replace(".nii.gz",".dti_space.nii.gz")
+  rhRoiFilePath_dti: str = str(config.SUBJECT_DIR / "T1w" / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]).replace(".nii.gz",".dti_space.nii.gz")
   
-  lhRoiFileSuccess = call(cmdLabel="Freesurfer",
+  lhRoiFileSuccess = all([
+    call(cmdLabel="Freesurfer",
               cmd=[
                 "mri_binarize",
                 "--i",
@@ -261,9 +268,25 @@ def createRoiFiles(subjectId: str) -> bool:
                 "--o",
                 lhRoiFilePath.resolve(),
                 "--match",
-                "1024"
-                ])
-  rhRoiFileSuccess = call(cmdLabel="Freesurfer",
+                "1024",
+                "--surf",
+                str(lhRoiFilePath.resolve()).replace(".nii.gz",".surf.gii"),
+                ]),
+    call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_vol2vol",
+                "--mov",
+                lhRoiFilePath.resolve(),
+                "--targ",
+                brainMaskOfDiffusion.resolve(),
+                "--o",
+                lhRoiFilePath_dti,
+                "--regheader",
+                "--nearest",
+                ]),
+                          ])
+  rhRoiFileSuccess = all([
+    call(cmdLabel="Freesurfer",
               cmd=[
                 "mri_binarize",
                 "--i",
@@ -272,28 +295,43 @@ def createRoiFiles(subjectId: str) -> bool:
                 rhRoiFilePath.resolve(),
                 "--match",
                 "2024",
+                "--surf",
+                str(rhRoiFilePath.resolve()).replace(".nii.gz",".surf.gii"),
+                ]),
+    call(cmdLabel="Freesurfer",
+              cmd=[
+                "mri_vol2vol",
+                "--mov",
+                rhRoiFilePath.resolve(),
+                "--targ",
+                brainMaskOfDiffusion.resolve(),
+                "--o",
+                rhRoiFilePath_dti,
+                "--regheader",
+                "--nearest",
                 ])
+    ])
   
   lhInversedRoiFileSuccess = call(cmdLabel="Freesurfer",
               cmd=[
                 "mri_binarize",
                 "--i",
-                labelledFilePath.resolve(),
+                Path(lhRoiFilePath_dti).resolve(strict=True),
                 "--o",
                 inversedLhRoiFilePath.resolve(),
                 "--match",
-                "1024",
+                "1",
                 "--inv",
                 ])
   rhInversedRoiFileSuccess = call(cmdLabel="Freesurfer",
               cmd=[
                 "mri_binarize",
                 "--i",
-                labelledFilePath.resolve(),
+                Path(rhRoiFilePath_dti).resolve(strict=True),
                 "--o",
                 inversedRhRoiFilePath.resolve(),
                 "--match",
-                "2024",
+                "1",
                 "--inv",
                 ])
   return lhRoiFileSuccess and rhRoiFileSuccess and lhInversedRoiFileSuccess and rhInversedRoiFileSuccess

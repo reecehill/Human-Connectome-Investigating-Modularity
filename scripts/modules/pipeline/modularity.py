@@ -14,10 +14,7 @@ from multiprocessing import Pool
 from collections import deque
 from cdlib import algorithms
 from cdlib.classes.node_clustering import NodeClustering
-from modules.utils import prepStep
-
 def calculateModularity(subjectId: str) -> bool:
-  prepStep(subjectId)
   return findModularity(subjectId)
 
 def findModularity(subjectId: str) -> bool:

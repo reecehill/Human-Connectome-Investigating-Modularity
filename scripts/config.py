@@ -3,11 +3,13 @@
 # ----------
 
 import multiprocessing
-from typing import Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 from includes.automated import *
 from includes.all_subjects import all_healthy_young_adults
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
+FORCE_RUN: bool = True # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
+
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
@@ -22,7 +24,7 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 DSI_STUDIO_TRACKING_METHOD = 0 # 0:streamline (default), 1:rk4 
 DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 500000
+DSI_STUDIO_FIBRE_COUNT = 50000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -65,12 +67,12 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
-GENERATE_LABELS = False
-RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY= False
-RUN_MAPPING = False
+GENERATE_LABELS = True
+RUN_DSI_STUDIO = True
+RUN_PROCESS_TRACTOGRAPHY = True
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY= True
+RUN_MAPPING = True
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -204,7 +206,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value w
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = ["100206"]
+ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[0], all_healthy_young_adults[4]]
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------
@@ -217,8 +219,6 @@ ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right
 
 # In a scenario where the cmd prompt is not easily accessible (e.g., a colleague running code on your behalf), it can be useful to upload the logs as they occur (and upon failure) to a remote system that you do have access to. This is disabled by default. See .env for SSH credentials. 
 logUsingSSH: bool = False
-
-
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "/gpfs01/software/imaging/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "/software/imaging/dsi-studio/20240424/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
@@ -226,8 +226,9 @@ dsiStudioPath: str = "/software/imaging/dsi-studio/20240424/bin/dsi_studio" # Fr
 matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 #wbCommandPath: str = "/gpfs01/software/" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 wbCommandPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-
 # freesurferPath: str = "/gpfs01/software/freesurfer-v6.0.0" # NOT IMPLEMENTED.
+
+
 
 EXPORT_FILES: "list[Optional[str]]" = [] #Additional files to save upon code completion.
 
@@ -256,10 +257,50 @@ WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbComman
 FMRI_SCALAR_PATH_CORTICAL = (Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]) / IMAGES["FMRI"]["LOW_RES"]["DATA"]["PATH"]).__str__().replace(".dscalar.nii", "_ROI.dscalar.nii")
 # FREESURFER = getPathOfExecutable(executable="freesurfer", userSubmitted=freesurferPath)
 
+
 def setSubjectDir(subjectDir: Path = Path("/path-not-given")):
   global SUBJECT_DIR
+  global PIPELINE_SUCCESS_FILE
   SUBJECT_DIR = subjectDir
+  PIPELINE_SUCCESS_FILE = subjectDir / "pipeline_success.csv"
 
-def setStatDir(statDir: Path = Path("/path-not-given")):
+def setStatDir(statDir: Path = Path("/path-not-given")) -> None:
   global SUBJECT_STAT_DIR
   SUBJECT_STAT_DIR = statDir
+
+def setCurrentStep(currentStep: str) -> None:
+  global CURRENT_STEP
+  CURRENT_STEP = currentStep
+
+def setCurrentSubject(subjectId: str):
+  global CURRENT_SUBJECT
+  CURRENT_SUBJECT = subjectId
+
+def setCurrentHemisphere(hemisphere: str) -> None:
+  global CURRENT_HEMISPHERE
+  CURRENT_HEMISPHERE = hemisphere if hemisphere else ""
+
+def setCurrentTask(task: str) -> None:
+  global CURRENT_TASK
+  CURRENT_TASK = task if task else ""
+
+def setSubjectStepSuccess(subjectStepSuccess: Optional[bool], reset: bool = False) -> None:
+  global SUBJECT_STEP_SUCCESS
+  if(SUBJECT_STEP_SUCCESS == None):
+    # Variable has been initialised for the step, and the step is mid-run.
+    SUBJECT_STEP_SUCCESS = subjectStepSuccess
+    
+  elif(SUBJECT_STEP_SUCCESS == False):
+    # Step has failed already.
+    if(reset):
+      SUBJECT_STEP_SUCCESS = subjectStepSuccess
+    else:
+      raise ValueError("Trying to overwrite SUBJECT_STEP_SUCCESS variable in non-overwrite context.")
+    
+  elif(SUBJECT_STEP_SUCCESS == True):
+    if(reset):
+      SUBJECT_STEP_SUCCESS = subjectStepSuccess
+    else:
+      raise ValueError("Trying to overwrite SUBJECT_STEP_SUCCESS variable in non-overwrite context.")
+  else:
+    raise ValueError("Invalid value for SUBJECT_STEP_SUCCESS. Expected bool, got {}.".format(type(SUBJECT_STEP_SUCCESS)))

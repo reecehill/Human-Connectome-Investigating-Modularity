@@ -6,11 +6,8 @@ from pathlib import Path
 from modules.subprocess_caller.call import *
 from ..file_directory.file_directory import createDirectories
 import csv
-from modules.utils import prepStep
 
 def prepareFunctionalSurfacesForModularity(subjectId: str) -> bool:
-  prepStep(subjectId)
-  
   return (
           createRoiShapeFiles(subjectId=subjectId) and \
           createRoiScalarFiles(subjectId=subjectId) and \

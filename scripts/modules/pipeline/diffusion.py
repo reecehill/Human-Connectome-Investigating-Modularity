@@ -2,15 +2,11 @@ from pathlib import Path
 import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile
-from modules.utils import prepStep
 from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
 import includes.anatomicalLabels as anatomicalLabels
 
 def processDiffusionTracts(subjectId: str) -> bool:
-  prepStep(subjectId)
-  g.logger.info("Running MATLAB: converting tracked fibres into endpoints and adjacency matrices.")
-
   # Downsampled surface files (e.g., 32k)
   subjectDownsampledFolder = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"]
   subjectLowResSurfacePath_left = config.SUBJECT_DIR / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["FOLDER"] / config.IMAGES["FMRI"]["LOW_RES"]["SURFACE"]["L_HEMISPHERE_PATH"].replace("$subjectId$",subjectId)

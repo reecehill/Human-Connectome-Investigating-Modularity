@@ -1,9 +1,7 @@
-from modules.utils import prepStep
 from pathlib import Path
 import modules.globals as g
 import config
 from modules.hcp_data_manager.downloader import getFile
-from modules.utils import prepStep
 from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
 import includes.anatomicalLabels as anatomicalLabels
@@ -11,7 +9,6 @@ from shutil import copy2
 
 
 def runDsiStudio(subjectId: str) -> bool:
-  prepStep(subjectId)
   return \
     generateSrcFile(subjectId) and \
     reconstructImage(subjectId) and \

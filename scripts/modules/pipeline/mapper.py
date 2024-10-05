@@ -1,12 +1,12 @@
 from modules.subprocess_caller.call import *
 import config
 from modules.file_directory.file_directory import createDirectories
-from modules.utils import prepStep
 
 def runMatlab(subjectId: str) -> bool:
         downsample = config.DOWNSAMPLE_SURFACE
         conditions = config.ALL_FMRI_TASKS
         createDirectories([config.SUBJECT_DIR / 'exported_modules'], createParents=True, throwErrorIfExists=False)
+        
         cmds = [
                 call(cmdLabel="MATLAB",
                 cmd=[
@@ -26,5 +26,4 @@ def runMatlab(subjectId: str) -> bool:
         return all(cmds)
 
 def processMapping(subjectId: str) -> bool:
-        prepStep(subjectId)
-        return runMatlab(subjectId)
+        return runMatlab(subjectId=subjectId)

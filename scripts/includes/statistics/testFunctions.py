@@ -1,6 +1,8 @@
-from typing import Union
+from types import ModuleType
+from typing import Any, Union
 import pandas as pd
 from includes.statistics import Float
+from includes.statistics.testVariables import ResultRow
 def generate_interpretation(test_name: str, score: "Float") -> str:
     # Define a function to generate interpretations
     if test_name in ["Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"]:
@@ -26,18 +28,26 @@ def generate_interpretation(test_name: str, score: "Float") -> str:
             return "Positive agreement."
     return "Score interpretation not available."
 
-def convertResultsToDataFrames(results_x_truth_with_range: "list[tuple[str, Float, Float, Float, str, str]]", results_y_truth_with_range: "list[tuple[str, Float, Float, Float, str, str]]") -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]":
+def convertResultsToDataFrames(
+    results_x_truth_with_range: list[ResultRow],
+    results_y_truth_with_range: list[ResultRow]
+    ) -> "tuple[pd.DataFrame, pd.DataFrame]":
+
+    columns: list[str] = [
+        "Timestamp of config",
+        "Subject ID",
+        "Subject-pipeline Success",
+        "Hemisphere",
+        "Task",
+        "Statistical Test",
+        "Score: (x real, y real)",
+        "Score: (x real, y random)", 
+        "Score: (x random, y real)",
+        "Interpretation",
+        "Range"
+        ]
     # Convert results to DataFrames
-    df_x_truth_with_range = pd.DataFrame(results_x_truth_with_range, columns=[
-        "Statistical Test", "Score: (x real, y real)", "Score: (x real, y random)", 
-        "Score: (x random, y real)", "Interpretation", "Range"])
+    df_x_truth_with_range = pd.DataFrame(results_x_truth_with_range, columns=columns)
+    df_y_truth_with_range = pd.DataFrame(results_y_truth_with_range, columns=columns)
 
-    df_y_truth_with_range = pd.DataFrame(results_y_truth_with_range, columns=[
-        "Statistical Test", "Score: (x real, y real)", "Score: (x real, y random)", 
-        "Score: (x random, y real)", "Interpretation", "Range"])
-
-    # It does not matter which truth we yield from, as functions should be symmetrical.
-    df_no_truth_with_range = df_x_truth_with_range[df_x_truth_with_range["Statistical Test"].isin([
-        "Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"])]
-
-    return df_x_truth_with_range, df_y_truth_with_range, df_no_truth_with_range
+    return df_x_truth_with_range, df_y_truth_with_range

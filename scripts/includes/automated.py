@@ -12,10 +12,12 @@ except Exception as e:
   exit()
 import os
 from subprocess import getoutput
-from typing import Optional
+from typing import Callable, Dict, List, Optional, Union
 
 # from modules.file_directory.shutil_ported import which
 from shutil import which
+
+import config
 
 def findAndInject(find: str, replace: str, string: str) -> str:
   return string.replace(find, replace)
@@ -45,12 +47,30 @@ SUBJECTS_DIR: Path = (DATA_DIR / "subjects").resolve(strict=True)
 UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=False)
 
 SUBJECT_DIR: Path = Path()
+PIPELINE_SUCCESS_FILE: Path = Path()
 SUBJECT_STAT_DIR: Path = Path()
 
+STAT_FILE: Path = DATA_DIR / 'allSubjects.csv'
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
 
 # ----------
+# [START] SUBJECT-SPECIFIC PARAMETERS
+# These get continuously overwritten by any step of the pipeline to share loop information.
+# ----------
+CURRENT_STEP: str = ""
+CURRENT_SUBJECT: str = ""
+CURRENT_HEMISPHERE: str = ""
+CURRENT_TASK: str = ""
+# ----------
+# [END] SUBJECT-SPECIFIC PARAMETERS
+# ----------
+
+SUBJECT_PIPELINE_SUCCESS: Optional[bool] = None # If an error occurs at any step whilst processing a subject, this is set to False. This is only set to True upon finishing a step. Thus, "None" indicates termination mid-step.
+SUBJECT_STEP_SUCCESS: Optional[bool] = None # If an error occurs during the step whilst processing a subject, this is set to 1.
+
+# ----------
+
 
 # ----------
 # [START] EXECUTABLE PATHS

@@ -4,12 +4,11 @@ import config
 from modules.file_directory.file_directory import createDirectories
 from modules.hcp_data_manager.downloader import getFile
 from modules.subprocess_caller.call import *
-from modules.utils import prepStep
 
 def generateLabels(subjectId: str) -> bool:
   g.logger.info("Running Freesurfer: generating label files by annotating the pial surfaces.")
   g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
-  prepStep(subjectId)
+  
   imageDir = config.SUBJECT_DIR / "T1w"
   outputDir = imageDir / subjectId / 'label' / 'label_type2'
   createDirectories(directoryPaths=[outputDir], createParents=True, throwErrorIfExists=False)
@@ -57,9 +56,6 @@ def generateLabels(subjectId: str) -> bool:
   return (lhLabelsSuccess and rhLabelsSuccess)
 
 def generateMni152Labels(subjectId: str) -> bool:
-  prepStep(subjectId)
-  g.logger.info("Running Freesurfer: generating label files in Native/MNI152 space by annotating the pial surfaces.")
-  g.logger.info(f"SUBJECTS_DIR: {os.environ['SUBJECTS_DIR']}")
   imageDir = config.SUBJECT_DIR / config.NATIVEORMNI152FOLDER
   labelDir: config.Path = imageDir / subjectId / 'label' / 'label_type2'
   surfDir = imageDir / subjectId / 'surf'

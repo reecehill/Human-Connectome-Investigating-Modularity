@@ -24,7 +24,7 @@ NORMALISE_TO_MNI152 = True # Bool, either True = coregister data to MNI152 space
 DSI_STUDIO_RECONSTRUCTION_METHOD = 4 #was 7
 DSI_STUDIO_TRACKING_METHOD = 0 # 0:streamline (default), 1:rk4 
 DSI_STUDIO_ITERATION_COUNT = 1 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT) 
-DSI_STUDIO_FIBRE_COUNT = 50000
+DSI_STUDIO_FIBRE_COUNT = 1000000
 #DSI_STUDIO_FIBRE_COUNT = 1000
 DSI_STUDIO_USE_RECONST = False # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_SEED_COUNT = 1e9 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
@@ -206,7 +206,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value w
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[0], all_healthy_young_adults[4]]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------

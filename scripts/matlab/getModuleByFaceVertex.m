@@ -2,6 +2,9 @@ function [moduleFacevert_L,moduleFacevert_R, nbmodules] = getModuleByFaceVertex(
     % Function that stores the vertices (or maybe face) location of each anatomical label.
     % NB: Note that subcortical regions are unsupported.
 
+    addpath('toolboxes/FieldTrip');
+    ft_defaults;
+    
     L_cifti = ft_read_cifti([pathToFile,'/MNINonLinear/Results/tfMRI_MOTOR/tfMRI_MOTOR_hp200_s2_level2_MSMAll.feat/',subject,'_tfMRI_MOTOR_level2_hp200_s2_MSMAll_',subject,'_tfMRI_MOTOR_level2_',conditionName,'_hp200_s2_MSMAll_ROI_L_clusters.dscalar.nii']);
     all_L_modules = L_cifti.dscalar(L_cifti.brainstructure==1);
     % The fMRI modules begin from 1 onwards. 0 is no module.

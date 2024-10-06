@@ -206,7 +206,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value w
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
+ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[0]]
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------

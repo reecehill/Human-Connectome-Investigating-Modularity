@@ -123,7 +123,7 @@ def trackFibres(subjectId: str) -> bool:
     
 
     refFile = getFile(localPath=config.SUBJECT_DIR / "T1w" / "aparc+aseg.nii.gz" )
-    copiedRefFile = config.SUBJECT_DIR / "T1w" / ("automated_"+"aparc+aseg.nii.gz")
+    copiedRefFile = config.SUBJECT_DIR / "T1w" / ("automated_reg_"+"aparc+aseg.nii.gz")
     copy2(refFile, copiedRefFile)
     refFile = copiedRefFile
 

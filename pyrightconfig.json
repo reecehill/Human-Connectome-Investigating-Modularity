@@ -27,12 +27,12 @@
   "reportMissingTypeStubs": true,
   "reportUnknownParameterType": true,
   "reportUntypedFunctionDecorator": true,
-  "pythonVersion": "3.11",
+  "pythonVersion": "3.10",
   "pythonPlatform": "Linux",
   "executionEnvironments": [
     {
       "root": "scripts",
-      "pythonVersion": "3.11",
+      "pythonVersion": "3.10",
       "pythonPlatform": "Linux",
       "extraPaths": []
     }

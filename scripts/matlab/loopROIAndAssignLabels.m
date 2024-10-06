@@ -49,7 +49,7 @@ function [facesROI,faceToNodeMap] = loopROIAndAssignLabels(ROI_startIndex, ROI_e
             end
 
         end     
-     disp("Number of faces without a value projected from " + int2str(minNOfSharedNodes) + " or more nodes: " + int2str(sum(isnan(facesROI(:,4)))))
+     disp("Number of faces without a value projected from " + int2str(minNOfSharedNodes) + " or more nodes: " + int2str(sum(isnan(facesROI(:,4)))) + " of " + int2str(length(facesROI(:,4))))
 
      % Henceforth, unlabelled modules are denoted with -1 not NaN.
      facesROI(isnan(facesROI(:,4)),4)=-1;

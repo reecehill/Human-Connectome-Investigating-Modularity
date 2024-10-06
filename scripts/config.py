@@ -222,10 +222,10 @@ logUsingSSH: bool = False
 logDirectoryPath: str = "logs" # Relative to the uploads folder of the project, should NOT begin with /.
 spmDirectoryPath: str = "/gpfs01/software/imaging/spm12" # From root, resolvable by Path.resolve(). If empty, a default is used.
 dsiStudioPath: str = "/software/imaging/dsi-studio/20240424/bin/dsi_studio" # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
-#matlabPath: str = "/gpfs01/software/matlab_r2021a" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-#wbCommandPath: str = "/gpfs01/software/" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-wbCommandPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
+matlabPath: str = "/gpfs01/software/matlab_r2022a/bin/matlab" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
+# matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
+wbCommandPath: str = "/gpfs01/software/imaging/workbench/workbench-1.5.0/bin_rh_linux64" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
+# wbCommandPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 # freesurferPath: str = "/gpfs01/software/freesurfer-v6.0.0" # NOT IMPLEMENTED.
 
 

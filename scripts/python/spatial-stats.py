@@ -15,7 +15,7 @@ from sklearn.metrics import make_scorer
 from sklearn.metrics import silhouette_score
 import random
 import string
-
+import modules.globals as g
 # Function to generate a random word
 def random_word(length=6):
     letters = string.ascii_lowercase
@@ -143,7 +143,7 @@ for test_name, test_func in test_functions_with_range:
             test_ranges[test_name]
         ])
     except Exception as e:
-        print(f"Error running {test_name} with x as truth: {e}")
+        g.logger.error(f"Error running {test_name} with x as truth: {e}")
 
 # Run tests for Y as truth
 for test_name, test_func in test_functions_with_range:
@@ -161,7 +161,7 @@ for test_name, test_func in test_functions_with_range:
             test_ranges[test_name]
         ])
     except Exception as e:
-        print(f"Error running {test_name} with y as truth: {e}")
+        g.logger.error(f"Error running {test_name} with y as truth: {e}")
 
 # Convert results to DataFrames
 df_x_truth_with_range = pd.DataFrame(results_x_truth_with_range, columns=[

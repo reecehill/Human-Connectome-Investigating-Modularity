@@ -100,7 +100,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
             else:
                 raise ValueError(f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill" or "smoothed".')
             diffInStrucAndFnModules: int = len(x_out.unique()) - len(y_out.unique())
-            print(f'Struc. modules: #{len(x.unique())} -> #{len(x_out.unique())} | Fn modules: #{len(y.unique())} -> #{len(y_out.unique())} (post-{nan_handler}) ['+'{0:{1}}'.format(diffInStrucAndFnModules, '+' if diffInStrucAndFnModules else '')+']')
+            g.logger.info(f'Struc. modules: #{len(x.unique())} -> #{len(x_out.unique())} | Fn modules: #{len(y.unique())} -> #{len(y_out.unique())} (post-{nan_handler}) ['+'{0:{1}}'.format(diffInStrucAndFnModules, '+' if diffInStrucAndFnModules else '')+']')
 
             return x_out, y_out
 
@@ -179,7 +179,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                     ))
 
             except Exception as e:
-                print(f"Error running {test_name} with x as truth: {e}")
+                g.logger.error(f"Error running {test_name} with x as truth: {e}")
 
         # Run tests for Y as truth
         for test_name, test_func in test_functions_with_range:
@@ -213,7 +213,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                     test_ranges[test_name],
                 ))
             except Exception as e:
-                print(f"Error running {test_name} with y as truth: {e}")
+                g.logger.error(f"Error running {test_name} with y as truth: {e}")
                 results_y_truth_with_range.append((
                     config.TIMESTAMP_OF_SCRIPT,
                     config.CURRENT_SUBJECT,

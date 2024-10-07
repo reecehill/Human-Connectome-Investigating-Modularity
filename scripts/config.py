@@ -9,7 +9,7 @@ from includes.all_subjects import all_healthy_young_adults
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
 FORCE_RUN: bool = True # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
-
+USE_PARALLEL_PROCESSING: bool = True
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION = False # Bool, either True = use 7T or False = use 3T.
@@ -67,12 +67,12 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False # Not implemented
 EAGER_LOAD_DATA = False # Not implemented
-GENERATE_LABELS = True
-RUN_DSI_STUDIO = True
-RUN_PROCESS_TRACTOGRAPHY = True
-RUN_CALC_FUNC_MODULARITY = True
-RUN_CALC_STRUC_MODULARITY= True
-RUN_MAPPING = True
+GENERATE_LABELS = False
+RUN_DSI_STUDIO = False
+RUN_PROCESS_TRACTOGRAPHY = False
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY= False
+RUN_MAPPING = False
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -206,7 +206,9 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0 # NOTE: fMRI activations above (>) this value w
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:2]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:25]
+SUBJECTS_INTO_N_BATCHES: int = 20 # Number of subjects to process per batch
+
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 ALL_FMRI_TASKS: "list[str]" = ["lf","rf","lh","rh","t"] # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;
 # ----------
@@ -246,6 +248,7 @@ CALC_DEPRECATED_STATS: bool = False
 
 
 # DO NOT EDIT BELOW THIS LINE
+BATCHED_SUBJECTS:"list[list[str]]" = splitIntoBatches(ALL_SUBJECTS, SUBJECTS_INTO_N_BATCHES)
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
 NATIVEORMNI152FOLDER: str = getNativeOrMni152Folder(NORMALISE_TO_MNI152)

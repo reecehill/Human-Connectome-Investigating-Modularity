@@ -19,6 +19,8 @@ def runStatistics(subjectId: str) -> bool:
 def nonSpatialStatsPerTask(subjectId: str) -> bool:  
   allIterations = list(itertools.product(config.HEMISPHERES, config.ALL_FMRI_TASKS))
   statSuccess: "list[bool]" = [False for _ in range(len(allIterations))]
+  createDirectories([config.SUBJECT_DIR / 'exported_modules'], createParents=True, throwErrorIfExists=False)
+        
   for iterationI, iteration in enumerate(allIterations):
     hemisphere = iteration[0]
     task = iteration[1]

@@ -4,10 +4,11 @@ import config
 from includes.stepper.functions import updateBatchStatus
 from modules.hcp_data_manager.deleter import deleteFilesByExtensions
 from modules.pipeline import data, structural, tractography, diffusion, functional, modularity, mapper, statistics
-from modules.pipeline.stepper import processStep
+from modules.pipeline.stepper import cleanDirOfBatch, processStepFn, stepFnType
 import modules.globals as g
+import concurrent.futures
 
-allSteps: Dict[Callable[[str], bool], bool] = {
+allSteps: Dict[stepFnType, bool] = {
   # data.getData: config.EAGER_LOAD_DATA,
   # data.preprocessData: config.PREPROCESS,
   structural.generateLabels: config.GENERATE_LABELS,
@@ -22,13 +23,36 @@ allSteps: Dict[Callable[[str], bool], bool] = {
 
 def runPipeline() -> None:
   g.allSteps = allSteps
-  for stepFn, runStep in allSteps.items():
-    if(runStep):
-      for subjectId in config.ALL_SUBJECTS:
-        processStep(step=stepFn, subjectId=subjectId)
-        # Once all subjects are processed for that step, update the batch status.
-        updateBatchStatus() # TODO: optimisation -> avoid unnecessary IO.  
-    g.logger.info(f'Completed {stepFn.__name__} for all subjects')
-  g.logger.info(f'Now deleting data that was downloaded for batch: {config.ALL_SUBJECTS[0]}-{config.ALL_SUBJECTS[-1]}')
-  deleteFilesByExtensions(directory=config.SUBJECTS_DIR / '100206', extensions=[
-    '*.nii', '*.nii.gz','*.gii','*.gii.nz', '*.label', '*.annot', '*.pial','*.dlabel','*.trk','*.mat','*.fib'], recursive=True, depth=-1)
+  for subjectBatch in config.BATCHED_SUBJECTS:
+    for stepFn, runStep in allSteps.items():
+      if(runStep):
+        runSubjectBatchThroughStep(stepFn=stepFn, subjectBatch=subjectBatch)
+      else:
+        g.logger.info(f'Skipping {stepFn.__name__} for all subjects')
+    updateBatchStatus() # TODO: optimisation -> avoid unnecessary IO.  
+    cleanDirOfBatch(subjectBatch)
+    g.logger.info(f"Completed batch for subjects {subjectBatch[0]}-{subjectBatch[-1]}")
+          
+  g.logger.info('Pipeline run completed.')
+
+def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> None:
+  if(config.USE_PARALLEL_PROCESSING):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+      futures = [executor.submit(processSubject, stepFn, subjectId) for subjectId in subjectBatch]
+      for future in concurrent.futures.as_completed(futures):
+        step_name: str = future.result()
+        g.logger.info(f"Completed processing for {step_name}")
+
+    # Once all subjects are processed for that step, update the batch status.
+    updateBatchStatus()  # TODO: optimisation -> avoid unnecessary IO.
+    g.logger.info(f"Completed batch for {stepFn.__name__}")        
+  else:
+    for subjectId in subjectBatch:
+      processSubject(stepFn=stepFn, subjectId=subjectId)
+      # Once all subjects are processed for that step, update the batch status.
+    g.logger.info(f"Completed batch for {stepFn.__name__}")
+
+def processSubject(stepFn: stepFnType, subjectId: str) -> str:
+    processStepFn(step=stepFn, subjectId=subjectId)
+    # Return the step name for logging purposes
+    return stepFn.__name__

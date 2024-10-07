@@ -66,11 +66,30 @@ CURRENT_TASK: str = ""
 # ----------
 # [END] SUBJECT-SPECIFIC PARAMETERS
 # ----------
-
 SUBJECT_PIPELINE_SUCCESS: Optional[bool] = None # If an error occurs at any step whilst processing a subject, this is set to False. This is only set to True upon finishing a step. Thus, "None" indicates termination mid-step.
 SUBJECT_STEP_SUCCESS: Optional[bool] = None # If an error occurs during the step whilst processing a subject, this is set to 1.
 
 # ----------
+
+
+def splitIntoBatches(data: List[str], numBatches: int) -> List[List[str]]:
+    """
+    Split a list of strings into no more than `numBatches` total batches.
+
+    Parameters:
+    - data: The list of strings to split.
+    - numBatches: The maximum number of batches to split the list into.
+
+    Returns:
+    - A list of batches (list of lists).
+    """
+    # Calculate the approximate size of each batch
+    batchSize = len(data) // numBatches + (1 if len(data) % numBatches != 0 else 0)
+
+    # Split the list into batches
+    batches = [data[i:i + batchSize] for i in range(0, len(data), batchSize)]
+
+    return batches
 
 
 # ----------

@@ -14,7 +14,7 @@ logging_schema = {
             # class is always "logging.Formatter"
             "class": "logging.Formatter",
             # Optional: logging output format
-            "format": "'%(asctime)s [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(levelname)-8s %(message)s'",
+            "format": "'%(asctime)s [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(ADDITIONAL)s %(levelname)-8s %(message)s'",
             # Optional: asctime format
             "datefmt": "%d %b %y %H:%M:%S"
         }

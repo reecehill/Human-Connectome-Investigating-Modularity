@@ -132,9 +132,9 @@ def updateBatchStatus() -> None:
     # Step 4: Add a column that checks if all steps ()'_status' columns) are True
     status_columns: list[str] = [
         f'{col.__name__}_status' for col in g.allSteps.keys()]
-    df.loc['allSteps_success'] = df.loc[status_columns].fillna(
+    df['allSteps_success'] = df[status_columns].fillna(
         value=False).all(axis='columns', skipna=False)
-    df.loc['allSteps_last_modified'] = config.TIMESTAMP_OF_SCRIPT
+    df['allSteps_last_modified'] = config.TIMESTAMP_OF_SCRIPT
 
     # Step 5: Export the DataFrame to a CSV file
     df.to_csv(config.BATCH_SUCCESS_FILE, index=False)

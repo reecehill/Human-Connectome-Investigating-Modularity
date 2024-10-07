@@ -1,9 +1,9 @@
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 import config
 import pandas as pd
 import modules.globals as g
 
-def getPipelineSuccessStatus() -> dict[str, Tuple[Optional[bool], str]]:
+def getPipelineSuccessStatus() -> Dict[str, Tuple[Optional[bool], str]]:
   # Check if the file exists
   existing_success_dict: dict[str, Tuple[Optional[bool], str]]
   if not config.PIPELINE_SUCCESS_FILE.is_file():
@@ -36,7 +36,6 @@ def updateStepSuccessStatus():
     ],
     columns=['Step', 'Success', 'Last Modified']
     )
-
   # Save the updated DataFrame back to the CSV file, overwriting the old file
   df_updated.to_csv(config.PIPELINE_SUCCESS_FILE, index=False)
 
@@ -56,3 +55,59 @@ def prevStepWasSuccessful() -> bool:
   prevStepName = allStepsList[currentStepIndex - 1]
   prevStepStatus = existing_success_dict[prevStepName][0]
   return prevStepStatus is True
+
+def getPipelineSuccessStatusForAllSubjects() -> Dict[str, Dict[str, Tuple[Optional[bool], str]]]:
+  """
+  This function will collect the pipeline success status for all subjects
+  and return it as a dictionary of dictionaries.
+
+  """
+  all_subjects_success_dict: Dict[str, Dict[str, Tuple[Optional[bool], str]]] = {}
+  subject_success_dict: Dict[str, Tuple[Optional[bool], str]] = {}
+
+  # Loop over all subjects to get their pipeline success status
+  for subjectId in config.ALL_SUBJECTS:
+    # Check if the subject's file exists
+    file_path = config.SUBJECTS_DIR / subjectId / f'pipeline_success.csv'
+
+    if not file_path.exists():
+        g.logger.info("The pipeline success file for subject {subjectId} does not yet exist. Subject assumed to have not been run.")
+        subject_success_dict = { stepFn.__name__: (None, "") for stepFn in g.allSteps.keys() }
+    else:
+        # Read the CSV for the subject and convert it into a dictionary
+        existing_success: pd.DataFrame = pd.read_csv(file_path)
+        subject_success_dict = dict(
+            zip(
+                existing_success['Step'],
+                zip(existing_success['Success'], existing_success['Last Modified']),
+            )
+        )
+    
+    # Store the subject's success dictionary in the master dictionary
+    all_subjects_success_dict[subjectId] = subject_success_dict
+  return all_subjects_success_dict
+
+def updateBatchStatus() -> None:
+  all_subjects_success_dict: Dict[str, Dict[str, Tuple[Optional[bool], str]]] = getPipelineSuccessStatusForAllSubjects()
+
+  # Step 1: Flatten the dictionary for each subject into a format Pandas can handle more easily
+  flattened_data: Dict[str, Dict[str, Optional[ Union[bool,str] ]]] = {}
+  for subject_id, steps_dict in all_subjects_success_dict.items():
+    flattened_data[subject_id] = {}
+    for step, (status, last_modified) in steps_dict.items():
+        flattened_data[subject_id][f'{step}_status'] = status
+        flattened_data[subject_id][f'{step}_last_modified'] = last_modified
+        
+  # Step 2: Convert to a Pandas DataFrame
+  df: pd.DataFrame = pd.DataFrame.from_dict(flattened_data, orient='index').reset_index()
+
+  # Step 3: Rename 'index' column to 'subjectId'
+  df.rename(columns={'index': 'subjectId'}, inplace=True)
+
+  # Step 4: Add a column that checks if all steps ()'_status' columns) are True
+  status_columns: list[str] = [f'{col.__name__}_status' for col in g.allSteps.keys()]
+  df['allSteps_success'] = df[status_columns].fillna(value=False).all(axis='columns', skipna=False)
+  df['allSteps_last_modified'] = config.TIMESTAMP_OF_SCRIPT
+
+  # Step 5: Export the DataFrame to a CSV file
+  df.to_csv(config.BATCH_SUCCESS_FILE, index=False)

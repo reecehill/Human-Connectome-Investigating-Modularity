@@ -45,8 +45,9 @@ def getFile(localPath: Path, forceDownload: bool = False, localOnly: bool = Fals
     remotePath = getRemotePathOf(localPath)
     s3.download_file('hcp-openaccess', remotePath, str(localPath), Callback=progress)
     g.logger.info(f"Downloaded: {localPath}).")
+    g.downloadedFiles.append(localPath)
     
   try:
     return localPath.resolve(strict=True).__str__()
-  except Exception:
-    raise
+  except Exception as e:
+    raise FileNotFoundError(f"File not found: {localPath}")

@@ -48,9 +48,10 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" / TIMESTAMP_OF_SCRIPT).resolve(strict=
 
 SUBJECT_DIR: Path = Path()
 PIPELINE_SUCCESS_FILE: Path = Path()
+BATCH_SUCCESS_FILE: Path = DATA_DIR / f'batchSuccess-{TIMESTAMP_OF_SCRIPT}.csv'
 SUBJECT_STAT_DIR: Path = Path()
 
-STAT_FILE: Path = DATA_DIR / 'allSubjects.csv'
+STAT_FILE: Path = DATA_DIR / f'allSubjects-{TIMESTAMP_OF_SCRIPT}.csv'
 # [END] DIRECTORY STRUCTURE PARAMETERS
 # ----------
 

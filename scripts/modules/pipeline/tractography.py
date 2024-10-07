@@ -155,7 +155,7 @@ def trackFibres(subjectId: str) -> bool:
     cmd = [config.DSI_STUDIO,
                         '--action=trk',
                         f'--source={sourceFile}',
-                        f'--random_seed={str(currentIteration*100)}', #Set seed for reproducability
+                        f'--random_seed={str(config.DSI_STUDIO_RANDOM_SEED)}', #Set seed for reproducability
                         f'--thread_count={config.CPU_THREADS}',
                         # f'--output={destinationFolder / "dsistudio"}',
                         f'--fiber_count={config.DSI_STUDIO_FIBRE_COUNT}',

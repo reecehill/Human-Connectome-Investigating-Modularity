@@ -1,9 +1,9 @@
-from types import ModuleType
-from typing import Any, Union
 import pandas as pd
 from includes.statistics import Float
 from includes.statistics.testVariables import ResultRow
-def generate_interpretation(test_name: str, score: "Float") -> str:
+
+
+def generateInterpretation(test_name: str, score: "Float") -> str:
     # Define a function to generate interpretations
     if test_name in ["Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"]:
         if score == 0.0:
@@ -28,10 +28,11 @@ def generate_interpretation(test_name: str, score: "Float") -> str:
             return "Positive agreement."
     return "Score interpretation not available."
 
+
 def convertResultsToDataFrames(
     results_x_truth_with_range: list[ResultRow],
     results_y_truth_with_range: list[ResultRow]
-    ) -> "tuple[pd.DataFrame, pd.DataFrame]":
+) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
     columns: list[str] = [
         "Timestamp of config",
@@ -41,13 +42,15 @@ def convertResultsToDataFrames(
         "Task",
         "Statistical Test",
         "Score: (x real, y real)",
-        "Score: (x real, y random)", 
+        "Score: (x real, y random)",
         "Score: (x random, y real)",
         "Interpretation",
         "Range"
-        ]
+    ]
     # Convert results to DataFrames
-    df_x_truth_with_range = pd.DataFrame(results_x_truth_with_range, columns=columns)
-    df_y_truth_with_range = pd.DataFrame(results_y_truth_with_range, columns=columns)
+    dfXTruthWithRange = pd.DataFrame(
+        results_x_truth_with_range, columns=columns)
+    dfYTruthWithRange = pd.DataFrame(
+        results_y_truth_with_range, columns=columns)
 
-    return df_x_truth_with_range, df_y_truth_with_range
+    return dfXTruthWithRange, dfYTruthWithRange

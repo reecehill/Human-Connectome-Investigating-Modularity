@@ -2,8 +2,8 @@ angelcommunity==2.0.0
 annexremote==1.6.6
 backports.tarfile==1.2.0
 bimlpa==0.1.2
-boto3==1.35.33
-botocore==1.35.33
+boto3==1.35.35
+botocore==1.35.35
 cdlib==0.4.0
 certifi==2024.8.30
 cffi==1.17.1
@@ -22,7 +22,7 @@ eva-lcd==0.1.1
 fasteners==0.19
 fonttools==4.54.1
 future==1.0.0
-humanize==4.10.0
+humanize==4.11.0
 idna==3.10
 igraph==0.11.6
 importlib_metadata==8.5.0
@@ -43,10 +43,11 @@ matplotlib==3.9.2
 more-itertools==10.5.0
 msgpack==1.1.0
 networkx==3.3
-numpy==2.1.1
+numpy==2.1.2
+openpyxl==3.1.5
 packaging==24.1
 pandas==2.2.3
-patool==3.0.0
+patool==3.0.1
 pillow==10.4.0
 platformdirs==4.3.6
 plotly==5.24.1

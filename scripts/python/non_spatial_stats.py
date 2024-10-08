@@ -108,6 +108,50 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                     x_smoothed, n=5, mode_method='roi')
 
                 x_out, y_out = x_filtered, y_filtered
+            elif (nan_handler == 'filter_by_parent'):
+                # As y may be smaller than x, by masking x with y we risk going from:
+                # x = [ 1,1,1,1 ]
+                # y = [ NaN, 1, 1, -1 ] (where NaN or -1 indicates a module not found)
+                # TO
+                # x_filtered = [1,1]
+                # y_filtered = [1,1]
+                # Statistically, it would appear the labels align perfectly. But this is not the case before filtering.
+                # Instead, we will enlarge the y window (padded with -1) to match the x window.
+                x: 'pd.Series[int]'
+                y: 'pd.Series[int]'
+                y_within_y: 'pd.Series[int]'
+                x_within_y: 'pd.Series[int]'
+                x_within_y, y_within_y = switch('mask', x, y)
+
+                y_modules: 'npt.NDArray[np.int64]' = y_within_y.unique()
+
+                new_indices: 'npt.NDArray[np.int64]' = np.array([], dtype=np.int64)
+                for yModuleIndex, yModuleLabel in enumerate(y_modules):
+                    # For moduleY, find where it occurs in y (and subsequently x)
+                    yIdsMatchingLabel: 'pd.Series[int]' = y[y == yModuleLabel].index
+                    xIdsMatchingLabel: 'pd.Series[int]' = pd.Series(yIdsMatchingLabel.values)
+
+                    # Get the corresponding x label         
+                    try:           
+                        xModuleLabels: 'pd.Series[int]' = x[xIdsMatchingLabel]
+                        dominantXLabel: np.int64 = pd.Series(xModuleLabels.values).mode()[0]
+                        # Find all positions where the dominantXLabel is found
+                        dominantXLabelPositions: 'pd.Index[int]' = x[
+                        (x == dominantXLabel) & (x>0)].index
+
+                        # Add these indices to the new y
+                        new_indices: 'npt.NDArray[np.int64]' = np.append(
+                        new_indices, dominantXLabelPositions.values)
+                        pass
+                    except Exception as e:
+                        print(e)
+
+
+                    
+                    
+                new_indices = np.unique(new_indices)
+                x_out, y_out = pd.Series(x.iloc[new_indices]).fillna(
+                value="-1"), pd.Series(y.iloc[new_indices]).replace(0, np.nan).fillna(value="-1")
             else:
                 raise ValueError(
                     f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill" or "smoothed".')
@@ -154,7 +198,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
             return x_as_words, y_as_words
 
         # Mask, or smoothed module names.
-        x_clean, y_clean = switch(nan_handler="smoothed", x=x, y=y)
+        x_clean, y_clean = switch(nan_handler="filter_by_parent", x=x, y=y)
 
         # For absolute confidence that Python is not converting strings to integers, convert labels to random words.
         x_final, y_final = convertNumericalModulesToWords(x_clean, y_clean)
@@ -274,7 +318,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
         result = True
     except Exception as e:
         result = False
-        g.logger.error("Sorry - Could not run statistics.")
+        g.logger.error(f"Error whilst running stats - {e}")
+        raise e
     finally:
         return result
 

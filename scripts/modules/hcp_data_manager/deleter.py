@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List
 import modules.globals as g
+from shutil import rmtree
 
 def deleteFilesByExtensions(directories: List[Path], extensions: List[str], recursive: bool = False, depth: int = 0):
     """
@@ -29,16 +30,22 @@ def deleteFilesByExtensions(directories: List[Path], extensions: List[str], recu
                     # Only proceed if the file is within the specified depth
                     relative_depth = len(file_path.relative_to(directory).parts) - 1
                     if depth == -1 or relative_depth <= depth:
-                        if file_path.exists():
+                        if file_path.is_file():
                             file_path.unlink()  # Delete the file
                             g.logger.info(f"Deleted: {file_path}")
+                        elif file_path.is_dir():
+                            rmtree(str(file_path.resolve()))
+                            g.logger.info(f"Deleted: {file_path}")
                         else:
-                            g.logger.info(f"File does not exist: {file_path}")
+                            g.logger.info(f"File/folder does not exist: {file_path}")
             else:
                 # Non-recursive search with glob
                 for file_path in directory.glob(ext):
-                    if file_path.exists():
+                    if file_path.is_file():
                         file_path.unlink()  # Delete the file
                         g.logger.info(f"Deleted: {file_path}")
+                    elif file_path.is_dir():
+                        rmtree(str(file_path.resolve()))
+                        g.logger.info(f"Deleted: {file_path}")
                     else:
-                        g.logger.info(f"File does not exist: {file_path}")
+                        g.logger.info(f"File/folder does not exist: {file_path}")

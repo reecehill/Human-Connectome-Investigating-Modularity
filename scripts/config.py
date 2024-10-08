@@ -10,7 +10,7 @@ from includes.all_subjects import all_healthy_young_adults
 CPU_THREADS = multiprocessing.cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 FORCE_RUN: bool = True
-USE_PARALLEL_PROCESSING: bool = True
+USE_PARALLEL_PROCESSING: bool = False
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION = False  # Bool, either True = use 7T or False = use 3T.
@@ -78,9 +78,9 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
-GENERATE_LABELS = True
-RUN_DSI_STUDIO = True
-RUN_PROCESS_TRACTOGRAPHY = True
+GENERATE_LABELS = False
+RUN_DSI_STUDIO = False
+RUN_PROCESS_TRACTOGRAPHY = False
 RUN_CALC_FUNC_MODULARITY = True
 RUN_CALC_STRUC_MODULARITY = True
 RUN_MAPPING = True
@@ -244,7 +244,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
 SUBJECTS_INTO_N_BATCHES: int = 3  # Number of subjects to process per batch
 
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.

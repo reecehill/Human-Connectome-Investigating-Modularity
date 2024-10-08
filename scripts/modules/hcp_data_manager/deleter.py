@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List
+import config
 import modules.globals as g
 from shutil import rmtree
 
@@ -13,7 +14,9 @@ def deleteFilesByExtensions(directories: List[Path], extensions: List[str], recu
     - recursive: If True, will search subdirectories up to the specified depth.
     - depth: The maximum depth to search in subdirectories (-1 = no depth limit, 0 = no recursion, 1 = direct subfolders, etc.).
     """
-    
+    if(len(config.ALL_SUBJECTS)<5):
+        g.logger.info("Skipped deleting files as small sample size.")
+        return 
     # Loop through each directory
     for directory in directories:
         # Ensure the directory exists

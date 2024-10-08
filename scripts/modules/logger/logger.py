@@ -7,6 +7,8 @@ try:
   import config
   from includes.logging_schema import logging_schema
   from ..file_directory.file_directory import createDirectories
+  import multiprocessing_logging
+
 except Exception as e:
   print(e)
   exit()
@@ -29,6 +31,7 @@ class LoggerClass:
     #logging.basicConfig(format='%(message)s', level=logging.INFO, handlers=targets)
     logging.config.dictConfig(logging_schema)
     logger = logging.getLogger(__name__)
+    multiprocessing_logging.install_mp_handler(logger)
     logger = LoggerAdapter(logger, extra_logging_info)
     self.logger = logger # type: ignore
     self.logger.info("Logger is instantiated.")

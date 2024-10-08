@@ -110,7 +110,7 @@ def getPipelineSuccessStatusForAllSubjects() -> Dict[str, Dict[str, Tuple[Option
     return all_subjects_success_dict
 
 
-def updateBatchStatus() -> None:
+def updateBatchStatus() -> bool:
     all_subjects_success_dict: Dict[str, Dict[str, Tuple[Optional[bool], str]]
                                     ] = getPipelineSuccessStatusForAllSubjects()
 
@@ -136,5 +136,8 @@ def updateBatchStatus() -> None:
         value=False).all(axis='columns', skipna=False)
     df['allSteps_last_modified'] = config.TIMESTAMP_OF_SCRIPT
 
+    allSubjectsAllStepsSuccess: bool = df['allSteps_success'].all()
     # Step 5: Export the DataFrame to a CSV file
     df.to_csv(config.BATCH_SUCCESS_FILE, index=False)
+
+    return allSubjectsAllStepsSuccess

@@ -13,29 +13,29 @@ def runStatistics(subjectId: str) -> bool:
     createDirectories(directoryPaths=[statDir / f'{hemisphere}_hemisphere' ], createParents=True, throwErrorIfExists=False)
   config.setStatDir(statDir.resolve(strict=True))
 
-  return nonSpatialStatsPerTask(subjectId) and \
-    runDeprecatedStats(subjectId)
-  
-def nonSpatialStatsPerTask(subjectId: str) -> bool:  
-  allIterations = list(itertools.product(config.HEMISPHERES, config.ALL_FMRI_TASKS))
-  statSuccess: "list[bool]" = [False for _ in range(len(allIterations))]
-  createDirectories([config.SUBJECT_DIR / 'exported_modules'], createParents=True, throwErrorIfExists=False)
-        
+  cmds = []
+  allIterations = list(itertools.product(
+      config.HEMISPHERES, config.ALL_FMRI_TASKS))
   for iterationI, iteration in enumerate(allIterations):
     hemisphere = iteration[0]
     task = iteration[1]
     config.setCurrentHemisphere(hemisphere)
     config.setCurrentTask(task)
-    
-    pathToXCsv: Path = (config.SUBJECT_DIR / 'exported_modules' / f'{hemisphere}_structural_modules.csv').resolve(strict = True)
-    pathToYCsv: Path = (config.SUBJECT_DIR / 'exported_modules' / f'{hemisphere}_{task}_functional_modules.csv').resolve(strict = True)
-    _ = [getFile(localPath=localFileToExist, localOnly=True) for localFileToExist in [pathToXCsv, pathToYCsv]]
-    pathToOutputtedXlsx: Path = (config.SUBJECT_STAT_DIR / f'{hemisphere}_hemisphere' / f'nonspatial_tests_hemi_{hemisphere}_task_{task}.xlsx').resolve(strict=False)
+    cmds.append(nonSpatialStatsPerTask(subjectId))
 
-    runTests(subjectId, pathToXCsv, pathToYCsv, pathToOutputtedXlsx)
-    
-    statSuccess[iterationI] = pathToOutputtedXlsx.exists()
-  return all(statSuccess)
+  return all(cmds) and \
+      runDeprecatedStats(subjectId)
+
+  
+def nonSpatialStatsPerTask(subjectId: str) -> bool:  
+  pathToXCsv: Path = (config.SUBJECT_DIR / 'exported_modules' / f'{config.CURRENT_HEMISPHERE}_structural_modules.csv').resolve(strict = True)
+  pathToYCsv: Path = (config.SUBJECT_DIR / 'exported_modules' /
+                      f'{config.CURRENT_HEMISPHERE}_{config.CURRENT_TASK}_functional_modules.csv').resolve(strict=True)
+  _ = [getFile(localPath=localFileToExist, localOnly=True) for localFileToExist in [pathToXCsv, pathToYCsv]]
+  
+  pathToOutputtedXlsx: Path = (config.SUBJECT_STAT_DIR / f'{config.CURRENT_HEMISPHERE}_hemisphere' / f'nonspatial_tests_hemi_{config.CURRENT_HEMISPHERE}_task_{config.CURRENT_TASK}.xlsx').resolve(strict=False)
+
+  return runTests(subjectId, pathToXCsv, pathToYCsv, pathToOutputtedXlsx)
 
 def runDeprecatedStats(subjectId: str) -> bool:
   if config.CALC_DEPRECATED_STATS == False:

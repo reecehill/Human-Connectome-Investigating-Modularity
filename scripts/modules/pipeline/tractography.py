@@ -205,9 +205,9 @@ def trackFibres(subjectId: str) -> bool:
           f'--tip_iteration=16',
           f'--output={rhTractFile}',
           # f'--lim={roiFile.resolve(strict=True)},dilation',
-          f'--seed={rhRoiFilePath_dti.resolve(strict=True)}',
+          f'--seed={rhRoiFilePath_dti}',
           # f'--end2={roiFile.resolve(strict=True)},dilation',
-          f'--nend={rhRoiFilePath_dti.resolve(strict=True)},negate'
+          f'--nend={rhRoiFilePath_dti},negate'
         ]
         iterationSuccess.append(call(cmdLabel="DSIStudio",
               cmd=rhCmd))

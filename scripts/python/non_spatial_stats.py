@@ -75,8 +75,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
         # Cleaning data to exclude NaN values
         def switch(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
-            x_out: pd.Series
-            y_out: pd.Series
+            x_out: 'pd.Series[int]'
+            y_out: 'pd.Series[int]'
             if (nan_handler == 'mask'):
                 # All modules begin counting from 1 onwards.
                 idsOfNonNan = (x > 0) & (y > 1)
@@ -126,14 +126,14 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                 y_modules: 'npt.NDArray[np.int64]' = y_within_y.unique()
 
                 new_indices: 'npt.NDArray[np.int64]' = np.array([], dtype=np.int64)
-                for yModuleIndex, yModuleLabel in enumerate(y_modules):
+                for _, yModuleLabel in enumerate(y_modules):
                     # For moduleY, find where it occurs in y (and subsequently x)
                     yIdsMatchingLabel: 'pd.Series[int]' = y[y == yModuleLabel].index
-                    xIdsMatchingLabel: 'pd.Series[int]' = pd.Series(yIdsMatchingLabel.values)
+                    xIdsMatchingOfYModule: 'pd.Series[int]' = pd.Series(yIdsMatchingLabel.values)
 
                     # Get the corresponding x label         
                     try:           
-                        xModuleLabels: 'pd.Series[int]' = x[xIdsMatchingLabel]
+                        xModuleLabels: 'pd.Series[int]' = x[xIdsMatchingOfYModule]
                         dominantXLabel: np.int64 = pd.Series(xModuleLabels.values).mode()[0]
                         # Find all positions where the dominantXLabel is found
                         dominantXLabelPositions: 'pd.Index[int]' = x[
@@ -149,9 +149,19 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
 
                     
                     
-                new_indices = np.unique(new_indices)
-                x_out, y_out = pd.Series(x.iloc[new_indices]).fillna(
-                value="-1"), pd.Series(y.iloc[new_indices]).replace(0, np.nan).fillna(value="-1")
+                new_indices: 'npt.NDArray[np.int64]' = np.array(np.unique(new_indices)).tolist()
+                x_padded: 'pd.Series[int]' = x.loc[x.index[new_indices]]
+                y_padded: 'pd.Series[int]' = y.loc[y.index[new_indices]]
+                
+                # NB: We append a flipped version of the indices to ensure that symmetric tests are not affected.
+                x_padded_sym: 'npt.NDArray[np.int64]' = np.append(x_padded, np.flip(x_padded.to_numpy().copy()))
+                y_padded_sym: 'npt.NDArray[np.int64]' = np.append(y_padded, np.flip(y_padded.to_numpy().copy()))
+
+                x_padded_sym_filled: 'pd.Series[int]' = pd.Series(x_padded_sym).fillna(value="-1")
+                y_padded_sym_filled: 'pd.Series[int]' = pd.Series(
+                    y_padded_sym).replace(0, np.nan).fillna(value="-1")
+
+                x_out, y_out = x_padded_sym_filled, y_padded_sym_filled
             else:
                 raise ValueError(
                     f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill" or "smoothed".')
@@ -159,6 +169,13 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
                 x_out.unique()) - len(y_out.unique())
             g.logger.info(f'Struc. modules: #{len(x.unique())} -> #{len(x_out.unique())} | Fn modules: #{len(y.unique())} -> #{len(y_out.unique())} (post-{nan_handler}) ['+'{0:{1}}'.format(
                 diffInStrucAndFnModules, '+' if diffInStrucAndFnModules else '')+']')
+
+            makeLabelsSymmetric = False
+            if(makeLabelsSymmetric):
+                x_out = pd.Series(np.append(
+                    x_out, np.flip(x_out.to_numpy().copy())).tolist())
+                y_out = pd.Series(np.append(
+                    y_out, np.flip(y_out.to_numpy().copy())).tolist())
 
             return x_out, y_out
 
@@ -315,7 +332,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToOutputted
             dfXTruthWithRange=dfXTruthWithRange,
             dfYTruthWithRange=dfYTruthWithRange,
         )
-        result = True
+        result: bool = pathToOutputtedXlsx.exists()
     except Exception as e:
         result = False
         g.logger.error(f"Error whilst running stats - {e}")

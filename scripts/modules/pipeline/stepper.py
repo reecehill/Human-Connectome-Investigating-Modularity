@@ -21,10 +21,6 @@ def prepStep(subjectId: str, stepName: str, hemisphere: Optional[Literal['left',
     if (task):
         config.setCurrentTask(task)
 
-    g.logger.extra = {  # type: ignore
-        'ADDITIONAL': f'[s-{config.CURRENT_SUBJECT}:h-{config.CURRENT_HEMISPHERE}:t-{config.CURRENT_TASK}]'
-    }
-
     if (prevStepWasSuccessful() is False and config.FORCE_RUN is False):
         g.logger.warning(
             f'Skipping {stepName} for subject {subjectId} as previous step failed')

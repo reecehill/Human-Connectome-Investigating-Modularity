@@ -6,6 +6,7 @@ import multiprocessing
 from typing import Literal, Optional, Union
 from includes.automated import *
 from includes.all_subjects import all_healthy_young_adults
+import modules.globals as g
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
@@ -81,9 +82,9 @@ EAGER_LOAD_DATA = False  # Not implemented
 GENERATE_LABELS = False
 RUN_DSI_STUDIO = False
 RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = True
-RUN_CALC_STRUC_MODULARITY = True
-RUN_MAPPING = True
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY = False
+RUN_MAPPING = False
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -109,7 +110,7 @@ DESIRED_FMRI_MAPS: "list[str]" = [
     '$subjectId$_tfMRI_MOTOR_level2_RH_hp200_s2_MSMAll',
     '$subjectId$_tfMRI_MOTOR_level2_T_hp200_s2_MSMAll']  # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
 # fMRI values above this percentile will indicate a cluster.
-CLUSTER_THRESHOLD: float = 95
+CLUSTER_THRESHOLD: float = 50
 # fMRI values above this area (mm) will indicate a cluster.
 CLUSTER_MIN_AREA: float = 5.0
 # ----------
@@ -325,20 +326,27 @@ def setCurrentStep(currentStep: str) -> None:
     global CURRENT_STEP
     CURRENT_STEP = currentStep
 
+def updateLoggerExtra():
+    g.logger.extra = {  # type: ignore
+        'ADDITIONAL': f'[s-{CURRENT_SUBJECT}:h-{CURRENT_HEMISPHERE}:t-{CURRENT_TASK}]'
+    }
 
 def setCurrentSubject(subjectId: str):
     global CURRENT_SUBJECT
     CURRENT_SUBJECT = subjectId
+    updateLoggerExtra()
 
 
 def setCurrentHemisphere(hemisphere: str) -> None:
     global CURRENT_HEMISPHERE
     CURRENT_HEMISPHERE = hemisphere if hemisphere else ""
+    updateLoggerExtra()
 
 
 def setCurrentTask(task: str) -> None:
     global CURRENT_TASK
     CURRENT_TASK = task if task else ""
+    updateLoggerExtra()
 
 
 def setSubjectStepSuccess(subjectStepSuccess: Optional[bool], reset: bool = False) -> None:

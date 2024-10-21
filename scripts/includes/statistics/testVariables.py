@@ -6,7 +6,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 Float = Union[float, np.float16, np.float32, np.float64]
-ResultRow = tuple[
+ResultRowSubjectWide = tuple[
     str,
     str,
     Optional[bool],
@@ -18,9 +18,26 @@ ResultRow = tuple[
     Float,
     str,
     str
-    ]
+]
+ResultRowModuleWide = tuple[
+    str,
+    str,
+    Optional[bool],
+    str,
+    str,
+    str,
+    str,
+    Float,
+    Float,
+    Float,
+    str,
+    Float,
+    Float,
+    Float,
+    str,
+    str
+]
 
-import numpy as np
 # Define range information for each test
 test_ranges: "dict[str, str]" = {
     "Mutual Information Score": "Unbounded (non-negative)",

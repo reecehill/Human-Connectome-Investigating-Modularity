@@ -1,6 +1,6 @@
 import itertools
 from modules.pipeline.stepper import finishStep
-from python.non_spatial_stats import runTests
+from includes.statistics.non_spatial_stats import runTests
 from pathlib import Path
 import config
 from modules.file_directory.file_directory import createDirectories
@@ -31,11 +31,10 @@ def nonSpatialStatsPerTask(subjectId: str) -> bool:
   pathToXCsv: Path = (config.SUBJECT_DIR / 'exported_modules' / f'{config.CURRENT_HEMISPHERE}_structural_modules.csv').resolve(strict = True)
   pathToYCsv: Path = (config.SUBJECT_DIR / 'exported_modules' /
                       f'{config.CURRENT_HEMISPHERE}_{config.CURRENT_TASK}_functional_modules.csv').resolve(strict=True)
+
   _ = [getFile(localPath=localFileToExist, localOnly=True) for localFileToExist in [pathToXCsv, pathToYCsv]]
   
-  pathToOutputtedXlsx: Path = (config.SUBJECT_STAT_DIR / f'{config.CURRENT_HEMISPHERE}_hemisphere' / f'nonspatial_tests_hemi_{config.CURRENT_HEMISPHERE}_task_{config.CURRENT_TASK}.xlsx').resolve(strict=False)
-
-  return runTests(subjectId, pathToXCsv, pathToYCsv, pathToOutputtedXlsx)
+  return runTests(subjectId, pathToXCsv, pathToYCsv)
 
 def runDeprecatedStats(subjectId: str) -> bool:
   if config.CALC_DEPRECATED_STATS == False:

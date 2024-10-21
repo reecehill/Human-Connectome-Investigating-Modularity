@@ -1,6 +1,6 @@
 import pandas as pd
 from includes.statistics import Float
-from includes.statistics.testVariables import ResultRow
+from includes.statistics.testVariables import ResultRowSubjectWide, ResultRowModuleWide
 
 
 def generateInterpretation(test_name: str, score: "Float") -> str:
@@ -29,9 +29,9 @@ def generateInterpretation(test_name: str, score: "Float") -> str:
     return "Score interpretation not available."
 
 
-def convertResultsToDataFrames(
-    results_x_truth_with_range: list[ResultRow],
-    results_y_truth_with_range: list[ResultRow]
+def convertSubjectWideResultsToDataFrames(
+    results_x_truth_with_range: list[ResultRowSubjectWide],
+    results_y_truth_with_range: list[ResultRowSubjectWide]
 ) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
     columns: list[str] = [
@@ -54,3 +54,34 @@ def convertResultsToDataFrames(
         results_y_truth_with_range, columns=columns)
 
     return dfXTruthWithRange, dfYTruthWithRange
+
+def convertModuleWideResultsToDataFrames(
+    results_x_truth_by_module: list[ResultRowModuleWide],
+    results_y_truth_by_module: list[ResultRowModuleWide]
+) -> "tuple[pd.DataFrame, pd.DataFrame]":
+
+    columns: list[str] = [
+        "Timestamp of config",
+        "Subject ID",
+        "Subject-pipeline Success",
+        "Hemisphere",
+        "Task",
+        "X Module Name",
+        "Y Module Name",
+        "X Surface Area (mm)",
+        "Y Surface Area (mm)",
+        "Y/X Surface Area (mm)",
+        "Statistical Test",
+        "Score: (x real, y real)",
+        "Score: (x real, y random)",
+        "Score: (x random, y real)",
+        "Interpretation",
+        "Range"
+    ]
+    # Convert results to DataFrames
+    dfXTruthByModule = pd.DataFrame(
+        results_x_truth_by_module, columns=columns)
+    dfYTruthByModule = pd.DataFrame(
+        results_y_truth_by_module, columns=columns)
+
+    return dfXTruthByModule, dfYTruthByModule

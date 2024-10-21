@@ -4,10 +4,21 @@ from modules.file_directory.file_directory import createDirectories
 
 def runMatlab(subjectId: str) -> bool:
         downsample = config.DOWNSAMPLE_SURFACE
-        conditions = config.ALL_FMRI_TASKS
-        createDirectories([config.SUBJECT_DIR / 'exported_modules'], createParents=True, throwErrorIfExists=False)
+        conditions: list[str] = config.ALL_FMRI_TASKS
+        neededDirectories: list[Path] = [
+                config.SUBJECT_DIR / 'exported_modules',
+                config.SUBJECT_DIR / 'face_surface_areas'
+                ]
+        createDirectories(neededDirectories, createParents=True, throwErrorIfExists=False)
         
         cmds = [
+                call(cmdLabel="MATLAB",
+                cmd=[
+                        config.MATLAB,
+                        f'-batch "exportFaceSurfaceAreas {config.SUBJECT_DIR} {downsample}"',
+                        ],
+                cwd=config.matlabScriptsFolder),
+                
                 call(cmdLabel="MATLAB",
                 cmd=[
                         config.MATLAB,

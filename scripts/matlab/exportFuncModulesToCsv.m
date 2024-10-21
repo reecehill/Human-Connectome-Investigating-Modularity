@@ -10,32 +10,9 @@ load(fileToLoad, ...
     'filenames', 'subfilenames'...
     ); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
 
-if strcmp(downsample,'no') % method for no downsample
-    faceROI_L=hi_faceROIidL(:,1);
-    %faceROI_R=hi_faceROIidR(:,1);
-    labelIds=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); double(max(hi_faceROIidR(:,1)))+hi_faceROIidSubCor];
-    %faceROI_L=[hi_faceROIidL(:,1); hi_faceROIidR(:,1); hi_faceROIidSubCor+length(filenames)];
-else
-    labelIds=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); double(max(lo_faceROIidR(:,1)))+lo_faceROIidSubCor];
-    faceROI_L=lo_faceROIidL(:,1);
-    %faceROI_R=lo_faceROIidR(:,1);
-    %faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_faceROIidSubCor+length(filenames)];
-end
-
-useROI=true;
-if(useROI)
-    % If ROI is used, then the faceIDs are going to relative to the
-    % ROI. We must now scale them up to the whole hemisphere.
-    allFileNames = [filenames subfilenames];
-    
-    roi = "lh.L_precentral";
-    roiIds = find(contains(allFileNames,roi));
-    roiL_ids = find(ismember(labelIds(:,1),roiIds));
-
-    roi = "rh.R_precentral";
-    roiIds = find(contains(allFileNames,roi));
-    roiR_ids = find(ismember(labelIds(:,1),roiIds));
-end
+faceROI_L=lo_faceROIidL(:,1);
+%faceROI_R=lo_faceROIidR(:,1);
+[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, "lh.L_precentral", "rh.R_precentral");
 
 for conditionIndex=1:length(conditions)
     condition = char(conditions(conditionIndex));

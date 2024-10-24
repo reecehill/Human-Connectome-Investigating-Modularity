@@ -245,7 +245,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # [START] PARTICIPANT PARAMETERS
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
 SUBJECTS_INTO_N_BATCHES: int = 3  # Number of subjects to process per batch
 
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.

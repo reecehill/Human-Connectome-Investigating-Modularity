@@ -79,12 +79,12 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
-GENERATE_LABELS = False
-RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY = False
-RUN_MAPPING = False
+GENERATE_LABELS = True
+RUN_DSI_STUDIO = True
+RUN_PROCESS_TRACTOGRAPHY = True
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY = True
+RUN_MAPPING = True
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -326,10 +326,12 @@ def setCurrentStep(currentStep: str) -> None:
     global CURRENT_STEP
     CURRENT_STEP = currentStep
 
+
 def updateLoggerExtra():
     g.logger.extra = {  # type: ignore
         'ADDITIONAL': f'[s-{CURRENT_SUBJECT}:h-{CURRENT_HEMISPHERE}:t-{CURRENT_TASK}]'
     }
+
 
 def setCurrentSubject(subjectId: str):
     global CURRENT_SUBJECT

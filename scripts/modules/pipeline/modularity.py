@@ -24,12 +24,12 @@ def calculateModularity(subjectId: str) -> bool:
     return findModularity(subjectId)
 
 
-def groupModulesByLabel(x: npt.NDArray[np.int8]) -> list[list[np.int8]]:
+def groupModulesByLabel(x: "npt.NDArray[np.int8]") -> "list[list[np.int8]]":
     x_array = x  # Ensure input is an array of int8
     unique_values = np.unique(x_array)    # Get unique values from the array
 
     # Prepare the result list for storing sub-arrays
-    result: list[list[np.int8]] = []
+    result: "list[list[np.int8]]" = []
 
     # Loop through each unique value
     for value in unique_values:

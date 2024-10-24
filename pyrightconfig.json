@@ -28,6 +28,7 @@
   "reportUnknownParameterType": true,
   "reportUntypedFunctionDecorator": true,
   "pythonVersion": "3.10",
+  "diagnosticMode": "workspace",
   "pythonPlatform": "Linux",
   "executionEnvironments": [
     {

@@ -21,9 +21,9 @@ def mask(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.S
 
 def ffill(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
 
-    x_filled: pd.Series[int] = x.replace(-1,
+    x_filled: "pd.Series[int]" = x.replace(-1,
                                          np.nan).ffill(limit=1).bfill(limit=1)
-    y_filled: pd.Series[int] = y.replace(to_replace=[-1, 0, 1], value=np.nan).ffill(
+    y_filled: "pd.Series[int]" = y.replace(to_replace=[-1, 0, 1], value=np.nan).ffill(
         limit=2, limit_area="inside").bfill(limit=2, limit_area="inside")  # type: ignore
 
     x_out, y_out = x_filled, y_filled
@@ -60,11 +60,11 @@ def white_noise(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[in
             high=xory.max()+100,
             size=len(xory))
         return xory
-    x_withnans: pd.Series[int] = replaceMissingValuesWithNan(x, [-1, 0])
-    y_withnans: pd.Series[int] = replaceMissingValuesWithNan(y, [-1, 0, 1])
+    x_withnans: "pd.Series[int]" = replaceMissingValuesWithNan(x, [-1, 0])
+    y_withnans: "pd.Series[int]" = replaceMissingValuesWithNan(y, [-1, 0, 1])
 
-    x_randomised: pd.Series[int] = replaceNaNWithRandom(x_withnans)
-    y_randomised: pd.Series[int] = replaceNaNWithRandom(y_withnans)
+    x_randomised: "pd.Series[int]" = replaceNaNWithRandom(x_withnans)
+    y_randomised: "pd.Series[int]" = replaceNaNWithRandom(y_withnans)
 
     return x_randomised, y_randomised
     
@@ -90,7 +90,7 @@ def filter_by_parent(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Seri
         # Get current X module (by taking mode)
         x_module_name: int = x_maskedby_y[y_maskedby_y == y_module_name].mode()[
             0]
-        x_module: pd.Series[int] = x_maskedby_y[x_maskedby_y == x_module_name]
+        x_module: "pd.Series[int]" = x_maskedby_y[x_maskedby_y == x_module_name]
 
         # Reset current Y module to include X
         if (y_final_modules[x_module.index].isna()).all():
@@ -100,6 +100,6 @@ def filter_by_parent(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Seri
             g.logger.warning(
                 "Overwriting functional modules is prohibited. Logic needed.")
 
-    x_out: pd.Series[int] = x_final_modules
-    y_out: pd.Series[int] = y_final_modules.fillna(-1).astype(int)
+    x_out: "pd.Series[int]" = x_final_modules
+    y_out: "pd.Series[int]" = y_final_modules.fillna(-1).astype(int)
     return x_out, y_out

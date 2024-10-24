@@ -438,7 +438,7 @@ def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
                     percentilesCsvFile
                     ]
     _ = [getFile(localPath=fileToExist, localOnly=True) for fileToExist in filesToExist]
-    percentileValuesPerMap: Dict[str, float] = {}
+    percentileValuesPerMap: "Dict[str, float]" = {}
 
     #Read raw csv
     with open(percentilesCsvFile.resolve().__str__()) as csvfile:

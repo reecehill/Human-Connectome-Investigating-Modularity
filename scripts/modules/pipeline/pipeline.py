@@ -8,7 +8,7 @@ from modules.pipeline.stepper import cleanDirOfBatch, processStepFn, stepFnType
 import modules.globals as g
 import concurrent.futures
 
-allSteps: Dict[stepFnType, bool] = {
+allSteps: "Dict[stepFnType, bool]" = {
     # data.getData: config.EAGER_LOAD_DATA,
     # data.preprocessData: config.PREPROCESS,
     structural.generateLabels: config.GENERATE_LABELS,

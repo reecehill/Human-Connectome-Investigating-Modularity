@@ -21,23 +21,24 @@ def convertNumericalModuleToWords(xory: "pd.Series[int]") -> "pd.Series[str]":
     unique_labels_xory = set(xory)
 
     # Step 2: Create a dictionary to map each label to a random word
-    label_to_word_map_xory: dict[float, str] = {
+    label_to_word_map_xory: "dict[float, str]" = {
         label: random_word() for label in unique_labels_xory
     }
 
     # Step 3: For missing modules, make their labels "missing". (So we can easily identify them)
-    if(-1 in unique_labels_xory):
+    if (-1 in unique_labels_xory):
         label_to_word_map_xory[-1] = f'missing'
-    
+
     # Step 4: Apply the mapping to x and y
-    xory_as_words: pd.Series[str] = pd.Series(
+    xory_as_words: "pd.Series[str]" = pd.Series(
         [label_to_word_map_xory[label] for label in xory], index=xory.index)
     return xory_as_words
 
+
 def convertNumericalModulesToWords(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[str], pd.Series[str]]":
-    x_as_words: pd.Series[str] = convertNumericalModuleToWords(x)
-    y_as_words: pd.Series[str] = convertNumericalModuleToWords(y)
-    
+    x_as_words: "pd.Series[str]" = convertNumericalModuleToWords(x)
+    y_as_words: "pd.Series[str]" = convertNumericalModuleToWords(y)
+
     return x_as_words, y_as_words
 
 
@@ -45,10 +46,10 @@ def enlarge_mask_with_mode_priority(mask: "pd.Series[int]", n: int, mode_method:
     if n == 1:
         # No padding needed
         return mask
-    padded_mask: pd.Series[int] = mask.copy(
+    padded_mask: "pd.Series[int]" = mask.copy(
         deep=True).sample(frac=1)  # random
-    possibleIndexes: pd.Index[Any] = padded_mask.index
-    valueCounts: pd.Series[int] = padded_mask.value_counts().drop(
+    possibleIndexes: "pd.Index[Any]" = padded_mask.index
+    valueCounts: "pd.Series[int]" = padded_mask.value_counts().drop(
         [-1], errors='ignore')
     for idx in possibleIndexes:
         # Define window for smoothing
@@ -84,7 +85,6 @@ def enlarge_mask_with_mode_priority(mask: "pd.Series[int]", n: int, mode_method:
     return padded_mask
 
 
-
 def append_result_to_csv(df: pd.DataFrame, filename: Path):
     # Check if the file exists
     if not filename.is_file():
@@ -98,13 +98,13 @@ def append_result_to_csv(df: pd.DataFrame, filename: Path):
 def calcModuleSizes(x_module: "pd.Series[str]", y_module: "pd.Series[str]", xy_surface_area: "npt.NDArray[np.float64]") -> "tuple[np.float64, np.float64, np.float64]":
     x_indices = x_module.index
     y_indices = y_module.index
-    
+
     x_module_sa: np.float64 = xy_surface_area[
         x_indices].sum()
-    
+
     y_module_sa: np.float64 = xy_surface_area[
         y_indices].sum()
-    
+
     ydivx_modula_sa: np.float64 = y_module_sa / x_module_sa
 
     return x_module_sa, y_module_sa, ydivx_modula_sa

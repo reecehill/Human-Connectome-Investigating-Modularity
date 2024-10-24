@@ -8,7 +8,7 @@ import pandas as pd
 from modules.hcp_data_manager.deleter import deleteFilesByExtensions
 
 
-def prepStep(subjectId: str, stepName: str, hemisphere: Optional[Literal['left', 'right']] = None, task: Optional[str] = None) -> bool:
+def prepStep(subjectId: str, stepName: str, hemisphere: "Optional[Literal['left', 'right']]" = None, task: "Optional[str]" = None) -> bool:
     # Called at every new step in pipeline.
     config.setCurrentStep(currentStep=stepName)
     subjectDir = config.SUBJECTS_DIR / subjectId
@@ -65,7 +65,7 @@ def processStepFn(step: stepFnType, subjectId: str):
 def cleanDirOfBatch(subjectBatch: List[str]):
     g.logger.info(
         f'Now deleting data that was downloaded for batch: {config.ALL_SUBJECTS[0]}-{config.ALL_SUBJECTS[-1]}')
-    directoriesUsed: List[config.Path] = [
+    directoriesUsed: "List[config.Path]" = [
         config.SUBJECTS_DIR / subjectId for subjectId in subjectBatch]
     deleteFilesByExtensions(directories=directoriesUsed, extensions=[
                             '*'], recursive=True, depth=-1)

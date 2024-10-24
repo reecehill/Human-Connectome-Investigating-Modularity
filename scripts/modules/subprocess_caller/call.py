@@ -5,11 +5,11 @@ import subprocess
 from typing import IO, Any, Optional, Union
 import modules.globals as g
 
-def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]" = None, saveToFile: Optional[str] = None) -> bool: # type: ignore
+def call(cmd: "list[Union[str,Path]]", cmdLabel: str = "?", cwd: "Optional[str]" = None, saveToFile: "Optional[str]" = None) -> bool: # type: ignore
   try:
     g.logger.info("CMD: " + ' '.join(str(x) for x in cmd))
   
-    process: subprocess.Popen[Any] = subprocess.Popen(cmd,
+    process: "subprocess.Popen[Any]" = subprocess.Popen(cmd,
               stdout=subprocess.PIPE,
               stderr=subprocess.STDOUT,
               #text=True,

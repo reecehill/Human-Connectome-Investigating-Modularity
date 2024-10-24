@@ -35,7 +35,7 @@ def convertSubjectWideResultsToDataFrames(
     results_y_truth_with_range: list[ResultRowSubjectWide]
 ) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
-    columns: list[str] = [
+    columns: "list[str]" = [
         "Timestamp of config",
         "Subject ID",
         "Subject-pipeline Success",
@@ -56,12 +56,13 @@ def convertSubjectWideResultsToDataFrames(
 
     return dfXTruthWithRange, dfYTruthWithRange
 
+
 def convertModuleWideResultsToDataFrames(
     results_x_truth_by_module: list[ResultRowModuleWide],
     results_y_truth_by_module: list[ResultRowModuleWide]
 ) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
-    columns: list[str] = [
+    columns: "list[str]" = [
         "Timestamp of config",
         "Subject ID",
         "Subject-pipeline Success",
@@ -90,7 +91,7 @@ def convertModuleWideResultsToDataFrames(
 # Define the padding function
 
 
-def pad_indexes(currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]", validIndexes: "Union[pd.MultiIndex,pd.Index[int]]", n: int) -> list[int]:
+def pad_indexes(currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]", validIndexes: "Union[pd.MultiIndex,pd.Index[int]]", n: int) -> "list[int]":
     # will pad an array of indexes in both directions n number of times.
     # Example usage
     # X_indexes = [3, 4, 5, 56, 58, 70]
@@ -99,7 +100,7 @@ def pad_indexes(currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]", validIndex
     # Output -> [1, 2, 3, 4, 5, 6, 7, 54, 55, 56, 57, 58, 59, 60, 68, 69, 70, 71, 72]
 
     # Used to get expand modules a little beyond their boundaries.
-    
+
     padded_indexes = set()
     for index in currentIndexes:
         # Add indexes within range n in both directions

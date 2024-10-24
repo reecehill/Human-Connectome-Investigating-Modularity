@@ -4,7 +4,7 @@ import config
 import modules.globals as g
 
 
-def getPipelineSuccessStatus() -> Dict[str, Tuple[Optional[bool], str]]:
+def getPipelineSuccessStatus() -> "Dict[str, Tuple[Optional[bool], str]]":
     """
     The function `getPipelineSuccessStatus` reads a CSV file containing pipeline success statuses and
     returns a dictionary mapping step names to tuples of success status and last modified timestamp.
@@ -13,7 +13,7 @@ def getPipelineSuccessStatus() -> Dict[str, Tuple[Optional[bool], str]]:
     as a string.
     """
     # Check if the file exists
-    existing_success_dict: dict[str, Tuple[Optional[bool], str]]
+    existing_success_dict: "dict[str, Tuple[Optional[bool], str]]"
     if not config.PIPELINE_SUCCESS_FILE.is_file():
         existing_success_dict = {
             stepFn.__name__: (None, "") for stepFn in g.allSteps.keys()}
@@ -33,8 +33,7 @@ def getPipelineSuccessStatus() -> Dict[str, Tuple[Optional[bool], str]]:
 
 
 def updateStepSuccessStatus():
-    existing_success_dict: dict[str,
-                                Tuple[Optional[bool], str]] = getPipelineSuccessStatus()
+    existing_success_dict: "dict[str,Tuple[Optional[bool], str]]" = getPipelineSuccessStatus()
     # Update the existing dictionary with the new data
 
     existing_success_dict.update({
@@ -57,14 +56,12 @@ def allStepsAreSuccessful() -> bool:
         g.logger.info(
             "No steps have actually been ran. Using data found on disk.")
 
-    allStatuses: dict[str, Tuple[Optional[bool], str]
-                      ] = getPipelineSuccessStatus()
+    allStatuses: "dict[str, Tuple[Optional[bool], str]]" = getPipelineSuccessStatus()
     return all(status is True for status, _ in allStatuses.values())
 
 
 def prevStepWasSuccessful() -> bool:
-    existing_success_dict: dict[str,
-                                Tuple[Optional[bool], str]] = getPipelineSuccessStatus()
+    existing_success_dict: "dict[str, Tuple[Optional[bool], str]]" = getPipelineSuccessStatus()
     allStepsList = [stepFn.__name__ for stepFn in g.allSteps.keys()]
     currentStepIndex = allStepsList.index(config.CURRENT_STEP)
     if currentStepIndex == 0:
@@ -74,15 +71,14 @@ def prevStepWasSuccessful() -> bool:
     return prevStepStatus is True
 
 
-def getPipelineSuccessStatusForAllSubjects() -> Dict[str, Dict[str, Tuple[Optional[bool], str]]]:
+def getPipelineSuccessStatusForAllSubjects() -> "Dict[str, Dict[str, Tuple[Optional[bool], str]]]":
     """
     This function will collect the pipeline success status for all subjects
     and return it as a dictionary of dictionaries.
 
     """
-    all_subjects_success_dict: Dict[str,
-                                    Dict[str, Tuple[Optional[bool], str]]] = {}
-    subject_success_dict: Dict[str, Tuple[Optional[bool], str]] = {}
+    all_subjects_success_dict: "Dict[str,Dict[str, Tuple[Optional[bool], str]]]" = {}
+    subject_success_dict: "Dict[str, Tuple[Optional[bool], str]]" = {}
 
     # Loop over all subjects to get their pipeline success status
     for subjectId in config.ALL_SUBJECTS:
@@ -111,11 +107,10 @@ def getPipelineSuccessStatusForAllSubjects() -> Dict[str, Dict[str, Tuple[Option
 
 
 def updateBatchStatus() -> bool:
-    all_subjects_success_dict: Dict[str, Dict[str, Tuple[Optional[bool], str]]
-                                    ] = getPipelineSuccessStatusForAllSubjects()
+    all_subjects_success_dict: "Dict[str, Dict[str, Tuple[Optional[bool], str]]]" = getPipelineSuccessStatusForAllSubjects()
 
     # Step 1: Flatten the dictionary for each subject into a format Pandas can handle more easily
-    flattened_data: Dict[str, Dict[str, Optional[Union[bool, str]]]] = {}
+    flattened_data: "Dict[str, Dict[str, Optional[Union[bool, str]]]]" = {}
     for subject_id, steps_dict in all_subjects_success_dict.items():
         flattened_data[subject_id] = {}
         for step, (status, last_modified) in steps_dict.items():
@@ -130,7 +125,7 @@ def updateBatchStatus() -> bool:
     df.rename(columns={'index': 'subjectId'}, inplace=True)
 
     # Step 4: Add a column that checks if all steps ()'_status' columns) are True
-    status_columns: list[str] = [
+    status_columns: "list[str]" = [
         f'{col.__name__}_status' for col in g.allSteps.keys()]
     df['allSteps_success'] = df[status_columns].fillna(
         value=False).all(axis='columns', skipna=False)

@@ -71,14 +71,14 @@ CURRENT_TASK: str = ""
 # [END] SUBJECT-SPECIFIC PARAMETERS
 # ----------
 # If an error occurs at any step whilst processing a subject, this is set to False. This is only set to True upon finishing a step. Thus, "None" indicates termination mid-step.
-SUBJECT_PIPELINE_SUCCESS: Optional[bool] = None
+SUBJECT_PIPELINE_SUCCESS: "Optional[bool]" = None
 # If an error occurs during the step whilst processing a subject, this is set to 1.
-SUBJECT_STEP_SUCCESS: Optional[bool] = None
+SUBJECT_STEP_SUCCESS: "Optional[bool]" = None
 
 # ----------
 
 
-def splitIntoBatches(data: list[str], numBatches: int) -> list[list[str]]:
+def splitIntoBatches(data: "list[str]", numBatches: int) -> "list[list[str]]":
     """
     Split a list of strings into no more than `numBatches` total batches.
 
@@ -102,7 +102,7 @@ def splitIntoBatches(data: list[str], numBatches: int) -> list[list[str]]:
 # ----------
 # [START] EXECUTABLE PATHS
 # ----------
-def getPathOfExecutable(executable: str, executableAlias: Optional[str] = None, userSubmitted: Optional[str] = None) -> Path:
+def getPathOfExecutable(executable: str, executableAlias: "Optional[str]" = None, userSubmitted: "Optional[str]" = None) -> Path:
     if (userSubmitted is None or userSubmitted == ""):
         pathToExecutable =  \
             which(executable) or \

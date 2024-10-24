@@ -14,7 +14,7 @@ except Exception as e:
   print(e)
   exit()
 
-extra_logging_info: dict[str, str] = {'ADDITIONAL': ''}
+extra_logging_info: "dict[str, str]" = {'ADDITIONAL': ''}
 
 class LoggerClass:
   def __init__(self) -> None:
@@ -24,7 +24,7 @@ class LoggerClass:
       # deleteDirectories(directoryPaths=[self.folderPathsNeeded[0].parent])
       createDirectories(directoryPaths=self.folderPathsNeeded, createParents=True, throwErrorIfExists=False)
     
-  def run(self) -> LoggerAdapter[Logger]:
+  def run(self) -> "LoggerAdapter[Logger]":
     # Set up a handler for both standard output stream and to output file.
     #targets = logging.StreamHandler(sys.stdout), logging.FileHandler(config.logFilePath)
 
@@ -36,7 +36,7 @@ class LoggerClass:
     multiprocessing_logging.install_mp_handler(
         logger=logger_nocontext)
     
-    logger: LoggerAdapter[Logger] = logging.LoggerAdapter(
+    logger: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
         logger_nocontext, extra=extra_logging_info)
 
     self.logger = logger

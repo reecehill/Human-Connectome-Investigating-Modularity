@@ -86,7 +86,7 @@ class SaverClass:
         self.connection.stdin.write(b'exit\n')
         self.connection.stdin.flush()
 
-    def initiateSSHConnection(self, terminateUponConnection: bool = True) -> Optional[bool]:
+    def initiateSSHConnection(self, terminateUponConnection: bool = True) -> "Optional[bool]":
         try:
             self.connection = subprocess.Popen(self.sshCmd,stdin=subprocess.PIPE,
                                                stdout=StreamToLogger(g.logger, 20), # type: ignore

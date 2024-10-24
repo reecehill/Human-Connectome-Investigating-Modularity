@@ -2,7 +2,6 @@
 from enum import unique
 import numpy as np
 import numpy.typing as npt
-from sklearn.metrics import silhouette_score
 from includes.statistics.testFunctions import pad_indexes
 import modules.globals as g
 import pandas as pd

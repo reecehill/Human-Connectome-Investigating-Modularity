@@ -18,7 +18,7 @@ extra_logging_info: "dict[str, str]" = {'ADDITIONAL': ''}
 
 class LoggerClass:
   def __init__(self) -> None:
-      self.logger: LoggerAdapter[Logger]
+      self.logger: "LoggerAdapter[Logger]"
       self.folderPathsNeeded: "list[Path]" = [config.LOGS_DIR]
       #self.filePathsNeeded: "list[Optional[str]]"" = []
       # deleteDirectories(directoryPaths=[self.folderPathsNeeded[0].parent])

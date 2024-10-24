@@ -2,6 +2,8 @@
 from enum import unique
 import numpy as np
 import numpy.typing as npt
+from sklearn.metrics import silhouette_score
+from includes.statistics.testFunctions import pad_indexes
 import modules.globals as g
 import pandas as pd
 import config
@@ -23,7 +25,10 @@ def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.S
         results_x_truth_by_module: list[ResultRowModuleWide] = []
         results_y_truth_by_module: list[ResultRowModuleWide] = []
         # Looping through each Y module.
-
+        if (y_module_name == 'missing'):
+            # Do not process missing fMRI modules and proceed to next module.
+            continue
+        
         # Get current Y module
         y_module: pd.Series[str] = y_final[(y_final == y_module_name)]
 
@@ -46,10 +51,23 @@ def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.S
         x_module_sa, y_module_sa, ydivx_modula_sa = calcModuleSizes(
             x_final_module_all, y_module, xy_surface_area.to_numpy().flatten())
 
-        # Reset current Y module to include X
-        # y_final_module_within_x: pd.Series[str] = convertNumericalModuleToWords(y[x_final_module.index])
-        y_final_module_within_x: pd.Series[str] = y_final[np.intersect1d(
-            y_final.index, x_final_module_all.index)]
+        if("padXModules" == "padXModules" and 1 == 1):
+            x_final_module_all_paddedIndexes: list[int] = pad_indexes(x_final_module_all.index, x.index, n=5)
+            x_final_module_all_padded: pd.Series[str] = convertNumericalModuleToWords(
+                x[pd.Index(x_final_module_all_paddedIndexes)])
+            x_final_module_all = x_final_module_all_padded
+
+        if ("randomiseMissingYModules" == "randomiseMissingYModules" and 1 == 1):
+        # Get the y modules underlying all of x_1. Note that this may yield missing/non-labelled y modules. 
+        # Replace missing y modules with random values
+            y_final_module_within_x_with_missing: pd.Series[int] = y[x_final_module_all.index].replace([0,1,"1"], np.nan)
+            y_final_module_within_x_with_missing[y_final_module_within_x_with_missing.isna()] = np.random.normal(loc=0, scale=1, size=y_final_module_within_x_with_missing.isna().sum())
+        else:
+            y_final_module_within_x_with_missing: pd.Series[int] = y[x_final_module_all.index].replace([0,1,"1",np.nan], -1)
+
+        # Convert to words.
+        y_final_module_within_x: pd.Series[str] = convertNumericalModuleToWords(y_final_module_within_x_with_missing)
+
         
         x_final_module = x_final_module_all[y_final_module_within_x.index]
         
@@ -59,6 +77,10 @@ def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.S
             [x_final_module, pd.Series(np.flip(x_final_module))])
         y_final_module_symm = pd.concat(
             [y_final_module_within_x, pd.Series(np.flip(y_final_module_within_x))])
+
+        if ("makeModulesSymmetrical" == "makeModulesSymmetrical" and 1 == 1):
+            x_final_module = x_final_module_symm
+            y_final_module_within_x = y_final_module_symm
 
         # ------
         # Run tests for X as truth

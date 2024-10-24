@@ -1,3 +1,4 @@
+from typing import Union
 import pandas as pd
 from includes.statistics import Float
 from includes.statistics.testVariables import ResultRowSubjectWide, ResultRowModuleWide
@@ -85,3 +86,24 @@ def convertModuleWideResultsToDataFrames(
         results_y_truth_by_module, columns=columns)
 
     return dfXTruthByModule, dfYTruthByModule
+
+# Define the padding function
+
+
+def pad_indexes(currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]", validIndexes: "Union[pd.MultiIndex,pd.Index[int]]", n: int) -> list[int]:
+    # will pad an array of indexes in both directions n number of times.
+    # Example usage
+    # X_indexes = [3, 4, 5, 56, 58, 70]
+    # n = 2
+    # X_indexes_new = pad_indexes(X_indexes, n)
+    # Output -> [1, 2, 3, 4, 5, 6, 7, 54, 55, 56, 57, 58, 59, 60, 68, 69, 70, 71, 72]
+
+    # Used to get expand modules a little beyond their boundaries.
+    
+    padded_indexes = set()
+    for index in currentIndexes:
+        # Add indexes within range n in both directions
+        for i in range(max(0, index - n), index + n + 1):
+            if i in validIndexes:
+                padded_indexes.add(i)
+    return sorted(padded_indexes)

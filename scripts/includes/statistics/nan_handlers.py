@@ -51,6 +51,24 @@ def smoothed(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],
     return x_out, y_out
 
 
+def white_noise(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
+    def replaceMissingValuesWithNan(xory: "pd.Series[int]", replace: "list[int]") -> "pd.Series[int]":
+        return xory.replace(replace, np.nan)
+    def replaceNaNWithRandom(xory: "pd.Series[int]") -> "pd.Series[int]":
+        xory[xory.isna()] = g.randomGen.integers(
+            low=xory.max(),
+            high=xory.max()+100,
+            size=len(xory))
+        return xory
+    x_withnans: pd.Series[int] = replaceMissingValuesWithNan(x, [-1, 0])
+    y_withnans: pd.Series[int] = replaceMissingValuesWithNan(y, [-1, 0, 1])
+
+    x_randomised: pd.Series[int] = replaceNaNWithRandom(x_withnans)
+    y_randomised: pd.Series[int] = replaceNaNWithRandom(y_withnans)
+
+    return x_randomised, y_randomised
+    
+
 def filter_by_parent(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
     # As y may be smaller than x, by masking x with y we risk going from:
     # x = [ 1,1,1,1 ]

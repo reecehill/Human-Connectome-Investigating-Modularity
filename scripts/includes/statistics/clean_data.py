@@ -1,4 +1,4 @@
-from includes.statistics.nan_handlers import mask, ffill, smoothed, filter_by_parent
+from includes.statistics.nan_handlers import mask, ffill, smoothed, filter_by_parent, white_noise
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
@@ -18,6 +18,8 @@ def clean_data(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "t
         x_out, y_out = smoothed(x, y)
     elif (nan_handler == 'filter_by_parent'):
         x_out, y_out = filter_by_parent(x, y)
+    elif (nan_handler == 'white_noise'):
+        x_out, y_out = white_noise(x, y)
     else:
         raise ValueError(
             f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill", "smoothed", or "filter_by_parent".')

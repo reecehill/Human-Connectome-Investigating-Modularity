@@ -35,7 +35,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
 
         perSubjectStat(x_final, y_final)
         perModuleStat(x_final, y_final, x, y, xy_surface_area)
-        
+
         result: bool = True
     except Exception as e:
         result = False

@@ -16,7 +16,8 @@ load(fileToLoad, ...
     'lo_faceROIidSubCor', 'hi_faceROIidSubCor',...
     'filenames',...
     'subfilenames'); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
-
+faceROI_L=lo_faceROIidL(:,1);
+faceROI_R=lo_faceROIidR(:,1);
 [roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, "lh.L_precentral", "rh.R_precentral");
 
 modulesByFace = struct();

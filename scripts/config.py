@@ -28,7 +28,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD = 4  # was 7
 DSI_STUDIO_TRACKING_METHOD = 0  # 0:streamline (default), 1:rk4
 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT)
 DSI_STUDIO_ITERATION_COUNT = 1
-DSI_STUDIO_FIBRE_COUNT = 50000
+DSI_STUDIO_FIBRE_COUNT = 500000
 # DSI_STUDIO_FIBRE_COUNT = 1000
 # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_USE_RECONST = False
@@ -246,7 +246,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults
 ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
-SUBJECTS_INTO_N_BATCHES: int = 100  # Number of batches
+SUBJECTS_INTO_N_BATCHES: int = 40  # Number of batches
 
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
 # lf=left foot; rf=right foot; lh=left hand; rh=right hand; t=tongue;

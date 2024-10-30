@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
-from typing import Union
+from typing import Any, Dict, Optional, Union, cast
 from includes.statistics.utils import enlarge_mask_with_mode_priority
 import modules.globals as g
 
@@ -51,20 +51,34 @@ def smoothed(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],
     return x_out, y_out
 
 
-def white_noise(x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
-    def replaceMissingValuesWithNan(xory: "pd.Series[int]", replace: "list[int]") -> "pd.Series[int]":
-        return xory.replace(replace, np.nan)
-    def replaceNaNWithRandom(xory: "pd.Series[int]") -> "pd.Series[int]":
-        xory[xory.isna()] = g.randomGen.integers(
-            low=xory.max(),
-            high=xory.max()+100,
+def white_noise(x: "Union[pd.Series[int],pd.Series[str]]", y: "Union[pd.Series[int], pd.Series[str]]", **kwargs: "Union[pd.Series[int], pd.Series[str]]") -> "tuple[Union[pd.Series[int],pd.Series[str]],Union[pd.Series[int],pd.Series[str]]]":
+    
+    def replaceMissingValuesWithNan(xory: "Union[pd.Series[int],pd.Series[str]]", replace: "list[Union[int,str]]") -> "Union[pd.Series[int],pd.Series[str]]":
+        return xory.replace(to_replace=replace, value=np.nan)
+    
+    def replaceNaNWithRandom(xory: "Union[pd.Series[int],pd.Series[str]]", sample_from: "Optional[Union[pd.Series[int], pd.Series[str]]]" = None) -> "Union[pd.Series[int],pd.Series[str]]":
+        if sample_from is None:
+            sample_from = xory
+            
+        xory[xory.isna()] = g.randomGen.choice(
+            a=sample_from,
             size=len(xory))
         return xory
-    x_withnans: "pd.Series[int]" = replaceMissingValuesWithNan(x, [-1, 0])
-    y_withnans: "pd.Series[int]" = replaceMissingValuesWithNan(y, [-1, 0, 1])
 
-    x_randomised: "pd.Series[int]" = replaceNaNWithRandom(x_withnans)
-    y_randomised: "pd.Series[int]" = replaceNaNWithRandom(y_withnans)
+    x_withnans: "Union[pd.Series[int],pd.Series[str]]" = replaceMissingValuesWithNan(
+        xory=x, replace=[-1, 0, "missing"])
+    y_withnans: "Union[pd.Series[int],pd.Series[str]]" = replaceMissingValuesWithNan(
+        y, [-1, 0, 1, 'missing'])
+
+    sample_from_x: "Optional[Union[pd.Series[int], pd.Series[str]]]" = kwargs.get(
+        'sample_from_x', None)
+    sample_from_y: "Optional[Union[pd.Series[int], pd.Series[str]]]" = kwargs.get(
+        'sample_from_y', None)
+
+    x_randomised: "Union[pd.Series[int], pd.Series[str]]" = replaceNaNWithRandom(
+        x_withnans, sample_from=sample_from_x)
+    y_randomised: "Union[pd.Series[int], pd.Series[str]]" = replaceNaNWithRandom(
+        y_withnans, sample_from=sample_from_y)
 
     return x_randomised, y_randomised
     

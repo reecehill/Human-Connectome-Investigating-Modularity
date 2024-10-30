@@ -5,11 +5,14 @@ from sklearn.metrics import v_measure_score, homogeneity_score, adjusted_rand_sc
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+
+from includes.statistics.utils import calculateLevenshteinDistance, calculateNormalisedLevenshteinDistance
 Float = Union[float, np.float16, np.float32, np.float64]
 ResultRowSubjectWide = tuple[
     str,
     str,
     Optional[bool],
+    str,
     str,
     str,
     str,
@@ -27,6 +30,7 @@ ResultRowModuleWide = tuple[
     str,
     str,
     str,
+    str,
     Float,
     Float,
     Float,
@@ -40,6 +44,8 @@ ResultRowModuleWide = tuple[
 
 # Define range information for each test
 test_ranges: "dict[str, str]" = {
+    "Levenshtein Distance": "Unbounded (non-negative)",
+    "Normalised Levenshtein Distance": "[0, 1]",
     "Mutual Information Score": "Unbounded (non-negative)",
     "Normalized Mutual Information": "[0, 1]",
     "Adjusted Mutual Information": "[-1, 1]",
@@ -50,7 +56,9 @@ test_ranges: "dict[str, str]" = {
     "Purity Score": "[0, 1]"
 }
 # Define list of test functions and their names
-test_functions_with_range: "list[tuple[str, Callable[[pd.Series[str],pd.Series[str]], Float]]]" = [
+test_functions_with_range: "list[tuple[str, Callable[[Union[pd.Series[str], pd.Series[int]],Union[pd.Series[str], pd.Series[int]]], Float]]]" = [
+    ("Levenshtein Distance", calculateLevenshteinDistance),
+    ("Normalised Levenshtein Distance", calculateNormalisedLevenshteinDistance),
     ("Mutual Information Score", mutual_info_score),
     ("Normalized Mutual Information", normalized_mutual_info_score),
     ("Adjusted Mutual Information", adjusted_mutual_info_score),

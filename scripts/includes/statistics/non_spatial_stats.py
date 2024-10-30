@@ -1,40 +1,101 @@
 # Re-importing necessary libraries and preparing data again
-from enum import unique
-import numpy as np
-import numpy.typing as npt
+from typing import cast
 import modules.globals as g
 import pandas as pd
+import numpy as np
 import config
-from includes.statistics.perSubjectStat import perModuleStat, perSubjectStat
+from includes.statistics.perModuleStat import perModuleStat
+from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
-from includes.statistics.utils import convertNumericalModulesToWords
+from includes.statistics.utils import convertNumericalModulesToWords, mapAllModulesToSameSet
 from includes.statistics.clean_data import clean_data
 
 
 def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
     result = False
     try:
-
         x_raw: pd.DataFrame = pd.read_csv(pathToXCsv.absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
         y_raw: pd.DataFrame = pd.read_csv(pathToYCsv.absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
-
         xy_surface_area: pd.DataFrame = pd.read_csv((pathToXCsv.parent.parent / 'face_surface_areas' / f'{config.CURRENT_HEMISPHERE}_sa_by_face.csv').absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
 
-        x: "pd.Series[int]" = x_raw[0]
-        y: "pd.Series[int]" = y_raw[0]
+        # We begin by standardising what "missing" data looks like (set it to -1).
+        x_orig: "pd.Series[int]" = x_raw[0].replace(
+            to_replace=[np.nan, -1, 0], value=-1, inplace=False)
+        y_orig: "pd.Series[int]" = y_raw[0].replace(
+            to_replace=[np.nan, -1, 0, 1], value=-1, inplace=False)
 
-        # Mask, or smoothed module names.
-        x_clean, y_clean = clean_data(nan_handler="filter_by_parent", x=x, y=y)
+        # ------
+        # Map x and y to same set
+        # NB: This uses Hungarian algorith to map modules to the same set of words.
+        # ?This may introduce some artefacts into the data (i.e., inappropriate mapping)
+        # We map once using the complete dataset, then apply this mapping to subsets.
+        # ------
 
-        # For absolute confidence that Python is not converting strings to integers, convert labels to random words.
-        x_final, y_final = convertNumericalModulesToWords(x_clean, y_clean)
-        # x_final, y_final = (x_clean, y_clean)
+        # Map the cleaned words to the same set.
+        x_orig_mapping: "dict[str,str]"
+        y_orig_mapping, _x_orig_mapped, _y_orig_mapped = mapAllModulesToSameSet(
+            x=x_orig,
+            y=y_orig)
+        x_orig_mapped: "pd.Series[int]" = cast(
+            "pd.Series[int]", _x_orig_mapped)
+        y_orig_mapped: "pd.Series[int]" = cast(
+            "pd.Series[int]", _y_orig_mapped)
 
-        perSubjectStat(x_final, y_final)
-        perModuleStat(x_final, y_final, x, y, xy_surface_area)
+        # ------
+        # Mask, or smooth module names.
+        # ------
+        # Clean original data.
+        _x_cleaned, _y_cleaned = clean_data(
+            nan_handler="filter_by_parent", x=x_orig, y=y_orig)
+        x_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned)
+        y_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned)
+
+        # Clean mapped data.
+        _x_cleaned_mapped, _y_cleaned_mapped = clean_data(
+            nan_handler="filter_by_parent", x=x_orig_mapped, y=y_orig_mapped)
+        x_cleaned_mapped: "pd.Series[int]" = cast(
+            "pd.Series[int]", _x_cleaned_mapped)
+        y_cleaned_mapped: "pd.Series[int]" = cast(
+            "pd.Series[int]", _y_cleaned_mapped)
+
+        # ------
+        # Convert pd.Series[int] => pd.Series[str]
+        # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
+        # ------
+
+        x_orig_words, y_orig_words = convertNumericalModulesToWords(
+            x_orig, y_orig)
+
+        x_mapped_words, y_mapped_words = convertNumericalModulesToWords(
+            x=x_orig_mapped, y=y_orig_mapped, dataIsMapped=True)
+
+        x_cleaned_words, y_cleaned_words = convertNumericalModulesToWords(
+            x_cleaned, y_cleaned)
+
+        x_cleaned_mapped_words, y_cleaned_mapped_words = convertNumericalModulesToWords(
+            x_cleaned_mapped, y_cleaned_mapped, dataIsMapped=True)
+
+        # ------
+        # Make x and y symmetric
+        # NB: To demonstrate that statistical tests are unaffected by data symmetry.
+        # ------
+        if (1 == 0):
+            x_clean_words: "pd.Series[str]" = pd.concat(
+                [x_cleaned_words, pd.Series(np.flip(x_cleaned_words))])
+            y_clean_words: "pd.Series[str]" = pd.concat(
+                [y_cleaned_words, pd.Series(np.flip(y_cleaned_words))])
+
+        # TODO: For some reason -> the stats show no improvement in performance for modules against randomised data. This is impossible.
+        perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)
+        perSubjectStat("cleaned_words_mapped",
+                       x_cleaned_mapped_words, y_cleaned_mapped_words)
+        perModuleStat("cleaned_words", x_cleaned_words, y_cleaned_words,
+                      x_orig_words, y_orig_words, xy_surface_area)
+        perModuleStat(datasetDescriptor="cleaned_words_mapped", x_final=x_cleaned_mapped_words,
+                      y_final=y_cleaned_mapped_words, xy_surface_areas=xy_surface_area, x=x_mapped_words, y=y_mapped_words)
 
         result: bool = True
     except Exception as e:

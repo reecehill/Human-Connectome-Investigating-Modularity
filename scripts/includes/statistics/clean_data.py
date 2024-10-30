@@ -1,3 +1,4 @@
+from typing import Dict, Union
 from includes.statistics.nan_handlers import mask, ffill, smoothed, filter_by_parent, white_noise
 import pandas as pd
 import numpy as np
@@ -7,9 +8,9 @@ import modules.globals as g
 # Cleaning data to exclude NaN values
 
 
-def clean_data(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "tuple[pd.Series[int],pd.Series[int]]":
-    x_out: 'pd.Series[int]'
-    y_out: 'pd.Series[int]'
+def clean_data(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]", **kwargs: "pd.Series[int]") -> "tuple[Union[pd.Series[int], pd.Series[str]],Union[pd.Series[int], pd.Series[str]]]":
+    x_out: 'Union[pd.Series[int], pd.Series[str]]'
+    y_out: 'Union[pd.Series[int], pd.Series[str]]'
     if (nan_handler == 'mask'):
         x_out, y_out = mask(x, y)
     elif (nan_handler == 'ffill'):
@@ -19,7 +20,7 @@ def clean_data(nan_handler: str, x: "pd.Series[int]", y: "pd.Series[int]") -> "t
     elif (nan_handler == 'filter_by_parent'):
         x_out, y_out = filter_by_parent(x, y)
     elif (nan_handler == 'white_noise'):
-        x_out, y_out = white_noise(x, y)
+        x_out, y_out = white_noise(x, y, **kwargs)
     else:
         raise ValueError(
             f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill", "smoothed", or "filter_by_parent".')

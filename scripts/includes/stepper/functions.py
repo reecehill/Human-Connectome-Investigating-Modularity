@@ -71,7 +71,7 @@ def prevStepWasSuccessful() -> bool:
     return prevStepStatus is True
 
 
-def getPipelineSuccessStatusForAllSubjects() -> "Dict[str, Dict[str, Tuple[Optional[bool], str]]]":
+def getPipelineSuccessStatusForSubjects(subjects: list[str] = config.ALL_SUBJECTS) -> "Dict[str, Dict[str, Tuple[Optional[bool], str]]]":
     """
     This function will collect the pipeline success status for all subjects
     and return it as a dictionary of dictionaries.
@@ -81,7 +81,7 @@ def getPipelineSuccessStatusForAllSubjects() -> "Dict[str, Dict[str, Tuple[Optio
     subject_success_dict: "Dict[str, Tuple[Optional[bool], str]]" = {}
 
     # Loop over all subjects to get their pipeline success status
-    for subjectId in config.ALL_SUBJECTS:
+    for subjectId in subjects:
         # Check if the subject's file exists
         file_path = config.SUBJECTS_DIR / subjectId / 'pipeline_success.csv'
 
@@ -106,8 +106,8 @@ def getPipelineSuccessStatusForAllSubjects() -> "Dict[str, Dict[str, Tuple[Optio
     return all_subjects_success_dict
 
 
-def updateBatchStatus() -> bool:
-    all_subjects_success_dict: "Dict[str, Dict[str, Tuple[Optional[bool], str]]]" = getPipelineSuccessStatusForAllSubjects()
+def updateBatchStatus(batchSubjects: list[str]) -> bool:
+    all_subjects_success_dict: "Dict[str, Dict[str, Tuple[Optional[bool], str]]]" = getPipelineSuccessStatusForSubjects(subjects=batchSubjects)
 
     # Step 1: Flatten the dictionary for each subject into a format Pandas can handle more easily
     flattened_data: "Dict[str, Dict[str, Optional[Union[bool, str]]]]" = {}

@@ -1,4 +1,5 @@
 # Re-importing necessary libraries and preparing data again
+import Levenshtein
 import numpy as np
 from includes.statistics.testFunctions import pad_indexes
 import modules.globals as g
@@ -9,7 +10,8 @@ from includes.statistics.testVariables import Float, ResultRowSubjectWide, Resul
 from includes.statistics.utils import convertNumericalModuleToWords, convertNumericalModulesToWords, calcModuleSizes
 from includes.stepper.functions import allStepsAreSuccessful
 from includes.statistics.save_results import save_results
-
+from sklearn.metrics.cluster import contingency_matrix
+from scipy.optimize import linear_sum_assignment
 
 def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.Series[int]", y: "pd.Series[int]", xy_surface_area: "pd.DataFrame") -> None:
     # --- MODULE-SPECIFIC TESTS [START] ---
@@ -68,7 +70,8 @@ def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.S
         y_final_module_within_x: "pd.Series[str]" = convertNumericalModuleToWords(
             y_final_module_within_x_with_missing)
 
-        x_final_module = x_final_module_all[y_final_module_within_x.index]
+        x_final_module: "pd.Series[str]" = x_final_module_all[y_final_module_within_x.index]
+
 
         # ------
         # Make x and y symmetric
@@ -81,6 +84,26 @@ def perModuleStat(x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "pd.S
             x_final_module = x_final_module_symm
             y_final_module_within_x = y_final_module_symm
 
+
+        # ** LEVENSCHEINSTEIN ALGORITHM ~**
+        cont_matrix = contingency_matrix(
+            x_final_module.reindex().to_numpy(), y_final_module_within_x.reindex().to_numpy())
+        row_ind, col_ind = linear_sum_assignment(-cont_matrix) # type:ignore
+        mapping = zip(row_ind, col_ind)
+        mapped_f_modules = y_final_module_within_x.copy()
+        t = iter(mapping)
+        for i, j in mapping:
+            # print (f"Label {i+1} in Structural modules == Label {j+1} in functional")
+            try:
+                mapped_f_modules[mapped_f_modules == mapped_f_modules.values[j]
+                                 ] = x_final_module.values[i]
+            except Exception as e:
+                pass
+        fModules_string = ','.join([module for module in mapped_f_modules])
+        sModules_string = ','.join([module for module in x_final_module])
+        distance = Levenshtein.distance(fModules_string, sModules_string)
+        print(
+            f"Distance between {y_module_name} and {x_module_name} --- {distance} of {len(sModules_string)}")
         # ------
         # Run tests for X as truth
         for test_name, test_func in test_functions_with_range:

@@ -51,7 +51,7 @@ UPLOADS_DIR: Path = (BASE_DIR / "uploads" /
 
 SUBJECT_DIR: Path = Path()
 PIPELINE_SUCCESS_FILE: Path = Path()
-BATCH_SUCCESS_FILE: Path = DATA_DIR / f'batchSuccess-{TIMESTAMP_OF_SCRIPT}.csv'
+BATCH_SUCCESS_FILE: Path = Path()
 SUBJECT_STAT_DIR: Path = Path()
 
 STAT_FILE_BY_SUBJECT: Path = DATA_DIR / f'allSubjects-{TIMESTAMP_OF_SCRIPT}.csv'
@@ -67,6 +67,7 @@ CURRENT_STEP: str = ""
 CURRENT_SUBJECT: str = ""
 CURRENT_HEMISPHERE: str = ""
 CURRENT_TASK: str = ""
+CURRENT_BATCH: str = ""
 # ----------
 # [END] SUBJECT-SPECIFIC PARAMETERS
 # ----------

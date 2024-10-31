@@ -31,10 +31,12 @@ def nonSpatialStatsPerTask(subjectId: str) -> bool:
   pathToXCsv: Path = (config.SUBJECT_DIR / 'exported_modules' / f'{config.CURRENT_HEMISPHERE}_structural_modules.csv').resolve(strict = True)
   pathToYCsv: Path = (config.SUBJECT_DIR / 'exported_modules' /
                       f'{config.CURRENT_HEMISPHERE}_{config.CURRENT_TASK}_functional_modules.csv').resolve(strict=True)
-
-  _ = [getFile(localPath=localFileToExist, localOnly=True) for localFileToExist in [pathToXCsv, pathToYCsv]]
+  pathToXYSurfaceAreas: Path = (config.SUBJECT_DIR / 'face_surface_areas' /
+                      f'{config.CURRENT_HEMISPHERE}_sa_by_face.csv').resolve(strict=True)
+  _ = [getFile(localPath=localFileToExist, localOnly=True)
+       for localFileToExist in [pathToXCsv, pathToYCsv, pathToXYSurfaceAreas]]
   
-  return runTests(subjectId, pathToXCsv, pathToYCsv)
+  return runTests(subjectId, pathToXCsv, pathToYCsv, pathToXYSurfaceAreas)
 
 def runDeprecatedStats(subjectId: str) -> bool:
   if config.CALC_DEPRECATED_STATS == False:

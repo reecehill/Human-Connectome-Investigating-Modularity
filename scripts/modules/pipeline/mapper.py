@@ -17,6 +17,13 @@ def runMatlab(subjectId: str) -> bool:
         call(cmdLabel="MATLAB",
              cmd=[
                  config.MATLAB,
+                 f'-batch "exportRoiIds {config.SUBJECT_DIR} {downsample}"',
+             ],
+             cwd=config.matlabScriptsFolder),
+        
+        call(cmdLabel="MATLAB",
+             cmd=[
+                 config.MATLAB,
                  f'-batch "exportFaceSurfaceAreas {config.SUBJECT_DIR} {downsample}"',
              ],
              cwd=config.matlabScriptsFolder),

@@ -3,7 +3,6 @@ from typing import cast
 import modules.globals as g
 import pandas as pd
 import numpy as np
-import config
 from includes.statistics.perModuleStat import perModuleStat
 from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
@@ -11,14 +10,14 @@ from includes.statistics.utils import convertNumericalModulesToWords, mapAllModu
 from includes.statistics.clean_data import clean_data
 
 
-def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
+def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToXYSurfaceAreas: Path) -> bool:
     result = False
     try:
         x_raw: pd.DataFrame = pd.read_csv(pathToXCsv.absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
         y_raw: pd.DataFrame = pd.read_csv(pathToYCsv.absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
-        xy_surface_area: pd.DataFrame = pd.read_csv((pathToXCsv.parent.parent / 'face_surface_areas' / f'{config.CURRENT_HEMISPHERE}_sa_by_face.csv').absolute(
+        xy_surface_area: pd.DataFrame = pd.read_csv((pathToXYSurfaceAreas).absolute(
         ).__str__(), sep=',', header=None, keep_default_na=True).T
 
         # We begin by standardising what "missing" data looks like (set it to -1).
@@ -35,8 +34,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
         # ------
 
         # Map the cleaned words to the same set.
-        x_orig_mapping: "dict[str,str]"
-        y_orig_mapping, _x_orig_mapped, _y_orig_mapped = mapAllModulesToSameSet(
+        orig_mapping: "dict[str,str]"
+        orig_mapping, _x_orig_mapped, _y_orig_mapped = mapAllModulesToSameSet(
             x=x_orig,
             y=y_orig)
         x_orig_mapped: "pd.Series[int]" = cast(
@@ -100,8 +99,6 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
         result: bool = True
     except Exception as e:
         result = False
-        if (f'{e}' == 'index 4274 is out of bounds for axis 0 with size 4274'):
-            pass
         g.logger.error(f"Error whilst running stats - {e}")
         raise e
     finally:

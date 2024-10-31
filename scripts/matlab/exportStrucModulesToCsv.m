@@ -87,7 +87,7 @@ writematrix(modulesByFace.right_structural_modulesByAllId',[pathToFile,'/exporte
 
 
 % Additionally, write centroid coordinates to csv.
-writematrix(string(lo_centroidsL(roiL_ids,1:3)),[pathToFile,'/left_coordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
-writematrix(string(lo_centroidsR(roiR_ids-length(faceROI_L),1:3)),[pathToFile,'/right_coordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(string(lo_centroidsL(roiL_ids,1:3)),[pathToFile,'/left_centroidCoordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
+writematrix(string(lo_centroidsR(roiR_ids-length(faceROI_L),1:3)),[pathToFile,'/right_centroidCoordinatesByROIId.csv'],"Delimiter","comma","QuoteStrings","all",'WriteMode', 'overwrite');
 
 end

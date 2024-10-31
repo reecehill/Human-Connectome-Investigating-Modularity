@@ -33,7 +33,7 @@ def import_module(name): # -> ModuleType:
     """
     ...
 
-def lazy_call(full_name, **kwargs): # -> (**kwargs: Unknown) -> Any:
+def lazy_call(full_name, **kwargs): # -> Callable[..., Any]:
     ...
 
 def inject_attribute(class_attributes, name, value): # -> None:

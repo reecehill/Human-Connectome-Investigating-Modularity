@@ -8,7 +8,7 @@ from contextlib import contextmanager
 """Adapters and decorators for vcr
 """
 lgr = ...
-def use_cassette(path, return_body=..., skip_if_no_vcr=..., **kwargs): # -> CassetteContextDecorator:
+def use_cassette(path, return_body=..., skip_if_no_vcr=..., **kwargs):
     """Adapter so we could create/use custom use_cassette with custom parameters
 
         Parameters
@@ -26,7 +26,7 @@ vcr_lgr = ...
 if lgr.getEffectiveLevel() > logging.DEBUG:
     ...
 @contextmanager
-def externals_use_cassette(name): # -> Generator[None, None, None]:
+def externals_use_cassette(name): # -> Generator[None, Any, None]:
     """Helper to pass instruction via env variables to use specified cassette
 
     For instance whenever we are testing custom special remotes invoked by the annex

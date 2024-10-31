@@ -2,11 +2,14 @@ function [ROIfacevert, filenames, subfilenames, nbROI] = getROIByFaceVertex(path
     % Function that stores the vertices (or maybe face) location of each anatomical label.
     % NB: Note that subcortical regions are unsupported.
 
-    
-    filenames=dir([pathToFile,'/MNINonLinear/',subjectId,'/label/label_type2/']);
+    labelFolder = [pathToFile,'/MNINonLinear/',subjectId,'/label/label_type2/'];
+    if(~exist(labelFolder,'dir'))
+        error(strjoin(["Cannot find label folder path:",labelFolder],''))
+    end
+    filenames=dir(labelFolder);
     filenames={filenames(3:end).name};
     subfilenames={...
-        'lh.thalamus','lh.caudate','lh.putamen','lh.pallidum','lh.amygdala','lh.hippocampus','lh.accumbens','lh.cerebellum',...
+        'lh.cerebellum','lh.thalamus','lh.caudate','lh.putamen','lh.pallidum','lh.amygdala','lh.hippocampus','lh.accumbens',...
         'rh.thalamus','rh.caudate','rh.putamen','rh.pallidum','rh.amygdala','rh.hippocampus','rh.accumbens','rh.cerebellum',...
         'Brain-stem'};
     nbROI=length(filenames);

@@ -1,29 +1,65 @@
+from types import FunctionType
+from typing import Callable, Dict, List
 import config
-from modules.pipeline import data, structural, diffusion, functional, mapper, statistics
+from includes.stepper.functions import updateBatchStatus
+from modules.pipeline import data, structural, tractography, diffusion, functional, modularity, mapper, statistics
+from modules.pipeline.stepper import cleanDirOfBatch, processStepFn, stepFnType
+import modules.globals as g
+import concurrent.futures
+
+allSteps: "Dict[stepFnType, bool]" = {
+    # data.getData: config.EAGER_LOAD_DATA,
+    # data.preprocessData: config.PREPROCESS,
+    structural.generateLabels: config.GENERATE_LABELS,
+    structural.generateMni152Labels: config.GENERATE_LABELS,
+    tractography.runDsiStudio: config.RUN_DSI_STUDIO,
+    diffusion.processDiffusionTracts: config.RUN_PROCESS_TRACTOGRAPHY,
+    functional.prepareFunctionalSurfacesForModularity: config.RUN_CALC_FUNC_MODULARITY,
+    modularity.calculateModularity: config.RUN_CALC_STRUC_MODULARITY,
+    mapper.processMapping: config.RUN_MAPPING,
+    statistics.runStatistics: config.RUN_STATS,
+}
+
 
 def runPipeline() -> None:
-  # (1) RETRIEVE BRAIN SCAN TREE DIRECTORY.
-  if (config.EAGER_LOAD_DATA): data.getData()
+    g.allSteps = allSteps
+    for (subjectBatchIndex, batchSubjects) in enumerate(config.BATCHED_SUBJECTS):
+        config.setCurrentBatch(str(subjectBatchIndex))
+        for stepFn, runStep in allSteps.items():
+            if (runStep):
+                runSubjectBatchThroughStep(
+                    stepFn=stepFn, subjectBatch=batchSubjects)
+            else:
+                g.logger.info(f'Skipping {stepFn.__name__} for all subjects')
 
-  # (2) PREPROCESSING DATA
-  if (config.PREPROCESS): data.preprocessData()
 
-  # (2B) RUN FREESURFER: Annotate pial surface with labels
-  if(config.GENERATE_LABELS): [structural.generateLabels(subjectId) for subjectId in config.ALL_SUBJECTS]
-  if(config.GENERATE_LABELS): [structural.generateMni152Labels(subjectId) for subjectId in config.ALL_SUBJECTS]
+        # Delete subject batch once done.
+        allSubjectsAllStepsSuccess: bool = updateBatchStatus(
+            batchSubjects=batchSubjects)
 
-  # (3) RUN DSI STUDIO
-  if(config.RUN_DSI_STUDIO): [diffusion.runDsiStudio(subjectId) for subjectId in config.ALL_SUBJECTS]
+        if (allSubjectsAllStepsSuccess):
+            cleanDirOfBatch(batchSubjects)
+        g.logger.info(
+            f"Completed batch for subjects {batchSubjects[0]}-{batchSubjects[-1]}")
 
-  # (4) RUN MATLAB: Process diffusion tracks
-  if(config.RUN_MATLAB_DIFFUSION): [diffusion.matlabProcessDiffusion(subjectId) for subjectId in config.ALL_SUBJECTS]
+    g.logger.info('Pipeline run completed.')
 
-  # (5) RUN MATLAB: Process functional data
-  if(config.RUN_MATLAB_FUNCTIONAL): [functional.matlabProcessFunctional(subjectId) for subjectId in config.ALL_SUBJECTS]
 
-  # (6) RUN MATLAB: Map functional and diffusion data
-  # if(config.RUN_MATLAB_MAPPING): [mapper.matlabProcessMapping(subjectId) for subjectId in config.ALL_SUBJECTS]
+def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> None:
+    if (config.USE_PARALLEL_PROCESSING):
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [executor.submit(processSubject, stepFn, subjectId)
+                       for subjectId in subjectBatch]
+            for future in concurrent.futures.as_completed(futures):
+                step_name: str = future.result()
+                g.logger.info(f"Completed processing for {step_name}")
+    else:
+        for subjectId in subjectBatch:
+            processSubject(stepFn=stepFn, subjectId=subjectId)
+    g.logger.info(f"Completed batch for {stepFn.__name__}")
 
-  # (7) GET STATISTICS
-  if(config.MATLAB_CALCULATE_STATS): [statistics.matlabGetStatistics(subjectId) for subjectId in config.ALL_SUBJECTS]
-  pass
+
+def processSubject(stepFn: stepFnType, subjectId: str) -> str:
+    processStepFn(step=stepFn, subjectId=subjectId)
+    # Return the step name for logging purposes
+    return stepFn.__name__

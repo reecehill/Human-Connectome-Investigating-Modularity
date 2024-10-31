@@ -13,7 +13,7 @@
 from pathlib import Path
 from subprocess import Popen, PIPE
 from traceback import format_exc
-from typing import Any
+from typing import Any, cast
 #import modules.globals as g
 from modules import globals as g
 from config import BASE_DIR, logUsingSSH
@@ -34,7 +34,6 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         try:
             g.logger = LoggerClass()
             g.logger = g.logger.run()
-            
             # -- [START] LOGGER AVAILABLE 
 
             # ------------------------------------------------------------
@@ -47,14 +46,14 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     cmd1 = 'python -c "import nipype; print(nipype.__version__)"'
                     cmd2 = 'python -c "import nipype; nipype.test()"'
                     cmd3 = "python nipype_preproc_spm_auditory.py"
-                    check: Popen[Any] = Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
+                    check: "Popen[Any]" = Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
                                             shell=True,
                                             stdin=PIPE, # type: ignore
                                             stdout=StreamToLogger(g.logger, 20), # type: ignore
                                             stderr=StreamToLogger(g.logger, 50), # type: ignore
                                             close_fds=True)
                     
-                    if(check is not 0):
+                    if(cast(int,check) != 0):
                         g.logger.info("There was a problem finding the SPM12 installation.")
                         Popen([". continuous_integration/install_spm12.sh"])
                 except Exception as e:
@@ -82,7 +81,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
             except Exception as e:
                 raise
             
-           
+
             try:
                 # ------------------------------------------------------------
                 # [START] Load the global saver and upload current configuration.
@@ -176,7 +175,7 @@ if __name__ == "__main__":
         else:
             from os import getenv
             from dotenv import load_dotenv # type: ignore
-            k = load_dotenv(str(BASE_DIR / '.env'))
+            k: bool = load_dotenv(str(BASE_DIR / '.env'))
             user = getenv('DEFAULT_USER') or "ENV_ERROR"
             host = getenv('DEFAULT_HOST') or "ENV_ERROR"
             pathToKey = getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"

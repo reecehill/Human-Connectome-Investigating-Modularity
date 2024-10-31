@@ -1,14 +1,18 @@
 function [...
-    lo_faceROIidL,lo_faceROIidR,...
-    hi_faceROIidL,hi_faceROIidR,...
+    hi_faceROI_all,...
+    hi_faceROI_cortical,...
+    lo_faceROI_all,...
+    lo_faceROI_cortical,...
     lo_glpfaces,lo_grpfaces,...
     hi_glpfaces,hi_grpfaces,...
     lo_glpvertex,lo_grpvertex,...
     hi_glpvertex,hi_grpvertex,...
-    lo_subCoor,hi_subCoor,...
-    lo_subROIid,hi_subROIid,...
-    lo_centroidsL,lo_centroidsR,...
-    hi_centroidsL,hi_centroidsR,...
+    lo_faceROIidL,lo_faceROIidR,lo_faceROIidSubCor,...
+    hi_faceROIidL,hi_faceROIidR,hi_faceROIidSubCor,...
+    lo_faceToNodeMapLH, lo_faceToNodeMapRH,...
+    hi_faceToNodeMapLH, hi_faceToNodeMapRH,...
+    lo_centroidsL,lo_centroidsR,lo_centroidsSubCor,...
+    hi_centroidsL,hi_centroidsR,hi_centroidsSubCor,...
     filenames,subfilenames...
     ]=...
     loadLabels(...
@@ -36,7 +40,7 @@ ft_hastoolbox('gifti',1);
 %% load label info
 disp('step2: load surface node coordinates and their denoted label')
 atlas=ft_read_mri([pathToFile,'/MNINonLinear/aparc+aseg.nii.gz']);% load aparc+aseg.nii to get subcortical coordinates
-[hi_glpfaces, hi_grpfaces, hi_glpvertex, hi_grpvertex, filenames, subfilenames, ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/',subjectId,'.L.pial_MSMAll.164k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/',subjectId,'.R.pial_MSMAll.164k_fs_LR.surf.gii'],pathToFile,subjectId,type);
+[hi_glpfaces, hi_grpfaces, hi_glpvertex, hi_grpvertex, filenames, subfilenames, hi_ROIfacevert]  = loadMesh([pathToFile,'/MNINonLinear/',subjectId,'.L.pial_MSMAll.164k_fs_LR.surf.gii'],[pathToFile,'/MNINonLinear/',subjectId,'.R.pial_MSMAll.164k_fs_LR.surf.gii'],pathToFile,subjectId,type);
 if type==1
     RASmat = atlas.hdr.vox2ras; % vox2RAS: from voxel slices to scanner RAS coordinates (that is lh/rh.pial.surf.gii)
 elseif type==2
@@ -47,65 +51,42 @@ end
 %% assign labels to LH hi-res
 highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
 lowestLhLabelId = find(contains(filenames,'lh.'), 1, 'first' );
-hi_facesLH = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, hi_glpfaces, ROIfacevert);
+[hi_facesLH, hi_faceToNodeMapLH] = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, hi_glpfaces, hi_ROIfacevert);
 hi_faceROIidL = hi_facesLH(:,4);
 
 %% assign labels to RH hi-res
 highestRhLabelId = find(contains(filenames,'rh.'), 1, 'last' );
 lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
-hi_facesRH = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, hi_grpfaces, ROIfacevert);
+[hi_facesRH, hi_faceToNodeMapRH] = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, hi_grpfaces, hi_ROIfacevert);
 hi_faceROIidR = hi_facesRH(:,4);
 
 %% get subcortical coordinates and then map to pial space
-hi_subROIid = []; hi_subCoor = []; lo_subROIid = [];lo_subCoor = [];
-subColor = [10,11,12,13,18,17,26,7,8,49,50,51,52,54,53,58,46,47,16]; % freesurfer color index correspond to subfilenames, note: 47 and 8 are left cerebellum-white-matter
-% and left cerebellum-cortex, two together are denoted as lh.cerebellum;
-% likely, 46 and 47 together are denoted as rh.cerebellum; 16 is Brain-stem
+% NB: We label all cerebellar labels as one: e.g., cerebelleum-cortex (8,47) and
+% cerebellum-white-matter (7,46) are labelled the same (8 and 7 respectively).
+hi_faceROIidSubCor = []; hi_centroidsSubCor = []; lo_faceROIidSubCor = [];lo_centroidsSubCor = [];
+subColor = getAtlasIndicesInGroups('subColor');
 ColorInd = atlas.anatomy;
-all_subroi = cumsum(subColor ~=8 & subColor ~= 47); %if cerebellar cortex, the count is not increased.
-parfor i = 1:length(subColor)
+
+all_subroi = cumsum(subColor ~=8 & subColor ~= 47); %if cerebellar, count as 8 (lh) and 47 (rh).
+for i = 1:length(subColor)
     color = subColor(i);
     subroi = all_subroi(i);
-
-    % If not cerebellar cortex (L nor R)
-    if color~=8 && color~=47
-        [r,u,v] = ind2sub(size(ColorInd),find(ColorInd==color));
-        ind = [r,u,v];
-        RASCoor = RASmat*[ind,ones(size(ind,1),1)]';
-        RASCoor = RASCoor(1:3,:)';
-        hi_subCoor = [hi_subCoor;RASCoor];
-        hi_subROIid = [hi_subROIid;ones(size(ind,1),1)*subroi];
-        if strcmp(downsample,'no')
-            lo_subCoor = [lo_subCoor;RASCoor];
-            lo_subROIid = [lo_subROIid;ones(size(ind,1),1)*subroi];
-        elseif strcmp(downsample,'yes')
-            sprintf('perform downsample to subcortical regions and the rate is %1f',rate)
-            pcCloudIn = pointCloud(RASCoor);
-            ptCloudOut = pcdownsample(pcCloudIn,'random',rate); % random downsample
-            RASCoor = ptCloudOut.Location;
-            lo_subCoor = [lo_subCoor;RASCoor];
-            lo_subROIid = [lo_subROIid;ones(size(RASCoor,1),1)*subroi];
-        end
-
-
-    elseif color==8 || color==47 %is cerebellar cortex
-        [r,u,v] = ind2sub(size(ColorInd),find(ColorInd==color));
-        ind = [r,u,v];
-        RASCoor = RASmat*[ind,ones(size(ind,1),1)]';
-        RASCoor = RASCoor(1:3,:)';
-        hi_subCoor = [hi_subCoor;RASCoor];
-        hi_subROIid = [hi_subROIid;ones(size(ind,1),1)*subroi];
-        if strcmp(downsample,'no')
-            lo_subCoor = [lo_subCoor;RASCoor];
-            lo_subROIid = [lo_subROIid;ones(size(ind,1),1)*subroi];
-        elseif strcmp(downsample,'yes')
-            sprintf('perform downsample to subcortical regions and the rate is %1f',rate)
-            pcCloudIn = pointCloud(RASCoor);
-            ptCloudOut = pcdownsample(pcCloudIn,'random',rate); % random downsample
-            RASCoor = ptCloudOut.Location;
-            lo_subCoor = [lo_subCoor;RASCoor];
-            lo_subROIid = [lo_subROIid;ones(size(RASCoor,1),1)*subroi];
-        end
+    [r,u,v] = ind2sub(size(ColorInd),find(ColorInd==color));
+    ind = [r,u,v];
+    RASCoor = RASmat*[ind,ones(size(ind,1),1)]';
+    RASCoor = RASCoor(1:3,:)';
+    hi_centroidsSubCor = [hi_centroidsSubCor;RASCoor];
+    hi_faceROIidSubCor = [hi_faceROIidSubCor;ones(size(ind,1),1)*subroi];
+    if strcmp(downsample,'no')
+        lo_centroidsSubCor = [lo_centroidsSubCor;RASCoor];
+        lo_faceROIidSubCor = [lo_faceROIidSubCor;ones(size(ind,1),1)*subroi];
+    elseif strcmp(downsample,'yes')
+        sprintf('perform downsample to subcortical regions and the rate is %1f',rate)
+        pcCloudIn = pointCloud(RASCoor);
+        ptCloudOut = pcdownsample(pcCloudIn,'random',rate); % random downsample
+        RASCoor = ptCloudOut.Location;
+        lo_centroidsSubCor = [lo_centroidsSubCor;RASCoor];
+        lo_faceROIidSubCor = [lo_faceROIidSubCor;ones(size(RASCoor,1),1)*subroi];
     end
 end
 
@@ -156,19 +137,30 @@ elseif strcmp(downsample,'yes')
     elseif(strcmp(presetDownsampledSurface,'1'))
         disp("Getting preset downsampled surface: "+presetDownsampledSurface);
         [lo_glpfaces, lo_grpfaces, lo_glpvertex, lo_grpvertex, filenames, subfilenames, lo_ROIfacevert] = loadMesh(presetDownsampledSurface_L,presetDownsampledSurface_R,pathToFile,subjectId,type);
-        [lo_glpvertex,lo_glpfaces]=meshcheckrepair(lo_glpvertex,lo_glpfaces,opt);
-        [lo_grpvertex,lo_grpfaces]=meshcheckrepair(lo_grpvertex,lo_grpfaces,opt);
+        %[lo_glpvertex,lo_glpfaces]=meshcheckrepair(lo_glpvertex,lo_glpfaces,opt);
+        %[lo_grpvertex,lo_grpfaces]=meshcheckrepair(lo_grpvertex,lo_grpfaces,opt);
         
         highestLhLabelId = find(contains(filenames,'lh.'), 1, 'last' );
         lowestLhLabelId = find(contains(filenames,'lh.'), 1, 'first' );
         highestRhLabelId = find(contains(filenames,'rh.'), 1, 'last' );
         lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
         
-        lo_facesLH = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, lo_glpfaces, lo_ROIfacevert);
-        lo_faceROIidL = lo_facesLH(:,4);
+        [lo_facesLH,lo_faceToNodeMapLH] = loopROIAndAssignLabels(lowestLhLabelId,highestLhLabelId, lo_glpfaces, lo_ROIfacevert);
+        [~,~,indicesWithLabel_L] = intersect(lo_facesLH(:,1:3),lo_glpfaces(:,1:3),'rows','stable');
+        lo_faceROIidL = lo_glpfaces;
+        lo_faceROIidL(:,4) = -1;
+        lo_faceROIidL(indicesWithLabel_L,4) = lo_facesLH(:,4);
+        lo_faceROIidL(lo_faceROIidL(:,4)==-1,4) = find(contains(filenames,"L_unknown"));
+        lo_faceROIidL = lo_faceROIidL(:,4);
         
-        lo_facesRH = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, lo_grpfaces, lo_ROIfacevert);
-        lo_faceROIidR = lo_facesRH(:,4);
+
+        [lo_facesRH,lo_faceToNodeMapRH] = loopROIAndAssignLabels(lowestRhLabelId, highestRhLabelId, lo_grpfaces, lo_ROIfacevert);
+        [~,~,indicesWithLabel_R] = intersect(lo_facesRH(:,1:3),lo_grpfaces(:,1:3),'rows','stable');
+        lo_faceROIidR = lo_grpfaces;
+        lo_faceROIidR(:,4) = -1;
+        lo_faceROIidR(indicesWithLabel_R,4) = lo_facesRH(:,4);
+        lo_faceROIidR(lo_faceROIidR(:,4)==-1,4) = find(contains(filenames,"R_unknown"));
+        lo_faceROIidR = lo_faceROIidR(:,4);
         
         lo_centroidsL=meshcentroid(lo_glpvertex,lo_glpfaces); %centroids in lo-res mesh
         lo_centroidsR=meshcentroid(lo_grpvertex,lo_grpfaces); %centroids in lo-res mesh
@@ -198,8 +190,8 @@ end
 % LH
 lo_faceROIidL(:,2)=[1:length(lo_faceROIidL)]'; % Add node index as 2nd column.
 lo_faceROIidLsorted=sortrows(lo_faceROIidL,1); % Per row, column1= label ID; column2= node ID
-%lo_glpfaces=lo_glpfaces(lo_faceROIidLsorted(:,2),:); % Reorder lo_glpfaces so that faces are in asc. order of label ID.
-%lo_faceROIidL=lo_faceROIidLsorted(:,1); % Reorder lo_lo_faceROIidL so that label IDs are in asc. order.
+% lo_glpfaces=lo_glpfaces(lo_faceROIidLsorted(:,2),:); % Reorder lo_glpfaces so that faces are in asc. order of label ID.
+% lo_faceROIidL=lo_faceROIidLsorted(:,1); % Reorder lo_faceROIidL so that label IDs are in asc. order.
 clear lo_faceROIidLsorted
 % LH
 lo_faceROIidR(:,2)=[1:length(lo_faceROIidR)]';
@@ -208,22 +200,27 @@ lo_faceROIidRsorted=sortrows(lo_faceROIidR,1);
 %lo_faceROIidR=lo_faceROIidRsorted(:,1);
 clear lo_faceROIidRsorted
 
+hi_faceROI_all = [hi_faceROIidL(:,1); hi_faceROIidR(:,1); highestRhLabelId + hi_faceROIidSubCor];
+hi_faceROI_cortical = [hi_faceROIidL(:,1); hi_faceROIidR(:,1)];
+lo_faceROI_all=[lo_faceROIidL(:,1); lo_faceROIidR(:,1); lo_faceROIidSubCor+length(filenames)];
+lo_faceROI_cortical=[lo_faceROIidL(:,1); lo_faceROIidR(:,1)];
+
 
 
 % --
 % NESTED FUNCTIONS
 % --
 
-    function [facesROI] = loopROIAndAssignLabels(ROI_startIndex, ROI_endIndex, faces, ROIfacevert)
-        facesROI={};
-        parfor roi=ROI_startIndex:ROI_endIndex
-            x=sum(ismember(faces,ROIfacevert(roi).faces(:,1)+1),2);
-            ROIfacevert(roi).ffaces=find(x>1); %by Xue
-            nbffaces=length(ROIfacevert(roi).ffaces);
-            facesROI{roi} = [faces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
-        end
-        facesROI=cat(1,facesROI{:});
-    end
+%     function [facesROI] = loopROIAndAssignLabels(ROI_startIndex, ROI_endIndex, faces, ROIfacevert)
+%         facesROI={};
+%         for roi=ROI_startIndex:ROI_endIndex
+%             x=sum(ismember(faces,ROIfacevert(roi).faces(:,1)+1),2);
+%             ROIfacevert(roi).ffaces=find(x>1); %by Xue
+%             nbffaces=length(ROIfacevert(roi).ffaces);
+%             facesROI{roi} = [faces(ROIfacevert(roi).ffaces,:), ones(nbffaces,1)*roi];
+%         end
+%         facesROI=cat(1,facesROI{:});
+%     end
     function [lo_faces_scalar] = loopFacesProjectFromHiToLoRes(lo_face_centroids, hi_face_centroids, hi_faces_scalar)
         %% Loop through each face on downsampled mesh to find closest face on original mesh. Returns a vector of correspoding label IDs.
         nLoFaces = size(lo_face_centroids,1);

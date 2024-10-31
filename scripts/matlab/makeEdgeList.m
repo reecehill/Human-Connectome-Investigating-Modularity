@@ -25,7 +25,7 @@ disp('step3: check if there are fibres connected between node pairs')
 %% load the data that was output by loadLabels.m
 disp('loading labelSRF.mat');
 fileToLoad=[pathToFile,'/labelSRF.mat'];
-load(fileToLoad, "filenames","lo_faceROIidL","lo_faceROIidR","hi_faceROIidL","hi_faceROIidR", "hi_glpfaces", "hi_glpvertex", "hi_grpfaces", "hi_grpvertex", "lo_glpfaces", "lo_grpfaces", "lo_glpvertex", "lo_grpvertex", "lo_subCoor", "hi_subCoor", "hi_centroidsL", "hi_centroidsR","lo_centroidsL", "lo_centroidsR"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
+load(fileToLoad, "filenames","lo_faceROIidL","lo_faceROIidR","hi_faceROIidL","hi_faceROIidR", "hi_glpfaces", "hi_glpvertex", "hi_grpfaces", "hi_grpvertex", "lo_glpfaces", "lo_grpfaces", "lo_glpvertex", "lo_grpvertex", "lo_centroidsSubCor", "hi_centroidsSubCor", "hi_centroidsL", "hi_centroidsR","lo_centroidsL", "lo_centroidsR"); % not used: "faceROIidL", "faceROIidR", "filenames", "subROIid", "subfilenames"
 
 %% load the data that was output by conversion.m
 disp('loading trsfmTrk.mat');
@@ -43,12 +43,12 @@ if strcmp(downsample,'no') % method for no downsample
     allCentroids = [...
         hi_centroidsL; ...
         hi_centroidsR;...
-        hi_subCoor];
+        hi_centroidsSubCor];
 else
     allCentroids = [...
         lo_centroidsL; ...
         lo_centroidsR;...
-        lo_subCoor];
+        lo_centroidsSubCor];
 end
 %Add index to fourth column.
 allCentroids(:,4) = 1:1:length(allCentroids);
@@ -159,5 +159,5 @@ edgeListLocal_hemisphere = sortrows([ ...
     facesList endedgeListLocal_hemisphere(:,3) ...
     ],1);
 
-%edgeListLocal_hemisphere(edgeListLocal_hemisphere(:,2)==0,:)=[];
+edgeListLocal_hemisphere(edgeListLocal_hemisphere(:,2)==0,:)=[];
 end

@@ -162,10 +162,9 @@ for i=1:str2double(nTrackIterations)
         % For info on the choice of these numbers (1000, 3000 etc) check the
         % Freesurfer lookup table:
         % https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT
-        ventricularSystemIndices = [14:15,24];
-        whiteMatterIndices = [1:6,27:46,59:999,ventricularSystemIndices];
-        subcorticalIndices = [7:13,16:23,25:26,47:58,1001:1099,1101:1999,2001:2099,2101:2999];
-        unknownIndices = [0,1000,2000,3000,4000,1100,2100,3100,4100,11100,12100,13100,14100];
+        whiteMatterIndices = getAtlasIndicesInGroups('whiteMatter');
+        subcorticalIndices = getAtlasIndicesInGroups('subcortical');
+        unknownIndices = getAtlasIndicesInGroups('unknown');
         if(ismember(tmp(1),whiteMatterIndices) || ...
                 ismember(tmp(2),whiteMatterIndices))
             % If either endpoint is in the white matter, mark it.

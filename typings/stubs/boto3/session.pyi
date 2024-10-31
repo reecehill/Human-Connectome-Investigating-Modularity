@@ -50,7 +50,7 @@ class Session:
         ...
     
     @property
-    def available_profiles(self): # -> list[Unknown]:
+    def available_profiles(self): # -> list[Any]:
         """
         The profiles available to the session credentials
         """
@@ -84,7 +84,7 @@ class Session:
         """
         ...
     
-    def get_available_regions(self, service_name, partition_name=..., allow_non_regional=...): # -> list[Unknown]:
+    def get_available_regions(self, service_name, partition_name=..., allow_non_regional=...): # -> list[Any]:
         """Lists the region and endpoint names of a particular partition.
 
         The list of regions returned by this method are regions that are

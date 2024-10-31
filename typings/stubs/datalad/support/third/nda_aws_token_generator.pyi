@@ -10,7 +10,7 @@ else:
     ...
 class NDATokenGenerator:
     __schemas = ...
-    def __init__(self, url=...) -> None:
+    def __init__(self, url) -> None:
         ...
     
     def generate_token(self, username, password): # -> Token:
@@ -23,19 +23,19 @@ class Token:
         ...
     
     @property
-    def access_key(self): # -> Unknown:
+    def access_key(self): # -> Any:
         ...
     
     @property
-    def secret_key(self): # -> Unknown:
+    def secret_key(self): # -> Any:
         ...
     
     @property
-    def session(self): # -> Unknown:
+    def session(self): # -> Any:
         ...
     
     @property
-    def expiration(self): # -> Unknown:
+    def expiration(self): # -> Any:
         ...
     
 

@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 lgr = ...
 @contextmanager
-def lock_if_check_fails(check, lock_path, operation=..., blocking=..., **kwargs): # -> Generator[tuple[Unknown, None] | tuple[Unknown, InterProcessLock], None, None]:
+def lock_if_check_fails(check, lock_path, operation=..., blocking=..., _return_acquired=..., **kwargs): # -> Generator[tuple[Any, None] | tuple[Any, InterProcessLock | None, bool] | tuple[Any, InterProcessLock | None], Any, None]:
     """A context manager to establish a lock conditionally on result of a check
 
     It is intended to be used as a lock for a specific file and/or operation,
@@ -40,12 +40,32 @@ def lock_if_check_fails(check, lock_path, operation=..., blocking=..., **kwargs)
     blocking: bool, optional
       If blocking, process would be blocked until acquired and verified that it
       was acquired after it gets the lock
+    _return_acquired: bool, optional
+      Return also if lock was acquired.  For "private" use within DataLad (tests),
+      do not rely on it in 3rd party solutions.
     **kwargs
       Passed to `.acquire` of the fasteners.InterProcessLock
 
     Returns
     -------
-    result of check, lock
+    result of check, lock[, acquired]
+    """
+    ...
+
+@contextmanager
+def try_lock_informatively(lock, purpose=..., timeouts=..., proceed_unlocked=...): # -> Generator[bool, Any, None]:
+    """Try to acquire lock (while blocking) multiple times while logging INFO messages on failure
+
+    Primary use case is for operations which are user-visible and thus should not lock
+    indefinitely or for long period of times (so user would just Ctrl-C if no update is provided)
+    without "feedback".
+
+    Parameters
+    ----------
+    lock: fasteners._InterProcessLock
+    purpose: str, optional
+    timeouts: tuple or list, optional
+    proceed_unlocked: bool, optional
     """
     ...
 

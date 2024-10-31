@@ -22,7 +22,7 @@ class ConsoleLog:
     def error(self, error): # -> None:
         ...
     
-    def get_progressbar(self, *args, **kwargs): # -> SilentProgressBar | LogProgressBar:
+    def get_progressbar(self, *args, **kwargs):
         """Return a progressbar.  See e.g. `tqdmProgressBar` about the interface
 
         Additional parameter is backend to choose among available
@@ -39,6 +39,9 @@ class ConsoleLog:
 class SilentConsoleLog(ConsoleLog):
     """A ConsoleLog with a SilentProgressbar"""
     def get_progressbar(self, *args, **kwargs): # -> SilentProgressBar:
+        ...
+    
+    def question(self, text, title=..., **kwargs):
         ...
     
 
@@ -91,7 +94,7 @@ class IPythonUI(DialogUI):
     def input(self, prompt, hidden=...): # -> str:
         ...
     
-    def get_progressbar(self, *args, **kwargs): # -> SilentProgressBar | LogProgressBar:
+    def get_progressbar(self, *args, **kwargs):
         """Return a progressbar.  See e.g. `tqdmProgressBar` about the
         interface
 
@@ -109,7 +112,13 @@ class UnderAnnexUI(DialogUI):
     def set_specialremote(self, specialremote): # -> None:
         ...
     
-    def get_progressbar(self, *args, **kwargs): # -> SilentProgressBar | LogProgressBar:
+    def get_progressbar(self, *args, **kwargs):
+        ...
+    
+    def input(self, prompt, hidden=...): # -> str:
+        ...
+    
+    def question(self, text, title=..., choices=..., default=..., hidden=..., repeat=...): # -> str:
         ...
     
 
@@ -124,10 +133,10 @@ class UnderTestsUI(DialogUI):
     def __init__(self, **kwargs) -> None:
         ...
     
-    def add_responses(self, responses): # -> Self@UnderTestsUI:
+    def add_responses(self, responses): # -> Self:
         ...
     
-    def get_responses(self): # -> deque[Unknown]:
+    def get_responses(self): # -> deque[Any]:
         ...
     
     def clear_responses(self): # -> None:

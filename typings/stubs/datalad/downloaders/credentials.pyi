@@ -14,10 +14,15 @@ lgr = ...
 @auto_repr
 class Credential:
     """Base class for different types of credentials
+
+    Note: While subclasses can define their own `_FIELDS`, they are actually
+    assumed to have particular keys by the implementation of (some)
+    authenticators. `HTTPRequestsAuthenticator` and its subclasses for example,
+    assume `user` and `password` to be valid keys.
     """
     _FIELDS = ...
     _KNOWN_ATTRS = ...
-    def __init__(self, name, url=..., keyring=...) -> None:
+    def __init__(self, name, url=..., keyring=..., auth_url=..., dataset=...) -> None:
         """
         Parameters
         ----------
@@ -29,6 +34,12 @@ class Credential:
         keyring : a keyring
             An object providing (g|s)et_password.  If None, keyring module is used
             as is
+        auth_url : str, optional
+            URL string this credential is going to be used with. This context
+            may be needed to query some credential systems (like git-credential).
+        dataset : str, Path or Dataset
+            The dataset datalad is operating on with this credential. This may
+            be needed for context in order to query local configs.
         """
         ...
     
@@ -51,20 +62,56 @@ class Credential:
         """
         ...
     
-    def __call__(self): # -> dict[Unknown, Unknown]:
-        """Obtain credentials from a keyring and if any is not known -- ask"""
+    def __call__(self, instructions=...): # -> dict[Any, Any]:
+        """Obtain credentials from a keyring and if any is not known -- ask
+
+        Parameters
+        ----------
+        instructions : str, optional
+          If given, the auto-generated instructions based on a login-URL are
+          replaced by the given string
+        """
         ...
     
     def set(self, **kwargs): # -> None:
         """Set field(s) of the credential"""
         ...
     
-    def get(self, f, default=...): # -> str | None:
+    def get(self, f, default=...): # -> Any | str | None:
         """Get a field of the credential"""
         ...
     
     def delete(self): # -> None:
         """Deletes credential values from the keyring"""
+        ...
+    
+    def set_context(self, auth_url=..., dataset=...): # -> None:
+        """Set URL/dataset context after instantiation
+
+        ATM by design the system of providers+downloaders+credentials doesn't
+        necessarily provide access to that information at instantiation time of
+        `Credential` objects. Hence, allow to provide this whenever we can.
+
+        Arguments are only applied if provided. Hence, `None` does not overwrite
+        a possibly already existing attribute.
+
+        Note
+        ----
+        Eventually, this is going to need a major overhaul. `Providers` etc. are
+        built to be mostly unaware of their context, which is why
+        `get_dataset_root()` tends to be the only way of assessing what dataset
+        we are operating on. This will, however, fail to detect the correct
+        dataset, if it can'T be deduced from PWD, though.
+
+        Parameters
+        ----------
+        auth_url : str, optional
+            URL string this credential is going to be used with. This context
+            may be needed to query some credential systems (like git-credential).
+        dataset : str, Path or Dataset, optional
+            The dataset datalad is operating on with this credential. This may
+            be needed for context in order to query local configs.
+        """
         ...
     
 
@@ -99,6 +146,17 @@ class CompositeCredential(Credential):
     def enter_new(self): # -> None:
         ...
     
+    def refresh(self): # -> None:
+        """Re-establish "dependent" credentials
+
+        E.g. if code outside was reported that it expired somehow before known expiration datetime
+        """
+        ...
+    
+    @property
+    def is_expired(self): # -> bool:
+        ...
+    
     def __call__(self):
         """Obtain credentials from a keyring and if any is not known -- ask"""
         ...
@@ -124,4 +182,24 @@ class LORIS_Token(CompositeCredential):
     
 
 
-CREDENTIAL_TYPES = ...
+class GitCredential(Credential):
+    """Credential to access git-credential
+    """
+    _FIELDS = ...
+    _FIELDS_GIT = ...
+    is_expired = ...
+    def __init__(self, name, url=..., keyring=..., auth_url=..., dataset=...) -> None:
+        ...
+    
+    def set(self, **kwargs): # -> None:
+        ...
+    
+    def delete(self): # -> None:
+        """Deletes credential"""
+        ...
+    
+    def set_context(self, auth_url=..., dataset=...): # -> None:
+        ...
+    
+
+

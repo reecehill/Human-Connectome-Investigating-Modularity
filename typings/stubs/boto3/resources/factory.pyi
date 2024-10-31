@@ -14,7 +14,7 @@ class ResourceFactory:
     def __init__(self, emitter) -> None:
         ...
     
-    def load_from_definition(self, resource_name, single_resource_json_definition, service_context): # -> Type[_]:
+    def load_from_definition(self, resource_name, single_resource_json_definition, service_context): # -> type[_]:
         """
         Loads a resource from a model, creating a new
         :py:class:`~boto3.resources.base.ServiceResource` subclass

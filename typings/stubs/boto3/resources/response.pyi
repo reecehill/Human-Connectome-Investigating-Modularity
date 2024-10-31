@@ -10,7 +10,7 @@ def all_not_none(iterable): # -> bool:
     """
     ...
 
-def build_identifiers(identifiers, parent, params=..., raw_response=...): # -> list[Unknown]:
+def build_identifiers(identifiers, parent, params=..., raw_response=...): # -> list[Any]:
     """
     Builds a mapping of identifier names to values based on the
     identifier source location, type, and target. Identifier
@@ -31,7 +31,7 @@ def build_identifiers(identifiers, parent, params=..., raw_response=...): # -> l
     """
     ...
 
-def build_empty_response(search_path, operation_name, service_model): # -> dict[Unknown, Unknown] | list[Unknown] | None:
+def build_empty_response(search_path, operation_name, service_model): # -> dict[Any, Any] | list[Any] | None:
     """
     Creates an appropriate empty response for the type that is expected,
     based on the service model's shape type. For example, a value that
@@ -104,7 +104,7 @@ class ResourceHandler:
     def __init__(self, search_path, factory, resource_model, service_context, operation_name=...) -> None:
         ...
     
-    def __call__(self, parent, params, response): # -> dict[Unknown, Unknown] | list[Unknown] | None:
+    def __call__(self, parent, params, response): # -> dict[Any, Any] | list[Any] | None:
         """
         :type parent: ServiceResource
         :param parent: The resource instance to which this action is attached.

@@ -10,8 +10,8 @@ import modules.globals as g
 
 CPU_THREADS = multiprocessing.cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
-FORCE_RUN: bool = True
-USE_PARALLEL_PROCESSING: bool = False
+FORCE_RUN: bool = False
+USE_PARALLEL_PROCESSING: bool = True
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION = False  # Bool, either True = use 7T or False = use 3T.

@@ -68,4 +68,4 @@ def cleanDirOfBatch(subjectBatch: List[str]):
     directoriesUsed: "List[config.Path]" = [
         config.SUBJECTS_DIR / subjectId for subjectId in subjectBatch]
     deleteFilesByExtensions(directories=directoriesUsed, extensions=[
-                            '*'], recursive=True, depth=-1)
+                            '*.trk','*.nii.gz','*.nii','*.gz','*.gii','*.label','*.pial','*.annot','*.fib'], recursive=True, depth=-1)

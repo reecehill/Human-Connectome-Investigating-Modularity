@@ -23,7 +23,7 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
 
         # We begin by standardising what "missing" data looks like (set it to -1).
         x_orig: "pd.Series[int]" = x_raw[0].replace(
-            to_replace=[np.nan, -1, 0], value=-1, inplace=False)
+            to_replace=[np.nan, -1, 0], value=-1, inplace=False, )
         y_orig: "pd.Series[int]" = y_raw[0].replace(
             to_replace=[np.nan, -1, 0, 1], value=-1, inplace=False)
 
@@ -92,8 +92,8 @@ def runTests(subjectId: str, pathToXCsv: Path, pathToYCsv: Path) -> bool:
         perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)
         perSubjectStat("cleaned_words_mapped",
                        x_cleaned_mapped_words, y_cleaned_mapped_words)
-        perModuleStat("cleaned_words", x_cleaned_words, y_cleaned_words,
-                      x_orig_words, y_orig_words, xy_surface_area)
+        
+        perModuleStat("cleaned_words", x_cleaned_words, y_cleaned_words, x_orig_words, y_orig_words, xy_surface_area)
         perModuleStat(datasetDescriptor="cleaned_words_mapped", x_final=x_cleaned_mapped_words,
                       y_final=y_cleaned_mapped_words, xy_surface_areas=xy_surface_area, x=x_mapped_words, y=y_mapped_words)
 

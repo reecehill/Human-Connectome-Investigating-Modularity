@@ -61,8 +61,9 @@ def white_noise(x: "Union[pd.Series[int],pd.Series[str]]", y: "Union[pd.Series[i
             sample_from = xory
             
         xory[xory.isna()] = g.randomGen.choice(
-            a=sample_from,
-            size=len(xory))
+            a=sample_from.unique(),
+            size=xory[xory.isna()].size
+        )
         return xory
 
     x_withnans: "Union[pd.Series[int],pd.Series[str]]" = replaceMissingValuesWithNan(

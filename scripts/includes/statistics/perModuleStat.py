@@ -9,7 +9,7 @@ import config
 from includes.statistics import test_ranges, test_functions_with_range, generateInterpretation, convertModuleWideResultsToDataFrames
 from includes.statistics.clean_data import clean_data
 from includes.statistics.testVariables import Float, ResultRowModuleWide
-from includes.statistics.utils import calculateLevenshteinDistance, convertNumericalModuleToWords, calcModuleSizes
+from includes.statistics.utils import calculateLevenshteinDistance, convertNumericalModuleToWords, calcModuleSizes, convertNumericalModulesToWords
 from includes.stepper.functions import allStepsAreSuccessful
 from includes.statistics.save_results import save_results
 from sklearn.metrics.cluster import contingency_matrix
@@ -34,7 +34,7 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         # Get current Y module
         # NB: This works because indexes persist as we constrain the vector.
         # ------
-        y_module: "pd.Series[str]" = y_final[(y_final == y_module_name)]
+        orig_y_module: "pd.Series[str]" = y_final.where(y_final == y_module_name)
 
         # ------
         # Get optimal X module
@@ -48,25 +48,28 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         else:
             # The x and y modules are not mapped to the same set. So, we need to find the optimal x module.
             # Get the x module that is most common to the y module.
-            x_module_name: str = x_final[y_module.index].mode()[0]
+            x_module_name: str = x_final[orig_y_module.dropna().index].mode()[
+                0]
 
         # With the optimal x-y pair found within our filtered x and y, we now get pre-filtered x (to expose missing y values that were removed by masking).
-        x_module: "pd.Series[str]" = x_final[(x_final == x_module_name)]
-        x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.index]
-
+        x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
+        x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.dropna().index]
         x_module_orig_unique = x_module_orig.unique()
-        if (len(x_module_orig_unique) == 1):
+        if (x_module_orig_unique.size == 1):
             x_module_name_orig: int = x_module_orig.values[0]
         else:
             raise ValueError(
                 "X module is not unique. Explicit logic for this edge case is required.")
+        
+        x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(x == x_module_name_orig)
 
-        x_final_module_all: "Union[pd.Series[str], pd.Series[int]]" = x[x ==
-                                                                        x_module_name_orig]
+        y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y.where(
+            y.index.isin(x_final_module[x_final_module.notna()].index))
+
 
         # Calculate module surface areas, including relative x-y SA (y divided by x)
         x_module_sa, y_module_sa, ydivx_modula_sa = calcModuleSizes(
-            x_final_module_all, y_module, xy_surface_areas.to_numpy().flatten())
+            x_final_module.dropna(), orig_y_module.dropna(), xy_surface_areas.to_numpy().flatten())
 
         # -----
         # Pad the x modules to include surrounding modules
@@ -75,40 +78,48 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         # We leave this as an option for the user to decide.
         # -----
         if (1 == 0):
-            # x_paddedIndexes: "list[int]" = pad_indexes(
-            # x_final_module_all.index, x.index, n=5)
-            # x_final_module_all: "pd.Series[str]" = convertNumericalModuleToWords(
-            # x[pd.Index(x_paddedIndexes)])
-            pass
+            x_paddedIndexes: "list[int]" = pad_indexes(
+            x_final_module.dropna().index, x.index, n=1)
+
+            x_final_module, y_final_module_within_x = x.where(x.index.isin(pd.Index(x_paddedIndexes))), y.where(y.index.isin(pd.Index(x_paddedIndexes)))
+
 
         # -----
         # Handle the missing y data.
         # NB: Now we've potentially selected more y modules, we may have included some NaN values. These must be handled.
-        handlerForNaNYValues: str = 'randomise'
+        handlerForNaNYValues: str = 'do_nothing'
 
         if (handlerForNaNYValues == "randomise"):
             # Replace missing y modules with random values, but without affecting the distribution of y.
-            test = y[(y != -1) & (y != 'missing')]
             _, _y_final_module_within_x_with_missing =  white_noise(
-                x=x,
-                y=y[x_final_module_all.index],
-                sample_from_y=y[(y != -1) & (y != 'missing')]
+                x=x_final_module.dropna(),
+                y=y_final_module_within_x[y_final_module_within_x.index.isin(x_final_module.dropna().index)],
+                sample_from_y=y.dropna()
             )
             y_final_module_within_x_with_missing = cast(
                 "Union[pd.Series[str],pd.Series[int]]", _y_final_module_within_x_with_missing)
+            y_final_module_within_x[y_final_module_within_x_with_missing.index] = y_final_module_within_x_with_missing
+            pass
         elif "do_nothing":
-            y_final_module_within_x_with_missing: "Union[pd.Series[int], pd.Series[str]]" = y[x_final_module_all.index].replace([
-                0, 1, "1", np.nan], -1)
+            pass
         else:
             raise ValueError(
                 f"Invalid handler for NaN Y values: {handlerForNaNYValues}")
 
-        # ------
-        # Convert to words.
-        y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y_final_module_within_x_with_missing
-
-        x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x_final_module_all[y_final_module_within_x.index]
-
+        if(isinstance(x_final_module, pd.Series)):
+            if(x_final_module.dtype == 'object'):
+                x_final_module.fillna("missing", inplace=True)
+                y_final_module_within_x.fillna("missing", inplace=True)
+            elif (pd.api.types.is_integer_dtype(x_final_module)):
+                x_final_module.fillna(-1, inplace=True)
+                y_final_module_within_x.fillna(-1, inplace=True)
+            else:
+                raise ValueError(
+                    f"Invalid data typee for x_final_module: {x_final_module.dtype}")
+        else:
+            raise ValueError(
+                f"Invalid data type for x_final_module: {type(x_final_module)}")
+            
         # ------
         # Run tests for X as truth
         for test_name, test_func in test_functions_with_range:
@@ -120,8 +131,8 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                     x_final_module,
                     pd.Series(
                         g.randomGen.choice(
-                            a=y_final_module_within_x,
-                            size=len(x_final_module),
+                            a=y.unique(),
+                            size=y_final_module_within_x.size,
                         ),
                     ).astype(y_final_module_within_x.dtype)
                 )
@@ -130,8 +141,8 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                     
                     pd.Series(
                         g.randomGen.choice(
-                            a=x_final_module,
-                            size=len(y_final_module_within_x),
+                            a=x.unique(),
+                            size=y_final_module_within_x.size,
                         ),
                     ).astype(x_final_module.dtype),
                     y_final_module_within_x
@@ -173,16 +184,16 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                     y_final_module_within_x,
                     pd.Series(
                         g.randomGen.choice(
-                            a=x_final_module,
-                            size=len(y_final_module_within_x),
+                            a=x.unique(),
+                            size=y_final_module_within_x.size,
                         ),
                     ).astype(x_final_module.dtype)
                 )
                 score_y_random_x_imported = test_func(
                     pd.Series(
                         g.randomGen.choice(
-                            a=y_final_module_within_x,
-                            size=len(x_final_module),
+                            a=y.unique(),
+                            size=x_final_module.size,
                         ),
                     ).astype(y_final_module_within_x.dtype),
                     x_final_module)

@@ -58,8 +58,9 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         if (x_module_orig_unique.size == 1):
             x_module_name_orig: int = x_module_orig.values[0]
         else:
-            raise ValueError(
-                "X module is not unique. Explicit logic for this edge case is required.")
+            g.logger.error(
+                "X module is not unique. Explicit logic for this edge case is required. X modules found: ["+', '.join(str(moduleName) for moduleName in x_module_orig_unique)+"]")
+            raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
         
         x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(x == x_module_name_orig)
 

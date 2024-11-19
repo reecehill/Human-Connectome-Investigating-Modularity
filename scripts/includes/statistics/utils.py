@@ -144,6 +144,7 @@ def mapAllModulesToSameSet(x: "Union[pd.Series[int],pd.Series[str]]", y: "Union[
     if (mappedNames is None):
         # Mapping has not been performed before.
         mappingProvided = False
+        
         # Use linear sum assignment to find the optimal mapping between the two sets
 
         # Get a matrix of occurrence of each module name
@@ -164,7 +165,7 @@ def mapAllModulesToSameSet(x: "Union[pd.Series[int],pd.Series[str]]", y: "Union[
                     x.where(x == x_label), y.where(y == y_label))
 
         # Step 3: Combine the contingency matrix and Levenshtein distance matrix
-        # Normalize both matrices (if necessary) and combine them into a cost matrix
+        # Normalize both matrices and combine them into a cost matrix
         max_contingency = cont_matrix.max() if cont_matrix.max() != 0 else 1
         # Normalize contingency to 0-1 range
         norm_cont_matrix = cont_matrix / max_contingency

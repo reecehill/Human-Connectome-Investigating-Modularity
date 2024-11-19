@@ -16,6 +16,25 @@ from sklearn.metrics.cluster import contingency_matrix
 from scipy.optimize import linear_sum_assignment  # type: ignore
 
 
+def getModuleXNameFromModuleYName(x_final: "pd.Series[str]", orig_y_module: "pd.Series[str]", y_module_name: str, useModeMethod: bool = True) -> str:
+    # ------
+    # Get optimal X module
+    # NB: Functional modules may overlay multiple structural modules.
+    # We need to find the structural module that best represents the functional module, in
+    # order to derive optimal structure-function pairs.
+    # ------
+    if (useModeMethod):
+    # The x and y modules are not mapped to the same set. So, we need to find the optimal x module.
+    # Get the x module that is most common to the y module.
+        x_module_name: str = x_final[orig_y_module.dropna().index].mode()[
+        0]  
+    else:
+    # The x and y modules are mapped to the same set. So, we can take x just by knowing y.
+        x_module_name: str = y_module_name
+    
+    return x_module_name
+    
+
 def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "Union[pd.Series[str],pd.Series[int]]", y: "Union[pd.Series[str],pd.Series[int]]", xy_surface_areas: "pd.DataFrame") -> None:
     # --- MODULE-SPECIFIC TESTS [START] ---
     y_module_names: "pd.Series[str]" = y_final.drop_duplicates()
@@ -36,36 +55,32 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         # ------
         orig_y_module: "pd.Series[str]" = y_final.where(y_final == y_module_name)
 
-        # ------
-        # Get optimal X module
-        # NB: Functional modules may overlay multiple structural modules.
-        # We need to find the structural module that best represents the functional module, in
-        # order to derive optimal structure-function pairs.
-        # ------
-        if ("mapped" in datasetDescriptor):
-            # The x and y modules are mapped to the same set. So, we can take x just by knowing y.
-            x_module_name: str = y_module_name
-        else:
-            # The x and y modules are not mapped to the same set. So, we need to find the optimal x module.
-            # Get the x module that is most common to the y module.
-            x_module_name: str = x_final[orig_y_module.dropna().index].mode()[
-                0]
+        x_module_name = getModuleXNameFromModuleYName(x_final=x_final, orig_y_module=orig_y_module, y_module_name=y_module_name, useModeMethod="mapped" not in datasetDescriptor)
 
         # With the optimal x-y pair found within our filtered x and y, we now get pre-filtered x (to expose missing y values that were removed by masking).
         x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
-        x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.dropna().index]
-        x_module_orig_unique = x_module_orig.unique()
-        if (x_module_orig_unique.size == 1):
-            x_module_name_orig: int = x_module_orig.values[0]
-        else:
-            g.logger.error(
-                "X module is not unique. Explicit logic for this edge case is required. X modules found: ["+', '.join(str(moduleName) for moduleName in x_module_orig_unique)+"]")
-            raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
-        
-        x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(x == x_module_name_orig)
 
-        y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y.where(
-            y.index.isin(x_final_module[x_final_module.notna()].index))
+        # Check if the Series contains only NaN values
+        if x_module.isna().all():
+            # The y module name only maps to NaN of x modules, so we cannot assume mapping and thus stats are skipped.
+            x_final_module = pd.Series([], dtype=int)
+            y_final_module_within_x = orig_y_module
+
+        else:
+        
+            x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.dropna().index]
+            x_module_orig_unique = x_module_orig.unique()
+            if (x_module_orig_unique.size == 1):
+                x_module_name_orig: int = x_module_orig.values[0]
+            else:
+                g.logger.error(
+                    "X module is not unique. Explicit logic for this edge case is required. X modules found: ["+', '.join(str(moduleName) for moduleName in x_module_orig_unique)+"]")
+                # raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
+            
+            x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(x == x_module_name_orig)
+
+            y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y.where(
+                y.index.isin(x_final_module[x_final_module.notna()].index))
 
 
         # Calculate module surface areas, including relative x-y SA (y divided by x)

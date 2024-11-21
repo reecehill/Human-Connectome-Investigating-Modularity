@@ -24,16 +24,16 @@ def getModuleXNameFromModuleYName(x_final: "pd.Series[str]", orig_y_module: "pd.
     # order to derive optimal structure-function pairs.
     # ------
     if (useModeMethod):
-    # The x and y modules are not mapped to the same set. So, we need to find the optimal x module.
-    # Get the x module that is most common to the y module.
+        # The x and y modules are not mapped to the same set. So, we need to find the optimal x module.
+        # Get the x module that is most common to the y module.
         x_module_name: str = x_final[orig_y_module.dropna().index].mode()[
-        0]  
+            0]
     else:
-    # The x and y modules are mapped to the same set. So, we can take x just by knowing y.
+        # The x and y modules are mapped to the same set. So, we can take x just by knowing y.
         x_module_name: str = y_module_name
-    
+
     return x_module_name
-    
+
 
 def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "pd.Series[str]", x: "Union[pd.Series[str],pd.Series[int]]", y: "Union[pd.Series[str],pd.Series[int]]", xy_surface_areas: "pd.DataFrame") -> None:
     # --- MODULE-SPECIFIC TESTS [START] ---
@@ -53,9 +53,11 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         # Get current Y module
         # NB: This works because indexes persist as we constrain the vector.
         # ------
-        orig_y_module: "pd.Series[str]" = y_final.where(y_final == y_module_name)
+        orig_y_module: "pd.Series[str]" = y_final.where(
+            y_final == y_module_name)
 
-        x_module_name = getModuleXNameFromModuleYName(x_final=x_final, orig_y_module=orig_y_module, y_module_name=y_module_name, useModeMethod="mapped" not in datasetDescriptor)
+        x_module_name = getModuleXNameFromModuleYName(
+            x_final=x_final, orig_y_module=orig_y_module, y_module_name=y_module_name, useModeMethod="mapped" not in datasetDescriptor)
 
         # With the optimal x-y pair found within our filtered x and y, we now get pre-filtered x (to expose missing y values that were removed by masking).
         x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
@@ -67,8 +69,9 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
             y_final_module_within_x = orig_y_module
 
         else:
-        
-            x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.dropna().index]
+
+            x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[x_module.dropna(
+            ).index]
             x_module_orig_unique = x_module_orig.unique()
             if (x_module_orig_unique.size == 1):
                 x_module_name_orig: int = x_module_orig.values[0]
@@ -76,12 +79,12 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                 g.logger.error(
                     "X module is not unique. Explicit logic for this edge case is required. X modules found: ["+', '.join(str(moduleName) for moduleName in x_module_orig_unique)+"]")
                 # raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
-            
-            x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(x == x_module_name_orig)
+
+            x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(
+                x == x_module_name_orig)
 
             y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y.where(
                 y.index.isin(x_final_module[x_final_module.notna()].index))
-
 
         # Calculate module surface areas, including relative x-y SA (y divided by x)
         x_module_sa, y_module_sa, ydivx_modula_sa = calcModuleSizes(
@@ -95,10 +98,10 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         # -----
         if (1 == 0):
             x_paddedIndexes: "list[int]" = pad_indexes(
-            x_final_module.dropna().index, x.index, n=1)
+                x_final_module.dropna().index, x.index, n=1)
 
-            x_final_module, y_final_module_within_x = x.where(x.index.isin(pd.Index(x_paddedIndexes))), y.where(y.index.isin(pd.Index(x_paddedIndexes)))
-
+            x_final_module, y_final_module_within_x = x.where(x.index.isin(
+                pd.Index(x_paddedIndexes))), y.where(y.index.isin(pd.Index(x_paddedIndexes)))
 
         # -----
         # Handle the missing y data.
@@ -107,9 +110,10 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
 
         if (handlerForNaNYValues == "randomise"):
             # Replace missing y modules with random values, but without affecting the distribution of y.
-            _, _y_final_module_within_x_with_missing =  white_noise(
+            _, _y_final_module_within_x_with_missing = white_noise(
                 x=x_final_module.dropna(),
-                y=y_final_module_within_x[y_final_module_within_x.index.isin(x_final_module.dropna().index)],
+                y=y_final_module_within_x[y_final_module_within_x.index.isin(
+                    x_final_module.dropna().index)],
                 sample_from_y=y.dropna()
             )
             y_final_module_within_x_with_missing = cast(
@@ -122,8 +126,8 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
             raise ValueError(
                 f"Invalid handler for NaN Y values: {handlerForNaNYValues}")
 
-        if(isinstance(x_final_module, pd.Series)):
-            if(x_final_module.dtype == 'object'):
+        if (isinstance(x_final_module, pd.Series)):
+            if (x_final_module.dtype == 'object'):
                 x_final_module.fillna("missing", inplace=True)
                 y_final_module_within_x.fillna("missing", inplace=True)
             elif (pd.api.types.is_integer_dtype(x_final_module)):
@@ -135,7 +139,7 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
         else:
             raise ValueError(
                 f"Invalid data type for x_final_module: {type(x_final_module)}")
-            
+
         # ------
         # Run tests for X as truth
         for test_name, test_func in test_functions_with_range:
@@ -154,7 +158,7 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                 )
 
                 score_x_random_y_imported: Float = test_func(
-                    
+
                     pd.Series(
                         g.randomGen.choice(
                             a=x.unique(),
@@ -184,8 +188,8 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                     test_ranges[test_name]
                 ))
             except Exception as e:
-                g.logger.error(
-                    f"Error running {test_name} with x as truth: {e}")
+                g.logger.warning(
+                    f"Warning running {test_name} with x as truth: {e}")
 
                 # Run tests for Y as truth
 
@@ -195,7 +199,7 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
             try:
                 score_y_defined = test_func(
                     y_final_module_within_x, x_final_module)
-                
+
                 score_y_imported_random_x = test_func(
                     y_final_module_within_x,
                     pd.Series(
@@ -234,8 +238,8 @@ def perModuleStat(datasetDescriptor: str, x_final: "pd.Series[str]", y_final: "p
                     test_ranges[test_name],
                 ))
             except Exception as e:
-                g.logger.error(
-                    f"Error running {test_name} with y as truth: {e}")
+                g.logger.warning(
+                    f"Warning running {test_name} with y as truth: {e}")
                 results_y_truth_by_module.append((
                     config.TIMESTAMP_OF_SCRIPT,
                     config.CURRENT_SUBJECT,

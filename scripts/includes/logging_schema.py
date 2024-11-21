@@ -52,8 +52,8 @@ logging_schema = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "simple",
             "level": "INFO",
-            "filename": LOGS_DIR / "log.txt",
-            "mode": "w",
+            "filename": LOGS_DIR / "log-simple.txt",
+            "mode": "a",
             "encoding": "utf-8",
             "maxBytes": 500000,
             "backupCount": 500
@@ -63,7 +63,7 @@ logging_schema = {
             "formatter": "standard",
             "level": "INFO",
             "filename": LOGS_DIR / "log.txt",
-            "mode": "w",
+            "mode": "a",
             "encoding": "utf-8",
             "maxBytes": 500000,
             "backupCount": 500
@@ -71,7 +71,7 @@ logging_schema = {
     },
     # Loggers use the handler names declared above
     "loggers": {
-        "modules.logger.logger": { 
+        "modules.logger.logger": {
             "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": True

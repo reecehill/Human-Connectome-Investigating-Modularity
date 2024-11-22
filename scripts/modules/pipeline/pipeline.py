@@ -26,8 +26,8 @@ allSteps: "Dict[stepFnType, bool]" = {
     functional.prepareFunctionalSurfacesForModularity: config.RUN_CALC_FUNC_MODULARITY,
     modularity.calculateModularity: config.RUN_CALC_STRUC_MODULARITY,
     mapper.processMapping: config.RUN_MAPPING,
-    statistics.runStatistics: config.RUN_STATS,
     data.cleanSubjectDirectory: config.RUN_CLEAN_SUBJECT_DIR,
+    statistics.runStatistics: config.RUN_STATS,
 }
 
 

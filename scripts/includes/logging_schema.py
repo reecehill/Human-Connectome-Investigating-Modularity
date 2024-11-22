@@ -71,7 +71,7 @@ logging_schema = {
     },
     # Loggers use the handler names declared above
     "loggers": {
-        "modules.logger.logger": {
+        "root_logger": {
             "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": True,

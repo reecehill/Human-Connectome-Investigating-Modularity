@@ -14,85 +14,108 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from traceback import format_exc
 from typing import Any, cast
-#import modules.globals as g
+# import modules.globals as g
 from modules import globals as g
 from config import BASE_DIR, logUsingSSH
+from modules.logger.logger import config_root_logger, stop_root_logger
 from modules.saver.streamToLogger import StreamToLogger
 
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config
+
     config.START_A_FRESH = startAFresh
     try:
         from modules.logger.logger import LoggerClass
         from modules.saver.saver import SaverClass
-        from modules.file_directory.file_directory import deleteDirectories, createDirectories
+        from modules.file_directory.file_directory import (
+            deleteDirectories,
+            createDirectories,
+        )
         import modules.pipeline.pipeline as pipeline
 
         # ------------------------------------------------------------
         # [START] Load and run the global logger.
         # ------------------------------------------------------------
         try:
+
             g.logger = LoggerClass()
-            g.logger = g.logger.run()
-            # -- [START] LOGGER AVAILABLE 
+            g.logger, g.log_queue = g.logger.run()
+            # Start the queue listener in a separate thread
+            g.queue_listener = config_root_logger(log_queue=g.log_queue)
+            g.queue_listener.start()
+            g.logger.info("Logger is running.")
+
+            # -- [START] LOGGER AVAILABLE
 
             # ------------------------------------------------------------
             # [START] Check environment.
             # ------------------------------------------------------------
-            if(True == False): # type: ignore
+            if True == False:  # type: ignore
                 try:
                     # Check pyprocess works.
                     cmd1 = f"cd {(config.SCRIPTS_DIR / 'src' / 'pypreprocess' / 'examples' / 'easy_start').resolve(strict=True).__str__()}"
                     cmd1 = 'python -c "import nipype; print(nipype.__version__)"'
                     cmd2 = 'python -c "import nipype; nipype.test()"'
                     cmd3 = "python nipype_preproc_spm_auditory.py"
-                    check: "Popen[Any]" = Popen("{}; {}; {}".format(cmd1, cmd2, cmd3),
-                                            shell=True,
-                                            stdin=PIPE, # type: ignore
-                                            stdout=StreamToLogger(g.logger, 20), # type: ignore
-                                            stderr=StreamToLogger(g.logger, 50), # type: ignore
-                                            close_fds=True)
-                    
-                    if(cast(int,check) != 0):
-                        g.logger.info("There was a problem finding the SPM12 installation.")
+                    check: "Popen[Any]" = Popen(
+                        "{}; {}; {}".format(cmd1, cmd2, cmd3),
+                        shell=True,
+                        stdin=PIPE,  # type: ignore
+                        stdout=StreamToLogger(g.logger, 20),  # type: ignore
+                        stderr=StreamToLogger(g.logger, 50),  # type: ignore
+                        close_fds=True,
+                    )
+
+                    if cast(int, check) != 0:
+                        g.logger.info(
+                            "There was a problem finding the SPM12 installation."
+                        )
                         Popen([". continuous_integration/install_spm12.sh"])
                 except Exception as e:
                     raise
             # Ensure pyprocess has its SPM12 pre-compiled version of the programme installed.
             # Popen([". continuous_integration/install_spm12.sh"])
-            
+
             # ------------------------------------------------------------
-                # [END] Check environment.
+            # [END] Check environment.
             # ------------------------------------------------------------
             try:
                 # ------------------------------------------------------------
                 # Clear writeable folders from previous runs. (Optional)
                 # ------------------------------------------------------------
-                if (startAFresh):
-                    g.logger.info("Deleting uploads ?and data folder? from previous runs.")
-                    deleteDirectories([config.UPLOADS_DIR.parent,
-                                       config.SUBJECTS_DIR
-                                       ], ignoreErrors=False)
+                if startAFresh:
+                    g.logger.info(
+                        "Deleting uploads ?and data folder? from previous runs."
+                    )
+                    deleteDirectories(
+                        [config.UPLOADS_DIR.parent, config.SUBJECTS_DIR],
+                        ignoreErrors=False,
+                    )
 
                     g.logger.info("Creating uploads ?and data? folder.")
-                    createDirectories(directoryPaths=[config.UPLOADS_DIR,
-                                                      config.SUBJECTS_DIR
-                                                      ], createParents=True)
+                    createDirectories(
+                        directoryPaths=[config.UPLOADS_DIR, config.SUBJECTS_DIR],
+                        createParents=True,
+                    )
             except Exception as e:
                 raise
-            
 
             try:
                 # ------------------------------------------------------------
                 # [START] Load the global saver and upload current configuration.
                 # ------------------------------------------------------------
-                if(logUsingSSH == True):
+                if logUsingSSH == True:
                     try:
                         g.logger.info("Instantiating saver class...")
                         g.saver = SaverClass(user, host, pathToKey)
-                        compressedFiles: str = g.saver.compress(filePathsToCompress=[config.SCRIPTS_DIR / 'config.py', config.INCLUDES_DIR]) 
+                        compressedFiles: str = g.saver.compress(
+                            filePathsToCompress=[
+                                config.SCRIPTS_DIR / "config.py",
+                                config.INCLUDES_DIR,
+                            ]
+                        )
                         archivePath: Path = Path(compressedFiles).resolve(strict=True)
-                        g.saver.saveToServer(archivePath) 
+                        g.saver.saveToServer(archivePath)
                     except Exception:
                         raise
 
@@ -100,8 +123,12 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 # [START] Confirm the executable paths.
                 # ------------------------------------------------------------
                 try:
-                    g.logger.info("MATLAB Executable: " + config.MATLAB.resolve().__str__())
-                    g.logger.info("DSIStudio Executable: " + config.DSI_STUDIO.resolve().__str__())
+                    g.logger.info(
+                        "MATLAB Executable: " + config.MATLAB.resolve().__str__()
+                    )
+                    g.logger.info(
+                        "DSIStudio Executable: " + config.DSI_STUDIO.resolve().__str__()
+                    )
                 except Exception:
                     raise
 
@@ -113,34 +140,45 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                     g.logger.info("Ready to begin accepting steps")
                     pipeline.runPipeline()
 
-                    if(logUsingSSH == True):
-                        g.logger.info("Compressing and uploading files to remote server.")
-                        compressedFiles: str = g.saver.compress(filePathsToCompress=[config.LOGS_DIR]) 
+                    if logUsingSSH == True:
+                        g.logger.info(
+                            "Compressing and uploading files to remote server."
+                        )
+                        compressedFiles: str = g.saver.compress(
+                            filePathsToCompress=[config.LOGS_DIR]
+                        )
                         archivePath: Path = Path(compressedFiles).resolve(strict=True)
-                        g.saver.saveToServer(archivePath) 
-                    
+                        g.saver.saveToServer(archivePath)
+
                     g.logger.info("Pipeline scripts finished.")
                 except:
                     raise
                 # ------------------------------------------------------------
                 # [END] Running pipeline.
                 # ------------------------------------------------------------
+
             except Exception as e:
                 g.logger.error("An error occurred", exc_info=e)
                 exit()
+
+            g.logger.info("Powering down the logger...")
+            stop_root_logger(g.queue_listener)
             # -- [END] LOGGER AVAILABLE
-            
+
         except Exception as e:
             print("There was an error instantiating the logger.")
             print(format_exc())
             exit()
+
         # ------------------------------------------------------------
-            # [END] Initialize and run the logger.
+        # [END] Initialize and run the logger.
         # ------------------------------------------------------------
     except Exception as e:
         print("Failed to import necessary modules.")
         print(format_exc())
         exit()
+
+
 # ------------------------------------------------------------
 # [END] main()
 # ------------------------------------------------------------
@@ -149,8 +187,10 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
 # [START] save()
 # ------------------------------------------------------------
 
+
 def save() -> None:
     pass
+
 
 # ------------------------------------------------------------
 # [end] save()
@@ -159,14 +199,20 @@ def save() -> None:
 if __name__ == "__main__":
     try:
         import sys
-        if len( sys.argv ) > 1:
+
+        if len(sys.argv) > 1:
             from argparse import ArgumentParser
+
             parser = ArgumentParser()
             parser.add_argument("-U", "--user", type=str, default="CLI_ARGUMENT_ERROR")
             parser.add_argument("-H", "--host", type=str, default="CLI_ARGUMENT_ERROR")
-            parser.add_argument("-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR")
+            parser.add_argument(
+                "-K", "--pathToKey", type=str, default="CLI_ARGUMENT_ERROR"
+            )
             parser.add_argument("-S", "--startAFresh", type=bool, default=False)
-            parser.add_argument("-A", "--awsConfigFile", type=bool, default="CLI_ARGUMENT_ERROR")
+            parser.add_argument(
+                "-A", "--awsConfigFile", type=bool, default="CLI_ARGUMENT_ERROR"
+            )
             args = parser.parse_args()
             user = args.user
             host = args.host
@@ -174,20 +220,20 @@ if __name__ == "__main__":
             startAFresh = args.startAFresh
         else:
             from os import getenv
-            from dotenv import load_dotenv # type: ignore
-            k: bool = load_dotenv(str(BASE_DIR / '.env'))
-            user = getenv('DEFAULT_USER') or "ENV_ERROR"
-            host = getenv('DEFAULT_HOST') or "ENV_ERROR"
-            pathToKey = getenv('DEFAULT_PATH_TO_KEY') or "ENV_ERROR"
-            startAFresh = getenv('DEFAULT_START_A_FRESH') == 'True' or False
+            from dotenv import load_dotenv  # type: ignore
+
+            k: bool = load_dotenv(str(BASE_DIR / ".env"))
+            user = getenv("DEFAULT_USER") or "ENV_ERROR"
+            host = getenv("DEFAULT_HOST") or "ENV_ERROR"
+            pathToKey = getenv("DEFAULT_PATH_TO_KEY") or "ENV_ERROR"
+            startAFresh = getenv("DEFAULT_START_A_FRESH") == "True" or False
 
         print("Launching main using: ")
-        print("User: "+user)
-        print("Host: "+host)
-        print("pathToKey: "+pathToKey)
+        print("User: " + user)
+        print("Host: " + host)
+        print("pathToKey: " + pathToKey)
         print("startAFresh: " + str(startAFresh))
         main(user, host, pathToKey, startAFresh)
     except Exception as e:
         print(e)
         raise
-    

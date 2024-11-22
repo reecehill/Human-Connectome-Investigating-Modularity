@@ -17,10 +17,10 @@ logging_schema = {
             # class is always "logging.Formatter"
             "class": "logging.Formatter",
             # Optional: logging output format
-            "format": "'%(asctime)s [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(ADDITIONAL)s %(levelname)-8s %(message)s'",
+            "format": "'%(asctime)s [%(processName)s] [%(filename)s:%(module)s:%(funcName)s:%(lineno)d] %(ADDITIONAL)s %(levelname)-8s %(message)s'",
             # Optional: asctime format
-            "datefmt": "%d %b %y %H:%M:%S"
-        }
+            "datefmt": "%d %b %y %H:%M:%S",
+        },
     },
     # Handlers use the formatter names declared above
     "handlers": {
@@ -33,7 +33,7 @@ logging_schema = {
             "formatter": "simple",
             "level": "DEBUG",
             # The default is stderr
-            "stream": "ext://sys.stdout"
+            "stream": "ext://sys.stdout",
         },
         # Name of handler
         "console": {
@@ -44,7 +44,7 @@ logging_schema = {
             "formatter": "standard",
             "level": "DEBUG",
             # The default is stderr
-            "stream": "ext://sys.stdout"
+            "stream": "ext://sys.stdout",
         },
         # Same as the StreamHandler example above, but with different
         # handler-specific kwargs.
@@ -55,8 +55,8 @@ logging_schema = {
             "filename": LOGS_DIR / "log-simple.txt",
             "mode": "a",
             "encoding": "utf-8",
-            "maxBytes": 500000,
-            "backupCount": 500
+            "maxBytes": 52428800,  # 50Mb
+            "backupCount": 500,
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -65,22 +65,22 @@ logging_schema = {
             "filename": LOGS_DIR / "log.txt",
             "mode": "a",
             "encoding": "utf-8",
-            "maxBytes": 500000,
-            "backupCount": 500
-        }
+            "maxBytes": 52428800,  # 50Mb
+            "backupCount": 500,
+        },
     },
     # Loggers use the handler names declared above
     "loggers": {
         "modules.logger.logger": {
             "handlers": ["console", "file"],
             "level": "INFO",
-            "propagate": True
+            "propagate": True,
         },
         "__main__": {  # if __name__ == "__main__"
             # Use a list even if one handler is used
             "handlers": ["console_simple", "file_simple"],
             "level": "INFO",
-            "propagate": True
+            "propagate": True,
         },
         "boto3": {
             "level": "INFO",
@@ -96,13 +96,10 @@ logging_schema = {
             "level": "INFO",
             "handlers": ["console_simple", "file_simple"],
             "propagate": True,
-        }
+        },
     },
     # Just a standalone kwarg for the root logger
-    "root": {
-        "level": "INFO",
-        "handlers": ["file_simple", "console_simple"]
-    }
+    "root": {"level": "INFO", "handlers": ["file_simple", "console_simple"]},
 }
 
 

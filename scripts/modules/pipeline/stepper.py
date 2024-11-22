@@ -53,7 +53,7 @@ def finishStep(result: bool):
 stepFnType = Callable[[str], bool]
 
 
-def processStepFn(step: stepFnType, subjectId: str):
+def processStepFn(step: stepFnType, subjectId: str) -> bool:
     result: bool = False
     try:
         g.logger.info(f"Running {step.__name__} for subject {subjectId}")
@@ -65,7 +65,7 @@ def processStepFn(step: stepFnType, subjectId: str):
         g.logger.error(f"Error running step: {e}")
     finally:
         finishStep(result=result)
-        return config.SUBJECT_STEP_SUCCESS
+        return config.SUBJECT_STEP_SUCCESS is True
 
 
 def cleanDirOfBatch(subjectBatch: List[str]):

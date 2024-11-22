@@ -1,5 +1,5 @@
 from multiprocessing import current_process
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import config
 from includes.stepper.functions import updateBatchStatus
 from modules.pipeline import (
@@ -68,31 +68,39 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
                 for subjectId in subjectBatch
             ]
             try:
-                for future in concurrent.futures.as_completed(fs=futures, timeout=60*60*2): # Max 2 hours for a single subject (typical subject takes ~30min)
-                        try:
-                            step_name: str = future.result()
-                            g.logger.info(f"Completed processing for {step_name}")
-                        except concurrent.futures.TimeoutError:
-                            g.logger.error("A process timed out.")
-                        except Exception as e:
-                            g.logger.error(f"An error occurred: {e}")
-                            raise e
+                for future in concurrent.futures.as_completed(
+                    fs=futures, timeout=60 * 60 * 2
+                ):  # Max 2 hours for a single subject (typical subject takes ~30min)
+                    try:
+                        step_name, step_result = future.result()
+                        g.logger.info(f"Completed processing [{step_result}] for {step_name}")
+                    except concurrent.futures.TimeoutError:
+                        g.logger.error("A process timed out.")
+                    except Exception as e:
+                        g.logger.error(f"An error occurred: {e}")
+                        raise e
+                    finally:
+                        g.logger.info("Future completed.")
             except Exception as e:
                 g.logger.error(f"Error during parallel processing: {e}")
                 raise e
             finally:
+                g.logger.info("Shutting down executor.")
                 executor.shutdown(wait=True)
     else:
         for subjectId in subjectBatch:
-            processSubject(stepFn=stepFn, subjectId=subjectId)
+            step_name, step_result = processSubject(stepFn=stepFn, subjectId=subjectId)
+            g.logger.info(f"Completed processing [{step_result}] for {step_name}")
     g.logger.info(f"Completed batch for {stepFn.__name__}")
 
 
-def processSubject(stepFn: stepFnType, subjectId: str) -> str:
+def processSubject(stepFn: stepFnType, subjectId: str) -> "Tuple[str,bool]":
     try:
         current_process().name = f"Process|Sbj-{subjectId}|Fn-{stepFn.__name__}"
-        processStepFn(step=stepFn, subjectId=subjectId)
-        return stepFn.__name__
+        step_result: bool = processStepFn(step=stepFn, subjectId=subjectId)
+        return stepFn.__name__, step_result
     except Exception as e:
-        g.logger.error(f"Error in processing subject {subjectId} with {stepFn.__name__}: {e}")
+        g.logger.error(
+            f"Error in processing subject {subjectId} with {stepFn.__name__}: {e}"
+        )
         raise e

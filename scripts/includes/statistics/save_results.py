@@ -5,9 +5,8 @@ from pathlib import Path
 
 
 def save_results(
-        dfXTruth: pd.DataFrame,
-        dfYTruth: pd.DataFrame,
-        pathToOutputtedCsv: Path):
+    dfXTruth: pd.DataFrame, dfYTruth: pd.DataFrame, pathToOutputtedCsv: Path
+):
 
     append_result_to_csv(df=dfXTruth, filename=pathToOutputtedCsv)
     append_result_to_csv(df=dfYTruth, filename=pathToOutputtedCsv)

@@ -4,24 +4,32 @@ import config
 import modules.globals as g
 from shutil import rmtree
 
-def deleteFilesByExtensions(directories: List[Path], extensions: List[str], recursive: bool = False, depth: int = 0):
+
+def deleteFilesByExtensions(
+    directories: List[Path],
+    extensions: List[str],
+    recursive: bool = False,
+    depth: int = 0,
+):
     """
     Delete files in the specified directories that match any of the given extensions.
-    
+
     Parameters:
     - directories: A list of directories where the files are located.
     - extensions: A list of extensions to delete (e.g., ['*.nii.gz', '*.txt']).
     - recursive: If True, will search subdirectories up to the specified depth.
     - depth: The maximum depth to search in subdirectories (-1 = no depth limit, 0 = no recursion, 1 = direct subfolders, etc.).
     """
-    if(len(config.ALL_SUBJECTS)<5):
+    if len(config.ALL_SUBJECTS) < 5:
         g.logger.info("Skipped deleting files as small sample size.")
-        return 
+        return
     # Loop through each directory
     for directory in directories:
         # Ensure the directory exists
         if not directory.exists() or not directory.is_dir():
-            g.logger.warning(f"Directory does not exist or is not a directory: {directory}")
+            g.logger.warning(
+                f"Directory does not exist or is not a directory: {directory}"
+            )
             continue
 
         # Loop through each extension

@@ -1,3 +1,3 @@
 class ParticipantClass:
-  def __init__(self, id: int) -> None:
-    pass
+    def __init__(self, id: int) -> None:
+        pass

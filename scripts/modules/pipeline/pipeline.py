@@ -1,5 +1,5 @@
 from multiprocessing import current_process
-from typing import  Dict, List
+from typing import Dict, List
 import config
 from includes.stepper.functions import updateBatchStatus
 from modules.pipeline import (
@@ -38,9 +38,7 @@ def runPipeline() -> None:
 
         for stepFn, runStep in allSteps.items():
             if runStep:
-                runSubjectBatchThroughStep(
-                    stepFn=stepFn, subjectBatch=batchSubjects
-                )
+                runSubjectBatchThroughStep(stepFn=stepFn, subjectBatch=batchSubjects)
             else:
                 g.logger.info(f"Skipping {stepFn.__name__} for all subjects")
 

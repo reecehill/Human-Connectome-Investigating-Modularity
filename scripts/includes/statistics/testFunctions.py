@@ -6,14 +6,23 @@ from includes.statistics.testVariables import ResultRowSubjectWide, ResultRowMod
 
 def generateInterpretation(test_name: str, score: "Float") -> str:
     # Define a function to generate interpretations
-    if test_name in ["Normalized Mutual Information", "Adjusted Mutual Information", "Mutual Information Score"]:
+    if test_name in [
+        "Normalized Mutual Information",
+        "Adjusted Mutual Information",
+        "Mutual Information Score",
+    ]:
         if score == 0.0:
             return "No mutual information between variables."
         elif score == 1.0:
             return "Perfect correlation between variables."
         else:
             return f"Partial mutual information: {score}."
-    elif test_name in ["V-measure Cluster Labeling", "Homogeneity Score", "Fowlkes-Mallows Index", "Purity Score"]:
+    elif test_name in [
+        "V-measure Cluster Labeling",
+        "Homogeneity Score",
+        "Fowlkes-Mallows Index",
+        "Purity Score",
+    ]:
         if score == 0.0:
             return "No agreement between clustering and truth."
         elif score == 1.0:
@@ -32,7 +41,7 @@ def generateInterpretation(test_name: str, score: "Float") -> str:
 
 def convertSubjectWideResultsToDataFrames(
     results_x_truth_with_range: list[ResultRowSubjectWide],
-    results_y_truth_with_range: list[ResultRowSubjectWide]
+    results_y_truth_with_range: list[ResultRowSubjectWide],
 ) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
     columns: "list[str]" = [
@@ -47,20 +56,18 @@ def convertSubjectWideResultsToDataFrames(
         "Score: (x real, y random)",
         "Score: (x random, y real)",
         "Interpretation",
-        "Range"
+        "Range",
     ]
     # Convert results to DataFrames
-    dfXTruthWithRange = pd.DataFrame(
-        results_x_truth_with_range, columns=columns)
-    dfYTruthWithRange = pd.DataFrame(
-        results_y_truth_with_range, columns=columns)
+    dfXTruthWithRange = pd.DataFrame(results_x_truth_with_range, columns=columns)
+    dfYTruthWithRange = pd.DataFrame(results_y_truth_with_range, columns=columns)
 
     return dfXTruthWithRange, dfYTruthWithRange
 
 
 def convertModuleWideResultsToDataFrames(
     results_x_truth_by_module: list[ResultRowModuleWide],
-    results_y_truth_by_module: list[ResultRowModuleWide]
+    results_y_truth_by_module: list[ResultRowModuleWide],
 ) -> "tuple[pd.DataFrame, pd.DataFrame]":
 
     columns: "list[str]" = [
@@ -80,20 +87,23 @@ def convertModuleWideResultsToDataFrames(
         "Score: (x real, y random)",
         "Score: (x random, y real)",
         "Interpretation",
-        "Range"
+        "Range",
     ]
     # Convert results to DataFrames
-    dfXTruthByModule = pd.DataFrame(
-        results_x_truth_by_module, columns=columns)
-    dfYTruthByModule = pd.DataFrame(
-        results_y_truth_by_module, columns=columns)
+    dfXTruthByModule = pd.DataFrame(results_x_truth_by_module, columns=columns)
+    dfYTruthByModule = pd.DataFrame(results_y_truth_by_module, columns=columns)
 
     return dfXTruthByModule, dfYTruthByModule
+
 
 # Define the padding function
 
 
-def pad_indexes(currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]", validIndexes: "Union[pd.MultiIndex,pd.Index[int]]", n: int) -> "list[int]":
+def pad_indexes(
+    currentIndexes: "Union[pd.MultiIndex,pd.Index[int]]",
+    validIndexes: "Union[pd.MultiIndex,pd.Index[int]]",
+    n: int,
+) -> "list[int]":
     # will pad an array of indexes in both directions n number of times.
     # Example usage
     # X_indexes = [3, 4, 5, 56, 58, 70]

@@ -43,13 +43,14 @@ class LoggerClass:
             boto3_logger = logging.getLogger("boto3")
             boto3_logger.addHandler(QueueHandler(log_queue))
             boto3_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
-            boto3_logger, extra=extra_logging_info
+                boto3_logger, extra=extra_logging_info
             )
             boto3_logger = logging.getLogger("boto3")
 
             boto3_logger = logging.getLogger("botocore")
             boto3.set_stream_logger()
             # boto3_logger.addHandler(QueueHandler(log_queue))
+
         logging.config.dictConfig(logging_schema)
 
         self.log_queue = Manager().Queue()
@@ -91,9 +92,12 @@ def config_root_logger(log_queue: "Queue[Union[LogRecord,None]]") -> QueueListen
         root_logger, extra=extra_logging_info
     )
 
-    queue_listener: "QueueListener" = QueueListener(log_queue, *logger_adapter.logger.handlers)
+    queue_listener: "QueueListener" = QueueListener(
+        log_queue, *logger_adapter.logger.handlers
+    )
 
     return queue_listener
+
 
 def stop_root_logger(listener: QueueListener):
     # Stop the listener when done

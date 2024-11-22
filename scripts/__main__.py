@@ -14,11 +14,13 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from traceback import format_exc
 from typing import Any, cast
+
 # import modules.globals as g
 from modules import globals as g
 from config import BASE_DIR, logUsingSSH
 from modules.logger.logger import config_root_logger, stop_root_logger
 from modules.saver.streamToLogger import StreamToLogger
+
 
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config

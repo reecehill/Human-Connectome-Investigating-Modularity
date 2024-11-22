@@ -2,18 +2,20 @@ from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 # Shared 3D coordinates (C matrix)
-C = np.array([
-    [0, 0, 0],  # C_1
-    [1, 2, 1],  # C_2
-    [3, 1, 4],  # C_3
-    [5, 5, 5],  # C_4
-    [2, 1, 3],  # C_5
-    [1, 0, 2]   # C_6
-])
+C = np.array(
+    [
+        [0, 0, 0],  # C_1
+        [1, 2, 1],  # C_2
+        [3, 1, 4],  # C_3
+        [5, 5, 5],  # C_4
+        [2, 1, 3],  # C_5
+        [1, 0, 2],  # C_6
+    ]
+)
 
 # Categorical labels for X and Y
-X_labels = ['A', 'A', 'A', 'B', 'A', 'C']  # Labels for X
-Y_labels = ['E', 'E', 'F', 'D', 'D', 'D']  # Labels for Y
+X_labels = ["A", "A", "A", "B", "A", "C"]  # Labels for X
+Y_labels = ["E", "E", "F", "D", "D", "D"]  # Labels for Y
 
 # Step 1: Compute the cost matrix (distance-based cost for relabeling)
 # In this case, since the coordinates are shared, we compute the cost as zero if the point is the same

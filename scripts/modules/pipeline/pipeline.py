@@ -68,7 +68,7 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
                 for subjectId in subjectBatch
             ]
             try:
-                for future in concurrent.futures.as_completed(fs=futures, timeout=60*20):
+                for future in concurrent.futures.as_completed(fs=futures, timeout=60*60*2): # Max 2 hours for a single subject (typical subject takes ~30min)
                         try:
                             step_name: str = future.result()
                             g.logger.info(f"Completed processing for {step_name}")

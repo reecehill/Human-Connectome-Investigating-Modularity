@@ -37,7 +37,6 @@ def getFile(localPath: Path, forceDownload: bool = False, localOnly: bool = Fals
                           localPath.parent], createParents=True, throwErrorIfExists=False)
 
         s3 = boto3.client("s3")
-        
         meta_data = s3.head_object(
             Bucket='hcp-openaccess', Key=getRemotePathOf(localPath))
         total_length = int(meta_data.get('ContentLength', 0))

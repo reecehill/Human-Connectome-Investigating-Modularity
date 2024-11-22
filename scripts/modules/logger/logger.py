@@ -9,7 +9,7 @@ try:
     from includes.logging_schema import logging_schema
     from ..file_directory.file_directory import createDirectories
     from multiprocessing import Queue
-    # import multiprocessing_logging
+    import multiprocessing_logging
 
 except Exception as e:
     print(e)
@@ -39,12 +39,12 @@ class LoggerClass:
         logging.config.dictConfig(logging_schema)
         logger_nocontext: Logger = logging.getLogger(__name__)
 
-        # multiprocessing_logging.install_mp_handler(logger=logger_nocontext)
+        multiprocessing_logging.install_mp_handler(logger=logger_nocontext)
 
         logger: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
             logger_nocontext, extra=extra_logging_info
         )
-        logger.logger.addHandler(handlers.QueueHandler(Queue()))
+        # logger.logger.addHandler(handlers.QueueHandler(Queue()))
 
         self.logger = logger
         self.logger.info("Logger is instantiated.")

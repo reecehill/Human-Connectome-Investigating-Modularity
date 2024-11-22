@@ -42,10 +42,14 @@ def runPipeline() -> None:
             else:
                 g.logger.info(f"Skipping {stepFn.__name__} for all subjects")
 
-        # Delete subject batch once done.
-        allSubjectsAllStepsSuccess: bool = updateBatchStatus(
-            batchSubjects=batchSubjects
-        )
+        try:
+            # Delete subject batch once done.
+            allSubjectsAllStepsSuccess: bool = updateBatchStatus(
+                batchSubjects=batchSubjects
+            )
+        except Exception as e:
+            g.logger.error(f"Error updating batch status: {e}")
+            allSubjectsAllStepsSuccess = False
 
         if allSubjectsAllStepsSuccess:
             cleanDirOfBatch(batchSubjects)
@@ -63,9 +67,21 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
                 executor.submit(processSubject, stepFn, subjectId)
                 for subjectId in subjectBatch
             ]
-            for future in concurrent.futures.as_completed(futures):
-                step_name: str = future.result()
-                g.logger.info(f"Completed processing for {step_name}")
+            try:
+                for future in concurrent.futures.as_completed(fs=futures, timeout=60*20):
+                        try:
+                            step_name: str = future.result()
+                            g.logger.info(f"Completed processing for {step_name}")
+                        except concurrent.futures.TimeoutError:
+                            g.logger.error("A process timed out.")
+                        except Exception as e:
+                            g.logger.error(f"An error occurred: {e}")
+                            raise e
+            except Exception as e:
+                g.logger.error(f"Error during parallel processing: {e}")
+                raise e
+            finally:
+                executor.shutdown(wait=True)
     else:
         for subjectId in subjectBatch:
             processSubject(stepFn=stepFn, subjectId=subjectId)
@@ -73,7 +89,10 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
 
 
 def processSubject(stepFn: stepFnType, subjectId: str) -> str:
-    current_process().name = f"Process|Sbj-{subjectId}|Fn-{stepFn.__name__}"
-    processStepFn(step=stepFn, subjectId=subjectId)
-    # Return the step name for logging purposes
-    return stepFn.__name__
+    try:
+        current_process().name = f"Process|Sbj-{subjectId}|Fn-{stepFn.__name__}"
+        processStepFn(step=stepFn, subjectId=subjectId)
+        return stepFn.__name__
+    except Exception as e:
+        g.logger.error(f"Error in processing subject {subjectId} with {stepFn.__name__}: {e}")
+        raise e

@@ -69,8 +69,8 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
             ]
             try:
                 for future in concurrent.futures.as_completed(
-                    fs=futures, timeout=60 * 60 * 1
-                ):  # Max 1 hour for a single subject, single process step (typical subject takes ~30min for ALL steps)
+                    fs=futures, timeout=60 * 60 * 2
+                ):  # Max 2 hours for a single subject, single process step (typical subject takes ~30min for ALL steps)
                     try:
                         step_name, step_result = future.result()
                         g.logger.info(f"Completed processing [{step_result}] for {step_name}")
@@ -80,6 +80,10 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
                         g.logger.error(f"An error occurred: {e}")
                         raise e
                     finally:
+                        g.logger.info(f"Future [done: {future.done()}] [cancelled: {future.cancelled()}]")
+                        if not future.done():
+                            g.logger.info(f"Future unfinished:")
+                            g.logger.info(future)
                         g.logger.info("Future completed.")
             except Exception as e:
                 g.logger.error(f"Error during parallel processing: {e}")

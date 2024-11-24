@@ -68,7 +68,7 @@ class LoggerClass:
 
         queue_handler = QueueHandler(self.log_queue)
         logger_nocontext.addHandler(queue_handler)
-        logger_nocontext.setLevel(logging.INFO)
+        logger_nocontext.setLevel(logging.DEBUG)
 
         logger_nocontext_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
             logger_nocontext, extra=extra_logging_info

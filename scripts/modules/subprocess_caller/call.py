@@ -2,7 +2,7 @@ from io import TextIOWrapper
 from pathlib import Path
 import re
 import subprocess
-from typing import IO, Any, Optional, Union
+from typing import Any, Optional, Union
 import modules.globals as g
 
 

@@ -1,12 +1,12 @@
 import os
 import modules.globals as g
-import config
 from modules.file_directory.file_directory import createDirectories
-from modules.hcp_data_manager.downloader import getFile
 from modules.subprocess_caller.call import *
 
-
 def generateLabels(subjectId: str) -> bool:
+    import config
+    from modules.hcp_data_manager.downloader import getFile
+
     g.logger.info(
         "Running Freesurfer: generating label files by annotating the pial surfaces."
     )
@@ -66,6 +66,9 @@ def generateLabels(subjectId: str) -> bool:
 
 
 def generateMni152Labels(subjectId: str) -> bool:
+    import config
+    from modules.hcp_data_manager.downloader import getFile
+    
     imageDir = config.SUBJECT_DIR / config.NATIVEORMNI152FOLDER
     labelDir: config.Path = imageDir / subjectId / "label" / "label_type2"
     surfDir = imageDir / subjectId / "surf"

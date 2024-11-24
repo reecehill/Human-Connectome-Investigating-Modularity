@@ -2,21 +2,21 @@
 # CONFIGURATION FILE.
 # ----------
 
-import multiprocessing
+from multiprocessing import cpu_count
 from typing import Literal, Optional, Union
 from includes.automated import *
 from includes.all_subjects import all_healthy_young_adults
 import modules.globals as g
 
-CPU_THREADS = multiprocessing.cpu_count() - 2
+CPU_THREADS: int = cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 FORCE_RUN: bool = False
 USE_PARALLEL_PROCESSING: bool = True
 # CPU_THREADS = 10
 
-USE_7T_DIFFUSION = False  # Bool, either True = use 7T or False = use 3T.
+USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
 # Bool, either True = coregister data to MNI152 space first.
-NORMALISE_TO_MNI152 = True
+NORMALISE_TO_MNI152: bool = True
 
 # ----------
 # [START] DSI STUDIO PARAMETERS
@@ -24,37 +24,37 @@ NORMALISE_TO_MNI152 = True
 """
 0:DSI, 1:DTI, 2:Funk-Randon QBI, 3:Spherical Harmonic QBI, 4:GQI 6: Convert to HARDI 7:QSDR. For detail, please refer to the reconstruction page. 
 """
-DSI_STUDIO_RECONSTRUCTION_METHOD = 4  # was 7
-DSI_STUDIO_TRACKING_METHOD = 0  # 0:streamline (default), 1:rk4
+DSI_STUDIO_RECONSTRUCTION_METHOD: int = 4  # was 7
+DSI_STUDIO_TRACKING_METHOD: int = 0  # 0:streamline (default), 1:rk4
 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT)
-DSI_STUDIO_ITERATION_COUNT = 1
-DSI_STUDIO_FIBRE_COUNT = 500000
+DSI_STUDIO_ITERATION_COUNT: int = 1
+DSI_STUDIO_FIBRE_COUNT: int = 500000
 # DSI_STUDIO_FIBRE_COUNT = 1000
 # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
-DSI_STUDIO_USE_RECONST = False
+DSI_STUDIO_USE_RECONST: bool = False
 # A large number to prevent DSI Studio from running forever in case no more fibres are found.
-DSI_STUDIO_SEED_COUNT = 1e9
-DSI_STUDIO_FA_THRESH = 0
-DSI_STUDIO_CHECK_ENDING = 1
-DSI_STUDIO_OTSU_THRESH = 0.6
+DSI_STUDIO_SEED_COUNT: float = 1e9
+DSI_STUDIO_FA_THRESH: int = 0
+DSI_STUDIO_CHECK_ENDING: int = 1
+DSI_STUDIO_OTSU_THRESH: float = 0.6
 # initial propagation direction 0:primary fiber, 1:random, 2:all fiber orientations
-DSI_STUDIO_INITIAL_DIREC = 0
+DSI_STUDIO_INITIAL_DIREC: int = 0
 # specify the seeding strategy 0:subvoxel random, 1:voxelwise center
-DSI_STUDIO_SEED_PLAN = 0
+DSI_STUDIO_SEED_PLAN: int = 0
 # interpolation methods (0:trilinear, 1:gaussian radial, 2:nearest neighbor)
-DSI_STUDIO_INTERPOLATION = 0
+DSI_STUDIO_INTERPOLATION: int = 0
 # specify whether a timer is used for generating seed points. Setting it on (--random_seed=1) will make tracking random. The default is off.
-DSI_STUDIO_RANDOM_SEED = 0
-DSI_STUDIO_STEP_SIZE = 0.625
-DSI_STUDIO_TURNING_ANGLE = 60
-DSI_STUDIO_SMOOTHING = 0
-DSI_STUDIO_MIN_LENGTH = 10
-DSI_STUDIO_MAX_LENGTH = 300
+DSI_STUDIO_RANDOM_SEED: int = 0
+DSI_STUDIO_STEP_SIZE: float = 0.625
+DSI_STUDIO_TURNING_ANGLE: int = 60
+DSI_STUDIO_SMOOTHING: int = 0
+DSI_STUDIO_MIN_LENGTH: int = 10
+DSI_STUDIO_MAX_LENGTH: int = 300
 # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
-DSI_STUDIO_REF_IMG = "T1w_restore_brain.nii.gz"
+DSI_STUDIO_REF_IMG: str = "T1w_restore_brain.nii.gz"
 # DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
-DSI_STUDIO_ANNOTATED_IMG = "aparc+aseg.nii.gz"
-DSI_STUDIO_USE_ROI = True
+DSI_STUDIO_ANNOTATED_IMG: str = "aparc+aseg.nii.gz"
+DSI_STUDIO_USE_ROI: bool = True
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -133,7 +133,7 @@ DOWNSAMPLE_RATE = 0.1  # NOTE: Default should be 0.1 (float).
 # (int) If 1, the below downsamples meshes will be imported as a low-res mesh. If 0 (false), they will be created by the downsample_rate of the pial surface.
 USE_PRESET_DOWNSAMPLED_MESH = 1
 # IMPORTANT: Filenames may use the $subjectId$ placeholder to dynamically insert subject's id.
-IMAGES = {
+IMAGES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
     "FMRI": {
         "LOW_RES": {
             "SURFACE": {
@@ -223,7 +223,7 @@ IMAGES = {
         }
     },
 }
-TRANSFORMS = {
+TRANSFORMS: dict[str, dict[str, str]] = {
     "INTRA_SUBJECT": {
         # (string) Relative to the main (root) folder of each subject
         "FOLDER": "MNINonLinear/xfms",
@@ -298,14 +298,27 @@ BATCHED_SUBJECTS: "list[list[str]]" = splitIntoBatches(
     ALL_SUBJECTS, SUBJECTS_INTO_N_BATCHES
 )
 LOGS_DIR: Path = getLogDirectoryPath(logDirectoryPath)
+logDirectoryPath = str(LOGS_DIR)
+
 SPM_DIR: Path = getSpmDir(spmDirectoryPath)
+spmDirectoryPath = str(SPM_DIR)
+
 NATIVEORMNI152FOLDER: str = getNativeOrMni152Folder(NORMALISE_TO_MNI152)
-DIFFUSION_FOLDER = getDiffusionFolder(USE_7T_DIFFUSION)
-DSI_STUDIO = getPathOfExecutable(
+DIFFUSION_FOLDER: str = getDiffusionFolder(USE_7T_DIFFUSION)
+
+DSI_STUDIO: Path = getPathOfExecutable(
     executable="dsi_studio", executableAlias="dsi-studio", userSubmitted=dsiStudioPath
 )
-MATLAB = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
-WB_COMMAND = getPathOfExecutable(executable="wb_command", userSubmitted=wbCommandPath)
+dsiStudioPath = str(DSI_STUDIO)
+
+MATLAB: Path = getPathOfExecutable(executable="matlab", userSubmitted=matlabPath)
+matlabPath = str(MATLAB)
+
+WB_COMMAND: Path = getPathOfExecutable(
+    executable="wb_command", userSubmitted=wbCommandPath
+)
+wbCommandPath = str(WB_COMMAND)
+
 # COMPOSITE PATHS DEPENDANT ON PREV PATHS
 FMRI_SCALAR_PATH_CORTICAL: str = str(
     Path(IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"])

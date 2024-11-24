@@ -125,7 +125,7 @@ class SaverClass:
                 self.sshCmd,
                 stdin=subprocess.PIPE,
                 stdout=StreamToLogger(g.logger, 20),  # type: ignore
-                stderr=StreamToLogger(g.logger, 50),
+                stderr=StreamToLogger(g.logger, 50),  # type: ignore
             )  # type: ignore
             if terminateUponConnection:
                 self.closeSSH()
@@ -140,8 +140,8 @@ class SaverClass:
                 self.rsyncCmd,
                 stdin=subprocess.PIPE,
                 stdout=StreamToLogger(g.logger, 20),  # type: ignore
-                stderr=StreamToLogger(g.logger, 50),
-            )  # type: ignore
+                stderr=StreamToLogger(g.logger, 50),  # type: ignore
+            )
         except Exception:
             raise
 

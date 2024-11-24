@@ -10,16 +10,13 @@
 # ------------------------------------------------------------
 # [START] main()
 # ------------------------------------------------------------
+from multiprocessing import set_start_method
 from pathlib import Path
 from subprocess import Popen, PIPE
 from traceback import format_exc
 from typing import Any, cast
 
-# import modules.globals as g
-from modules import globals as g
-from config import BASE_DIR, logUsingSSH
-from modules.logger.logger import config_root_logger, stop_root_logger
-from modules.saver.streamToLogger import StreamToLogger
+from modules.saver.saverClass import SaverType
 
 
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
@@ -39,7 +36,6 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
         # [START] Load and run the global logger.
         # ------------------------------------------------------------
         try:
-
             g.logger = LoggerClass()
             g.logger, g.log_queue = g.logger.run()
             # Start the queue listener in a separate thread
@@ -141,7 +137,7 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 try:
                     g.logger.info("Ready to begin accepting steps")
                     pipeline.runPipeline()
-
+                    g.saver = SaverClass(user, host, pathToKey)
                     if logUsingSSH == True:
                         g.logger.info(
                             "Compressing and uploading files to remote server."
@@ -200,7 +196,12 @@ def save() -> None:
 
 if __name__ == "__main__":
     try:
+        set_start_method("forkserver")  # SLURM-safe
         import sys
+        from config import BASE_DIR, logUsingSSH
+        from modules import globals as g
+        from modules.logger.logger import config_root_logger, stop_root_logger
+        from modules.saver.streamToLogger import StreamToLogger
 
         if len(sys.argv) > 1:
             from argparse import ArgumentParser

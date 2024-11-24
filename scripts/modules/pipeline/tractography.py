@@ -1,10 +1,8 @@
 from pathlib import Path
 import modules.globals as g
-import config
 from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
-import includes.anatomicalLabels as anatomicalLabels
 from shutil import copy2
 
 
@@ -18,6 +16,8 @@ def runDsiStudio(subjectId: str) -> bool:
 
 
 def generateSrcFile(subjectId: str) -> bool:
+    import config
+
     if config.DSI_STUDIO_USE_RECONST:
         sourceFile = getFile(
             localPath=config.SUBJECT_DIR
@@ -60,6 +60,8 @@ def generateSrcFile(subjectId: str) -> bool:
 
 
 def reconstructImage(subjectId: str) -> bool:
+    import config
+
     # The destination file need not exist locally already, but its folders must.
     destinationFolder = config.SUBJECT_DIR / "T1w" / config.DIFFUSION_FOLDER
     createDirectories(
@@ -157,6 +159,8 @@ def reconstructImage(subjectId: str) -> bool:
 
 
 def trackFibres(subjectId: str) -> bool:
+    import config
+
     if config.NORMALISE_TO_MNI152:
         sourceFile = Path(
             config.SUBJECT_DIR
@@ -317,6 +321,8 @@ def trackFibres(subjectId: str) -> bool:
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
+    import config
+
     # TODO: Is mov correctly set in non-MNI152 settings?
     targ = getFile(
         config.SCRIPTS_DIR
@@ -351,6 +357,8 @@ def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:
 
 
 def createRoiFiles(subjectId: str) -> bool:
+    import config
+
     brainMaskOfDiffusion: Path = (
         config.SUBJECT_DIR
         / "T1w"
@@ -498,6 +506,8 @@ def createRoiFiles(subjectId: str) -> bool:
 def mergeTracts(
     sourceFile: Path, lhTractFile: str, rhTractFile: str, destinationFile: str
 ) -> bool:
+    import config
+
     # dsi_studio --action=ana --source=avg.mean.fib.gz --tract=Tracts1.tt.gz,Tract2.tt.gz --output=Tracts1.txt
     cmd = [
         config.DSI_STUDIO,

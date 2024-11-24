@@ -1,14 +1,14 @@
 from pathlib import Path
-from typing import Any
 import boto3
 import os
-import config
 import modules.globals as g
 from modules.file_directory.file_directory import createDirectories
 import sys
 
 
 def getRemotePathOf(localPath: Path) -> str:
+    import config
+
     # Remove local path prefix.
     localPathWithoutDataDir = str(localPath).replace(
         str(config.DATA_DIR / "subjects"), ""
@@ -22,6 +22,8 @@ def getRemotePathOf(localPath: Path) -> str:
 def getFile(
     localPath: Path, forceDownload: bool = False, localOnly: bool = False
 ) -> str:
+    import config
+
     """
     Downloads a file from remote storage if it doesnt exist on the system, and returns a string to its path on local storage.
     localPath: path to the file on local storage that should exist

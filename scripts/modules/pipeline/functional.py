@@ -1,7 +1,6 @@
 from typing import Dict
 import modules.globals as g
 from modules.hcp_data_manager.downloader import getFile
-import config
 from pathlib import Path
 from modules.subprocess_caller.call import *
 from ..file_directory.file_directory import createDirectories
@@ -9,6 +8,8 @@ import csv
 
 
 def prepareFunctionalSurfacesForModularity(subjectId: str) -> bool:
+    import config
+
     return (
         createRoiShapeFiles(subjectId=subjectId)
         and createRoiScalarFiles(subjectId=subjectId)
@@ -36,6 +37,8 @@ def prepareFunctionalSurfacesForModularity(subjectId: str) -> bool:
 
 
 def createTimingFiles(subjectId: str) -> bool:
+    import config
+
     # Function not used when using fMRI pre-processed data in HCP dataset.
     g.logger.info(
         "Ensuring timing files for functional data exists -- Run 1 (Right-Left Phase Encoding)"
@@ -82,6 +85,8 @@ def createTimingFiles(subjectId: str) -> bool:
 
 
 def getFmriData(subjectId: str) -> bool:
+    import config
+
     # Function not used when using fMRI pre-processed data in HCP dataset.
     g.logger.info("Ensuring functional data results exist")
     imageDir = config.SUBJECT_DIR / "MNINonLinear"
@@ -106,6 +111,8 @@ def getFmriData(subjectId: str) -> bool:
 
 
 def runSpm(subjectId: str) -> bool:
+    import config
+
     # Function not used when using fMRI pre-processed data in HCP dataset.
     return call(
         cmdLabel="MATLAB",
@@ -118,6 +125,8 @@ def runSpm(subjectId: str) -> bool:
 
 
 def matlabSortFmriVoxelsIntoModules(subjectId: str, binaryThreshold: float) -> bool:
+    import config
+
     # Function not used when using fMRI pre-processed data in HCP dataset.
     # TODO: NOT USED.
     return call(
@@ -131,6 +140,8 @@ def matlabSortFmriVoxelsIntoModules(subjectId: str, binaryThreshold: float) -> b
 
 
 def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
+    import config
+
     # Map low-resolution fMRI data to high-resolution (e.g., 32k to 164k node mesh)
     # TODO: It makes sense that this is done only with labelled data (e.g., modules).
     fMriScalarPath_input = (
@@ -238,6 +249,8 @@ def matlabMapLowToHighResFmriData(subjectId: str) -> bool:
 
 
 def getClusterThresholdForMap(subjectId: str, mapName: str, hemisphere: str) -> float:
+    import config
+
     percentilesCsvFile: Path = (
         config.SUBJECT_DIR
         / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]
@@ -262,6 +275,8 @@ def getClusterThresholdForMap(subjectId: str, mapName: str, hemisphere: str) -> 
 
 
 def createRoiScalarFiles(subjectId: str) -> bool:
+    import config
+
     labelledCiftiFile = (
         config.SUBJECT_DIR
         / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]
@@ -337,6 +352,8 @@ def createRoiScalarFiles(subjectId: str) -> bool:
 
 
 def createRoiShapeFiles(subjectId: str) -> bool:
+    import config
+
     labelledLFile = (
         config.SUBJECT_DIR
         / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]
@@ -406,6 +423,8 @@ def createRoiShapeFiles(subjectId: str) -> bool:
 
 
 def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
+    import config
+
     fMriScalarPath_input = (
         config.SUBJECT_DIR
         / config.IMAGES["FMRI"]["LOW_RES"]["DATA"]["FOLDER"]
@@ -506,6 +525,8 @@ def createFmriDenseScalarOfRoiOnly(subjectId: str) -> bool:
 
 
 def findClustersFromFmri(subjectId: str) -> bool:
+    import config
+
     # This function levies wb_command -cifti-to-roi to create ROI.
     # https://humanconnectome.org/software/workbench-command/-cifti-label-to-roi
 
@@ -655,6 +676,8 @@ def findClustersFromFmri(subjectId: str) -> bool:
 
 
 def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
+    import config
+
     """
     This function reads the fMRI dscalar, and writes an .csv of only desired maps and the value at X percentile (CLUSTER_THRESHOLD).
     Effectively, it also filters the 26 maps (or FSL contrasts) from:
@@ -784,6 +807,8 @@ def filterFmriMapsAndWriteToCsv(subjectId: str) -> bool:
 
 
 def findFmriExtrema(subjectId: str) -> bool:
+    import config
+
     labelledLFile = (
         config.SUBJECT_DIR
         / config.IMAGES["FMRI"]["LOW_RES"]["LABEL"]["FOLDER"]
@@ -896,6 +921,8 @@ def findFmriExtrema(subjectId: str) -> bool:
 
 
 def transformFmriIntoDiffusionSpace(subjectId: str) -> bool:
+    import config
+
     # Function uses non-linear spatial transforms to move fMRI data from fMRI to a common space.
     # For HCP data, this moves fMRI from MNI space to T1w space.
 

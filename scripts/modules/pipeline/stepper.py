@@ -1,11 +1,5 @@
-import logging
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
-import config
-from includes.stepper.functions import updateStepSuccessStatus, prevStepWasSuccessful
+from typing import Callable, List, Literal, Optional
 import modules.globals as g
-import pandas as pd
-
-from modules.hcp_data_manager.deleter import deleteFilesByExtensions
 
 
 def prepStep(
@@ -14,6 +8,11 @@ def prepStep(
     hemisphere: "Optional[Literal['left', 'right']]" = None,
     task: "Optional[str]" = None,
 ) -> bool:
+    import config
+    from includes.stepper.functions import (
+        prevStepWasSuccessful,
+    )
+
     # Called at every new step in pipeline.
     config.setCurrentStep(currentStep=stepName)
     subjectDir = config.SUBJECTS_DIR / subjectId
@@ -36,6 +35,12 @@ def prepStep(
 
 
 def finishStep(result: bool):
+    import config
+    from includes.stepper.functions import (
+        updateStepSuccessStatus,
+        prevStepWasSuccessful,
+    )
+
     # Called at the end of every step in pipeline.
     config.setSubjectStepSuccess(subjectStepSuccess=result)
 
@@ -65,10 +70,14 @@ def processStepFn(step: stepFnType, subjectId: str) -> bool:
         g.logger.error(f"Error running step: {e}")
     finally:
         finishStep(result=result)
+        import config
         return config.SUBJECT_STEP_SUCCESS is True
 
 
 def cleanDirOfBatch(subjectBatch: List[str]):
+    import config
+    from modules.hcp_data_manager.deleter import deleteFilesByExtensions
+
     g.logger.info(
         f"Now deleting data that was downloaded for batch: {config.ALL_SUBJECTS[0]}-{config.ALL_SUBJECTS[-1]}"
     )

@@ -1,43 +1,48 @@
-from multiprocessing import current_process, log_to_stderr
-from typing import Dict, List, Tuple
-import config
-from includes.stepper.functions import updateBatchStatus
-from modules.pipeline import (
-    data,
-    structural,
-    tractography,
-    diffusion,
-    functional,
-    modularity,
-    mapper,
-    statistics,
-)
-from modules.pipeline.stepper import cleanDirOfBatch, processStepFn, stepFnType
-import modules.globals as g
+from multiprocessing import log_to_stderr
+import pickle
+from typing import Any, Dict, List, Tuple
+from modules.pipeline.includes.worker import processSubject
+from modules.pipeline.stepper import stepFnType
 import concurrent.futures
 import logging
 
-allSteps: "Dict[stepFnType, bool]" = {
-    # data.getData: config.EAGER_LOAD_DATA,
-    # data.preprocessData: config.PREPROCESS,
-    structural.generateLabels: config.GENERATE_LABELS,
-    structural.generateMni152Labels: config.GENERATE_LABELS,
-    tractography.runDsiStudio: config.RUN_DSI_STUDIO,
-    diffusion.processDiffusionTracts: config.RUN_PROCESS_TRACTOGRAPHY,
-    functional.prepareFunctionalSurfacesForModularity: config.RUN_CALC_FUNC_MODULARITY,
-    modularity.calculateModularity: config.RUN_CALC_STRUC_MODULARITY,
-    mapper.processMapping: config.RUN_MAPPING,
-    data.cleanSubjectDirectory: config.RUN_CLEAN_SUBJECT_DIR,
-    statistics.runStatistics: config.RUN_STATS,
-}
-
 
 def runPipeline() -> None:
+    import config
+    from includes.stepper.functions import updateBatchStatus
+    from modules.pipeline.stepper import cleanDirOfBatch
+    from modules.pipeline import (
+        data,
+        structural,
+        tractography,
+        diffusion,
+        functional,
+        modularity,
+        mapper,
+        statistics,
+    )
+
+    allSteps: "Dict[stepFnType, bool]" = {
+        # data.getData: config.EAGER_LOAD_DATA,
+        # data.preprocessData: config.PREPROCESS,
+        structural.generateLabels: config.GENERATE_LABELS,
+        structural.generateMni152Labels: config.GENERATE_LABELS,
+        tractography.runDsiStudio: config.RUN_DSI_STUDIO,
+        diffusion.processDiffusionTracts: config.RUN_PROCESS_TRACTOGRAPHY,
+        functional.prepareFunctionalSurfacesForModularity: config.RUN_CALC_FUNC_MODULARITY,
+        modularity.calculateModularity: config.RUN_CALC_STRUC_MODULARITY,
+        mapper.processMapping: config.RUN_MAPPING,
+        data.cleanSubjectDirectory: config.RUN_CLEAN_SUBJECT_DIR,
+        statistics.runStatistics: config.RUN_STATS,
+    }
+
+    import modules.globals as g
     log_to_stderr(
         logging.DEBUG,
     )
 
     g.allSteps = allSteps
+
     for subjectBatchIndex, batchSubjects in enumerate(config.BATCHED_SUBJECTS):
         config.setCurrentBatch(str(subjectBatchIndex))
 
@@ -65,15 +70,43 @@ def runPipeline() -> None:
     g.logger.info("Pipeline run completed.")
 
 
+def is_picklable(obj: Any):
+    """Check if an object is picklable."""
+    try:
+        pickle.dumps(obj)
+        return True
+    except (pickle.PickleError, TypeError):
+        return False
+
+
 def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> None:
+    import config
+    import sys
+    config = sys.modules['config']
+    import modules.globals as g
     if config.USE_PARALLEL_PROCESSING:
+        y = g.__name__
+        c1 = {
+            key: value
+            for key, value in vars(config).items()
+            if not key.startswith("__") and is_picklable(value)
+        }
+        g1 = {
+            key: value
+            for key, value in vars(g).items()
+            if not key.startswith("__") and is_picklable(value)
+        }
+        
+        from modules.process_pool.initializer import initialize_pool
         with concurrent.futures.ProcessPoolExecutor(
-            max_workers=config.CPU_THREADS
+            max_workers=config.CPU_THREADS,
+            initializer=initialize_pool,
+            initargs=(c1, g1),
         ) as executor:
             futures: List[concurrent.futures.Future[Tuple[str, bool]]] = []
             for subjectId in subjectBatch:
                 futures.append(executor.submit(processSubject, stepFn, subjectId))
-                
+
             try:
                 for future in concurrent.futures.as_completed(
                     fs=futures
@@ -104,15 +137,3 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
             step_name, step_result = processSubject(stepFn=stepFn, subjectId=subjectId)
             g.logger.info(f"Completed processing [{step_result}] for {step_name}")
     g.logger.info(f"Completed batch for {stepFn.__name__}")
-
-
-def processSubject(stepFn: stepFnType, subjectId: str) -> "Tuple[str,bool]":
-    try:
-        current_process().name = f"Process|Sbj-{subjectId}|Fn-{stepFn.__name__}"
-        step_result: bool = processStepFn(step=stepFn, subjectId=subjectId)
-        return stepFn.__name__, step_result
-    except Exception as e:
-        g.logger.error(
-            f"Error in processing subject {subjectId} with {stepFn.__name__}: {e}"
-        )
-        raise e

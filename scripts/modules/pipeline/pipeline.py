@@ -1,4 +1,4 @@
-from multiprocessing import current_process
+from multiprocessing import current_process, log_to_stderr
 from typing import Dict, List, Tuple
 import config
 from includes.stepper.functions import updateBatchStatus
@@ -15,6 +15,7 @@ from modules.pipeline import (
 from modules.pipeline.stepper import cleanDirOfBatch, processStepFn, stepFnType
 import modules.globals as g
 import concurrent.futures
+import logging
 
 allSteps: "Dict[stepFnType, bool]" = {
     # data.getData: config.EAGER_LOAD_DATA,
@@ -32,6 +33,10 @@ allSteps: "Dict[stepFnType, bool]" = {
 
 
 def runPipeline() -> None:
+    log_to_stderr(
+        logging.DEBUG,
+    )
+
     g.allSteps = allSteps
     for subjectBatchIndex, batchSubjects in enumerate(config.BATCHED_SUBJECTS):
         config.setCurrentBatch(str(subjectBatchIndex))
@@ -62,36 +67,38 @@ def runPipeline() -> None:
 
 def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> None:
     if config.USE_PARALLEL_PROCESSING:
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            futures = [
-                executor.submit(processSubject, stepFn, subjectId)
-                for subjectId in subjectBatch
-            ]
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=config.CPU_THREADS
+        ) as executor:
+            futures: List[concurrent.futures.Future[Tuple[str, bool]]] = []
+            for subjectId in subjectBatch:
+                futures.append(executor.submit(processSubject, stepFn, subjectId))
+                
             try:
                 for future in concurrent.futures.as_completed(
-                    fs=futures, timeout=60 * 60 * 2
-                ):  # Max 2 hours for a single subject, single process step (typical subject takes ~30min for ALL steps)
+                    fs=futures
+                ):  # Max 2 hours wait between a successful step completion by any subject.
                     try:
-                        step_name, step_result = future.result()
-                        g.logger.info(f"Completed processing [{step_result}] for {step_name}")
-                    except concurrent.futures.TimeoutError:
-                        g.logger.error("A process timed out.")
+                        step_name, step_result = future.result(timeout=60 * 60 * 1)
+                        g.logger.info(
+                            f"Completed processing [{step_result}] for {step_name}"
+                        )
+                    except concurrent.futures.TimeoutError as e:
+                        g.logger.error(f"A process timed out: {e}")
                     except Exception as e:
                         g.logger.error(f"An error occurred: {e}")
                         raise e
                     finally:
-                        g.logger.info(f"Future [done: {future.done()}] [cancelled: {future.cancelled()}]")
+                        g.logger.info(
+                            f"Future [done: {future.done()}] [cancelled: {future.cancelled()}]"
+                        )
                         if not future.done():
                             g.logger.info(f"Future unfinished:")
                             g.logger.info(future)
                         g.logger.info("Future completed.")
             except Exception as e:
                 g.logger.error(f"Error during parallel processing: {e}")
-                
                 raise e
-            finally:
-                g.logger.info("Shutting down executor.")
-                executor.shutdown(wait=True)
     else:
         for subjectId in subjectBatch:
             step_name, step_result = processSubject(stepFn=stepFn, subjectId=subjectId)

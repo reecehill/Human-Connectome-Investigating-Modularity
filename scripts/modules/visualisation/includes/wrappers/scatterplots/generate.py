@@ -20,6 +20,7 @@ else:
         hemispheres: List[Literal["left", "right"]],
         tasks: List[Literal["lf", "rf", "rh", "lh", "t"]],
         statistic: List[str],
+        sort_by: List[str],
         group_by: List[str],
         x_vars: List[str],
         y_var: str,
@@ -48,19 +49,32 @@ else:
             filtered_df, applied_filters = filter_subjects(
                 modules_df, subjects, hemispheres, tasks, statistic
             )
+        filtered_df = filtered_df.copy()
 
         if filtered_df.empty:
             print("Filtered data is empty. Cannot generate plot.")
             return
 
+        # Validate sort_by columns
+        for col in sort_by:
+            print(f"WARNING: Sort by not yet implemented!!!!.")
+            if col not in filtered_df.columns:
+                raise ValueError(f"Sortby - Column '{col}' not found in the DataFrame.")
+
         # Validate group_by columns
         for col in group_by:
             if col not in filtered_df.columns:
-                raise ValueError(f"Column '{col}' not found in the DataFrame.")
+                raise ValueError(f"Groupby - Column '{col}' not found in the DataFrame.")
+            else:
+                filtered_df[col] = pd.Categorical(
+                    filtered_df[col], categories=filtered_df[col].unique(), ordered=False
+                )
 
         # Group the data and iterate through groups
-        grouped = filtered_df.groupby(group_by)
+        grouped = filtered_df.groupby(group_by, sort=True, observed=False)
         for group_keys, group_data in grouped:
+            group_data = group_data.sort_values(by=y_var, ascending=False).copy()
+
             group_label = (
                 " - ".join(map(str, group_keys))
                 if isinstance(group_keys, tuple)
@@ -107,7 +121,7 @@ else:
             title = f"Effect of {', '.join(x_vars)} on {y_var}\nGroup: {group_label}"
             plt.title(f"{title} \n{title_append}", fontsize=16)
             plt.suptitle(genSubtitleFromFilters(applied_filters), fontsize=10, y=1)
-            plt.xlabel("Surface Area (mm)", fontsize=14)
+            plt.xlabel("\n".join(x_vars), fontsize=14)
             plt.ylabel(ylabel=y_var, fontsize=14)
             plt.legend(title="Legend", fontsize=12)
             plt.grid(True, linestyle="--", alpha=0.6)

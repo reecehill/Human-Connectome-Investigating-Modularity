@@ -7,21 +7,24 @@ from typing import Any, Dict
 
 extra_logging_info: "dict[str, str]" = {"ADDITIONAL": ""}
 
+
 def initialize_pool(c1: Dict[str, Any], g1: Dict[str, Any]) -> None:
     global g
     import modules.globals as g
     from sys import modules
+
     if g.__name__ in modules:
         del modules[g.__name__]  # Remove any cached version
 
     import logging
+
     queued_logger: Logger = logging.getLogger("queued")
     queued_logger.addHandler(QueueHandler(queue=g1["log_queue"]))
     queued_logger.setLevel(logging.DEBUG)
     logger_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
         queued_logger, extra=extra_logging_info
     )
-    g1['logger'] = logger_adapter
+    g1["logger"] = logger_adapter
 
     # new_g = ModuleType(g.__name__)  # Create a new module
     for k, v in g1.items():  # Populate the module with attributes

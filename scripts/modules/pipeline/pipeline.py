@@ -37,6 +37,7 @@ def runPipeline() -> None:
     }
 
     import modules.globals as g
+
     log_to_stderr(
         logging.DEBUG,
     )
@@ -82,8 +83,10 @@ def is_picklable(obj: Any):
 def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> None:
     import config
     import sys
-    config = sys.modules['config']
+
+    config = sys.modules["config"]
     import modules.globals as g
+
     if config.USE_PARALLEL_PROCESSING:
         y = g.__name__
         c1 = {
@@ -96,8 +99,9 @@ def runSubjectBatchThroughStep(stepFn: stepFnType, subjectBatch: List[str]) -> N
             for key, value in vars(g).items()
             if not key.startswith("__") and is_picklable(value)
         }
-        
+
         from modules.process_pool.initializer import initialize_pool
+
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=config.CPU_THREADS,
             initializer=initialize_pool,

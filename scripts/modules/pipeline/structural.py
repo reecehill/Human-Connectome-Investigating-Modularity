@@ -3,6 +3,7 @@ import modules.globals as g
 from modules.file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
 
+
 def generateLabels(subjectId: str) -> bool:
     import config
     from modules.hcp_data_manager.downloader import getFile
@@ -68,7 +69,7 @@ def generateLabels(subjectId: str) -> bool:
 def generateMni152Labels(subjectId: str) -> bool:
     import config
     from modules.hcp_data_manager.downloader import getFile
-    
+
     imageDir = config.SUBJECT_DIR / config.NATIVEORMNI152FOLDER
     labelDir: config.Path = imageDir / subjectId / "label" / "label_type2"
     surfDir = imageDir / subjectId / "surf"

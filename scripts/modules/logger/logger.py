@@ -4,18 +4,16 @@ from typing import Any, Tuple, Union
 import boto3
 
 try:
-    from shutil import copy
-    import logging.config
     from logging import Logger, LoggerAdapter
+    import logging.config
+    from shutil import copy
     import config
     from includes.logging_schema import logging_schema
-    from ..file_directory.file_directory import createDirectories
+    from modules.file_directory.file_directory import createDirectories
     from multiprocessing import Manager
     from queue import Queue as Queue
     from logging import LogRecord, Logger
     from logging.handlers import QueueListener, QueueHandler
-
-
 except Exception as e:
     print(e)
     exit()

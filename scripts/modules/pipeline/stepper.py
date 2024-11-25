@@ -71,6 +71,7 @@ def processStepFn(step: stepFnType, subjectId: str) -> bool:
     finally:
         finishStep(result=result)
         import config
+
         return config.SUBJECT_STEP_SUCCESS is True
 
 

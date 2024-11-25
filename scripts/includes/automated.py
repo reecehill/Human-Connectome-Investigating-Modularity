@@ -1,4 +1,5 @@
 import os
+import pwd
 from subprocess import getoutput
 from typing import Optional
 from shutil import which
@@ -191,3 +192,5 @@ os.environ["SUBJECTS_DIR"] = str(SUBJECTS_DIR)
 
 matLabDriveAndPathToSubjects = str((DATA_DIR / "subjects").resolve(strict=True)) + "/"
 matlabScriptsFolder = str((SCRIPTS_DIR / "matlab").resolve(strict=True))
+
+isLocal: bool = pwd.getpwuid(os.getuid())[0] == "reece"

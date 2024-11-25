@@ -2,6 +2,7 @@ from multiprocessing import current_process
 from typing import Tuple
 from modules.pipeline.stepper import stepFnType
 
+
 def processSubject(stepFn: stepFnType, subjectId: str) -> "Tuple[str,bool]":
     from modules.pipeline.stepper import processStepFn
 

@@ -263,15 +263,28 @@ logUsingSSH: bool = False
 # Relative to the uploads folder of the project, should NOT begin with /.
 logDirectoryPath: str = "logs"
 # From root, resolvable by Path.resolve(). If empty, a default is used.
-spmDirectoryPath: str = "/gpfs01/software/imaging/spm12"
+spmDirectoryPath: str = (
+    "/gpfs01/software/imaging/spm12" if not isLocal else "/home/reece/spm12"
+)
 # From root, to the executable file, resolvable by Path.resolve(). REQUIRED.
-dsiStudioPath: str = "/software/imaging/dsi-studio/20240424/bin/dsi_studio"
+dsiStudioPath: str = (
+    "/software/imaging/dsi-studio/20240424/bin/dsi_studio"
+    if not isLocal
+    else "/home/reece/dsi-studio/dsi_studio"
+)
+
 # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
-matlabPath: str = "/gpfs01/software/matlab_r2022a/bin/matlab"
+matlabPath: str = (
+    "/gpfs01/software/matlab_r2022a/bin/matlab"
+    if not isLocal
+    else "/usr/local/bin/matlab"
+)
 # matlabPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 wbCommandPath: str = (
     "/gpfs01/software/imaging/workbench/workbench-1.5.0/bin_rh_linux64/wb_command"
+    if not isLocal
+    else "/home/reece/connectome-workbench/workbench/bin_linux64/wb_command"
 )
 # wbCommandPath: str = "" # From root, resolvable by Path.resolve(). Enter here to override automatic finding.
 # freesurferPath: str = "/gpfs01/software/freesurfer-v6.0.0" # NOT IMPLEMENTED.

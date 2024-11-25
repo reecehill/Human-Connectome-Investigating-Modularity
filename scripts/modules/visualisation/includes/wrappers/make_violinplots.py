@@ -104,7 +104,8 @@ def make_violinplots(
         ],
         modules_df=allSubjects,
         title_append="Across all subjects",
-        output_path=pathTo["figures"] / "violinplot_figure_normalised_by_hemisphere.svg",
+        output_path=pathTo["figures"]
+        / "violinplot_figure_normalised_by_hemisphere.svg",
     )
 
     generate_violinplot_grouped_by(
@@ -134,7 +135,8 @@ def make_violinplots(
         modules_df=allModules,
         title_append="All modules, including non-optimal",
         group_by=["Task", "Hemisphere", "Statistical Test"],
-        output_path=pathTo["figures"] / "violinplot_figure_mutual_information_by_task.svg",
+        output_path=pathTo["figures"]
+        / "violinplot_figure_mutual_information_by_task.svg",
     )
 
     generate_violinplot_grouped_by(

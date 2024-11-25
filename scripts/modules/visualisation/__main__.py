@@ -1,5 +1,12 @@
-from modules.visualisation.includes.wrappers import make_boxplots, make_scatterplots, make_violinplots
-
+from modules.visualisation.includes.wrappers import (
+    make_boxplots,
+    make_scatterplots,
+    make_violinplots,
+    make_corrplots,
+)
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 if __name__ == "__main__":
     raise Exception("This file is not meant to be run directly.")
@@ -83,26 +90,36 @@ else:
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
 
             # Wrapper function to combine filtering and plotting
-            # make_boxplots(
-            #     pathTo,
-            #     allSubjects,
-            #     allModules,
-            #     allHemispheres,
-            #     allStats,
-            #     allTasks,
-            #     subjectSample,
-            # )
+            make_boxplots(
+                pathTo,
+                allSubjects,
+                allModules,
+                allHemispheres,
+                allStats,
+                allTasks,
+                subjectSample,
+            )
 
-            # make_violinplots(
-            #     pathTo,
-            #     allSubjects,
-            #     allModules,
-            #     allHemispheres,
-            #     allStats,
-            #     allTasks,
-            #     subjectSample,
-            # )
+            make_violinplots(
+                pathTo,
+                allSubjects,
+                allModules,
+                allHemispheres,
+                allStats,
+                allTasks,
+                subjectSample,
+            )
 
+            make_corrplots(
+                pathTo,
+                allSubjects,
+                allModules,
+                allHemispheres,
+                allStats,
+                allTasks,
+                subjectSample,
+            )
+            
             make_scatterplots(
                 pathTo,
                 allSubjects,
@@ -113,7 +130,6 @@ else:
                 subjectSample,
             )
 
-            
             g.logger.info("Powering down the logger...")
             stop_root_logger(g.queue_listener)
             # ------------------------------------------------------------

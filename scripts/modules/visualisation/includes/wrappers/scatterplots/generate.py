@@ -7,7 +7,9 @@ from modules.visualisation.includes.filter_data.functions import (
     filter_modules,
     filter_subjects,
 )
-from modules.visualisation.includes.generate_figures.includes.functions import genSubtitleFromFilters
+from modules.visualisation.includes.generate_figures.includes.functions import (
+    genSubtitleFromFilters,
+)
 from modules.visualisation.includes.io.save_pickled_object import save_fig_as_pickle
 
 if __name__ == "__main__":
@@ -64,10 +66,14 @@ else:
         # Validate group_by columns
         for col in group_by:
             if col not in filtered_df.columns:
-                raise ValueError(f"Groupby - Column '{col}' not found in the DataFrame.")
+                raise ValueError(
+                    f"Groupby - Column '{col}' not found in the DataFrame."
+                )
             else:
                 filtered_df[col] = pd.Categorical(
-                    filtered_df[col], categories=filtered_df[col].unique(), ordered=False
+                    filtered_df[col],
+                    categories=filtered_df[col].unique(),
+                    ordered=False,
                 )
 
         # Group the data and iterate through groups

@@ -75,13 +75,13 @@ def make_boxplots(
         title_append="Across all subjects",
         output_path=pathTo["figures"] / "boxplot_figure_normalised_all.svg",
     )
-    
+
     generate_boxplot_grouped_by(
         subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
         dataset=None,
-        group_by=["Statistical Test","Hemisphere"],
+        group_by=["Statistical Test", "Hemisphere"],
         statistic=[
             # "Levenshtein Distance - X as Truth",
             # "Normalised Levenshtein Distance - X as Truth",

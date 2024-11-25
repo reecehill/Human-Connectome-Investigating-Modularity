@@ -39,17 +39,17 @@ def filter_subjects(
     applied_filters["Subject ID"] = (
         subjects if subjects else f"All ({df['Subject ID'].nunique()})"
     )
-    
+
     if hemispheres:
         conditions &= df["Hemisphere"].isin(hemispheres)
     applied_filters["Hemisphere"] = (
         hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
     )
-    
+
     if tasks:
         conditions &= df["Task"].isin(tasks)
     applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
-    
+
     if statistic:
         conditions &= df["Statistical Test"].isin(statistic)
     applied_filters["Statistical Test"] = (
@@ -90,23 +90,23 @@ def filter_modules(
     applied_filters["Subject ID"] = (
         subjects if subjects else f"All ({df['Subject ID'].nunique()})"
     )
-    
+
     if hemispheres:
         conditions &= df["Hemisphere"].isin(hemispheres)
     applied_filters["Hemisphere"] = (
         hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
     )
-    
+
     if tasks:
         conditions &= df["Task"].isin(tasks)
     applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
-    
+
     if statistic:
         conditions &= df["Statistical Test"].isin(statistic)
     applied_filters["Statistical Test"] = (
         statistic if statistic else f"All ({df['Statistical Test'].nunique()})"
     )
-    
+
     if dataset:
         conditions &= df["Dataset"].isin(dataset)
     applied_filters["Dataset"] = (

@@ -1,4 +1,4 @@
-from modules.visualisation.includes.wrappers import make_boxplots
+from modules.visualisation.includes.wrappers import make_boxplots, make_scatterplots, make_violinplots
 
 
 if __name__ == "__main__":
@@ -83,7 +83,27 @@ else:
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
 
             # Wrapper function to combine filtering and plotting
-            make_boxplots(
+            # make_boxplots(
+            #     pathTo,
+            #     allSubjects,
+            #     allModules,
+            #     allHemispheres,
+            #     allStats,
+            #     allTasks,
+            #     subjectSample,
+            # )
+
+            # make_violinplots(
+            #     pathTo,
+            #     allSubjects,
+            #     allModules,
+            #     allHemispheres,
+            #     allStats,
+            #     allTasks,
+            #     subjectSample,
+            # )
+
+            make_scatterplots(
                 pathTo,
                 allSubjects,
                 allModules,
@@ -93,7 +113,7 @@ else:
                 subjectSample,
             )
 
-            pass
+            
             g.logger.info("Powering down the logger...")
             stop_root_logger(g.queue_listener)
             # ------------------------------------------------------------
@@ -104,5 +124,5 @@ else:
             print(e)
             print(format_exc())
             exit()
-
-    run()
+        finally:
+            print("Process is complete.")

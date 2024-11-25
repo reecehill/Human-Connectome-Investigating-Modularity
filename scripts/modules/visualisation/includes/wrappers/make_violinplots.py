@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import List, Literal
-from modules.visualisation.includes.wrappers.boxplots.generate import (
-    generate_boxplot_grouped_by,
+from modules.visualisation.includes.wrappers.violinplots.generate import (
+    generate_violinplot_grouped_by,
 )
 from pandas import DataFrame
 
 
-def make_boxplots(
+def make_violinplots(
     pathTo: dict[str, Path],
     allSubjects: DataFrame,
     allModules: DataFrame,
@@ -15,7 +15,7 @@ def make_boxplots(
     allTasks: List[Literal["lf", "rf", "rh", "lh", "t"]],
     subjectSample: List[str],
 ):
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=[],
         hemispheres=[],
         tasks=[],
@@ -27,10 +27,10 @@ def make_boxplots(
         ],
         modules_df=allSubjects,
         title_append="Across all subjects",
-        output_path=pathTo["figures"] / "boxplot_figure_levenshtein.svg",
+        output_path=pathTo["figures"] / "violinplot_figure_levenshtein.svg",
     )
 
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
@@ -42,10 +42,10 @@ def make_boxplots(
         ],
         modules_df=allSubjects,
         title_append="Across all subjects",
-        output_path=pathTo["figures"] / "boxplot_figure_mutual_information.svg",
+        output_path=pathTo["figures"] / "violinplot_figure_mutual_information.svg",
     )
 
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
@@ -73,15 +73,15 @@ def make_boxplots(
         ],
         modules_df=allSubjects,
         title_append="Across all subjects",
-        output_path=pathTo["figures"] / "boxplot_figure_normalised_all.svg",
+        output_path=pathTo["figures"] / "violinplot_figure_normalised_all.svg",
     )
-    
-    generate_boxplot_grouped_by(
+
+    generate_violinplot_grouped_by(
         subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
         dataset=None,
-        group_by=["Statistical Test","Hemisphere"],
+        group_by=["Statistical Test", "Hemisphere"],
         statistic=[
             # "Levenshtein Distance - X as Truth",
             # "Normalised Levenshtein Distance - X as Truth",
@@ -104,10 +104,10 @@ def make_boxplots(
         ],
         modules_df=allSubjects,
         title_append="Across all subjects",
-        output_path=pathTo["figures"] / "boxplot_figure_normalised_by_hemisphere.svg",
+        output_path=pathTo["figures"] / "violinplot_figure_normalised_by_hemisphere.svg",
     )
 
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=subjectSample,
         hemispheres=allHemispheres,
         tasks=[],
@@ -120,10 +120,10 @@ def make_boxplots(
         title_append="All modules, including non-optimal",
         group_by=["Hemisphere", "Subject ID", "Statistical Test"],
         output_path=pathTo["figures"]
-        / "boxplot_figure_mutual_information_by_subject.svg",
+        / "violinplot_figure_mutual_information_by_subject.svg",
     )
 
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=subjectSample,
         hemispheres=allHemispheres,
         tasks=[],
@@ -134,10 +134,10 @@ def make_boxplots(
         modules_df=allModules,
         title_append="All modules, including non-optimal",
         group_by=["Task", "Hemisphere", "Statistical Test"],
-        output_path=pathTo["figures"] / "boxplot_figure_mutual_information_by_task.svg",
+        output_path=pathTo["figures"] / "violinplot_figure_mutual_information_by_task.svg",
     )
 
-    generate_boxplot_grouped_by(
+    generate_violinplot_grouped_by(
         subjects=subjectSample,
         hemispheres=allHemispheres,
         tasks=[],
@@ -149,5 +149,5 @@ def make_boxplots(
         title_append="All modules, including non-optimal",
         group_by=["Task", "Hemisphere", "Statistical Test"],
         output_path=pathTo["figures"]
-        / "boxplot_figure_mutual_information_by_task_nonmapped.svg",
+        / "violinplot_figure_mutual_information_by_task_nonmapped.svg",
     )

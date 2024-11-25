@@ -7,15 +7,15 @@ from modules.visualisation.includes.filter_data.functions import (
     filter_modules,
     filter_subjects,
 )
-from modules.visualisation.includes.generate_figures.boxplots import (
-    generate_dynamic_boxplot,
+from modules.visualisation.includes.generate_figures.violinplots import (
+    generate_dynamic_violinplot,
 )
 
 if __name__ == "__main__":
     raise Exception("This file is meant to be imported.")
 else:
 
-    def generate_boxplot_grouped_by(
+    def generate_violinplot_grouped_by(
         modules_df: pd.DataFrame,
         subjects: List[str],
         hemispheres: List[Literal["left", "right"]],
@@ -27,7 +27,7 @@ else:
         output_path: Union[str, Path] = "subject_scores_boxplot.png",
     ) -> None:
         """
-        Reads modules, filters data, and generates a boxplot of statistical test scores grouped by subject ID.
+        Reads modules, filters data, and generates a violinplot of statistical test scores grouped by subject ID.
 
         Parameters:
         - modules_file_path (str): Path to the modules CSV file.
@@ -47,7 +47,7 @@ else:
                 modules_df, subjects, hemispheres, tasks, statistic
             )
 
-        generate_dynamic_boxplot(
+        generate_dynamic_violinplot(
             filtered_df=filtered_df,
             group_by=group_by,
             statistic=statistic,

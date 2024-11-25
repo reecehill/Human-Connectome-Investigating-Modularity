@@ -36,22 +36,25 @@ def filter_subjects(
 
     if subjects:
         conditions &= df["Subject ID"].astype(str).isin(subjects)
-        applied_filters["Subject ID"] = (
-            subjects if subjects else f"All ({df['Subject ID'].nunique()})"
-        )
+    applied_filters["Subject ID"] = (
+        subjects if subjects else f"All ({df['Subject ID'].nunique()})"
+    )
+    
     if hemispheres:
         conditions &= df["Hemisphere"].isin(hemispheres)
-        applied_filters["Hemisphere"] = (
-            hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
-        )
+    applied_filters["Hemisphere"] = (
+        hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
+    )
+    
     if tasks:
         conditions &= df["Task"].isin(tasks)
-        applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
+    applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
+    
     if statistic:
         conditions &= df["Statistical Test"].isin(statistic)
-        applied_filters["Statistical Test"] = (
-            statistic if statistic else f"All ({df['Statistical Test'].nunique()})"
-        )
+    applied_filters["Statistical Test"] = (
+        statistic if statistic else f"All ({df['Statistical Test'].nunique()})"
+    )
 
     check_filters_are_valid(applied_filters, df)
     return df[conditions], applied_filters
@@ -84,27 +87,31 @@ def filter_modules(
 
     if subjects:
         conditions &= df["Subject ID"].astype(str).isin(subjects)
-        applied_filters["Subject ID"] = (
-            subjects if subjects else f"All ({df['Subject ID'].nunique()})"
-        )
+    applied_filters["Subject ID"] = (
+        subjects if subjects else f"All ({df['Subject ID'].nunique()})"
+    )
+    
     if hemispheres:
         conditions &= df["Hemisphere"].isin(hemispheres)
-        applied_filters["Hemisphere"] = (
-            hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
-        )
+    applied_filters["Hemisphere"] = (
+        hemispheres if hemispheres else f"All ({df['Hemisphere'].nunique()})"
+    )
+    
     if tasks:
         conditions &= df["Task"].isin(tasks)
-        applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
+    applied_filters["Task"] = tasks if tasks else f"All ({df['Task'].nunique()})"
+    
     if statistic:
         conditions &= df["Statistical Test"].isin(statistic)
-        applied_filters["Statistical Test"] = (
-            statistic if statistic else f"All ({df['Statistical Test'].nunique()})"
-        )
+    applied_filters["Statistical Test"] = (
+        statistic if statistic else f"All ({df['Statistical Test'].nunique()})"
+    )
+    
     if dataset:
         conditions &= df["Dataset"].isin(dataset)
-        applied_filters["Dataset"] = (
-            dataset if dataset else f"All ({df['Dataset'].nunique()})"
-        )
+    applied_filters["Dataset"] = (
+        dataset if dataset else f"All ({df['Dataset'].nunique()})"
+    )
 
     check_filters_are_valid(applied_filters, df)
 

@@ -30,7 +30,7 @@ def loadVertices(faces: pd.DataFrame) -> pd.DataFrame:
     return vertices
 
 
-def loadFaces() -> pd.DataFrame:
+def loadFaces(onlyRoi: bool = True) -> pd.DataFrame:
     pathToFaces = config.SUBJECT_DIR / "labelSRF.mat"
     with File(pathToFaces, "r") as f:
         # faces_L = pd.DataFrame(f[f'lo_glpfaces'][:]).T
@@ -41,11 +41,14 @@ def loadFaces() -> pd.DataFrame:
             - 1
         )  # We minus one as Python indexes from zero
 
-    roiIds = loadRoiIds().tolist()
-    return faces.iloc[roiIds]
+    if onlyRoi:
+        roiIds = loadRoiIds().tolist()
+        return faces.iloc[roiIds]
+    else:
+        return faces
 
 
-def loadFacesAndVertices():
-    faces = loadFaces()
+def loadFacesAndVertices(onlyRoi: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]:
+    faces = loadFaces(onlyRoi=onlyRoi)
     vertices = loadVertices(faces)
     return faces, vertices

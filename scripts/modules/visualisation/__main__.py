@@ -1,3 +1,6 @@
+from typing import Dict
+from includes.visualisation.graphs import plotRoiRegion
+from modules.pipeline.stepper import prepStep
 from modules.visualisation.includes.wrappers import (
     make_boxplots,
     make_scatterplots,
@@ -24,6 +27,7 @@ else:
             import modules.globals as g
             from modules.logger.logger import LoggerClass, config_root_logger
             from modules.visualisation.includes.io import read_csv
+            from modules.pipeline.stepper import stepFnType
 
             # ------------------------------------------------------------
             # [START] Load and run the global logger.
@@ -89,7 +93,19 @@ else:
             allHemispheres: List[Literal["left", "right"]] = ["left", "right"]
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
 
+            # We now mimic the prepStep setup just to get a figure
+            allSteps: "Dict[stepFnType, bool]" = {
+                plotRoiRegion: True
+            }
+            g.allSteps = allSteps
+            subjectSample = ['100206']
+            
+            for subjectId in subjectSample:
+                prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
+                plotRoiRegion(subjectId)
+                pass
             # Wrapper function to combine filtering and plotting
+            return
             make_boxplots(
                 pathTo,
                 allSubjects,
@@ -119,7 +135,7 @@ else:
                 allTasks,
                 subjectSample,
             )
-            
+
             make_scatterplots(
                 pathTo,
                 allSubjects,

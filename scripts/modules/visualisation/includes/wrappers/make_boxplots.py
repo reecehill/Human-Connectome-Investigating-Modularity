@@ -17,21 +17,6 @@ def make_boxplots(
 ):
     generate_boxplot_grouped_by(
         subjects=[],
-        hemispheres=[],
-        tasks=[],
-        dataset=None,
-        group_by=["Statistical Test"],
-        statistic=[
-            "Levenshtein Distance - Y as Truth",
-            "Levenshtein Distance - X as Truth",
-        ],
-        modules_df=allSubjects,
-        title_append="Across all subjects",
-        output_path=pathTo["figures"] / "boxplot_figure_levenshtein.svg",
-    )
-
-    generate_boxplot_grouped_by(
-        subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
         group_by=["Statistical Test"],
@@ -112,15 +97,59 @@ def make_boxplots(
         hemispheres=allHemispheres,
         tasks=[],
         statistic=[
-            "Normalized Mutual Information - X as Truth",
-            "Normalized Mutual Information - Y as Truth",
+            "Normalised Levenshtein Distance - X as Truth",
         ],
         dataset=["cleaned_words_mapped"],
         modules_df=allModules,
         title_append="All modules, including non-optimal",
         group_by=["Hemisphere", "Subject ID", "Statistical Test"],
         output_path=pathTo["figures"]
-        / "boxplot_figure_mutual_information_by_subject.svg",
+        / "boxplot_figure_normalised_levenshtein_by_subject_mapped.svg",
+    )
+
+    generate_boxplot_grouped_by(
+        subjects=subjectSample,
+        hemispheres=allHemispheres,
+        tasks=[],
+        statistic=[
+            "Normalised Levenshtein Distance - X as Truth",
+        ],
+        dataset=["cleaned_words"],
+        modules_df=allModules,
+        title_append="All modules, including non-optimal",
+        group_by=["Hemisphere", "Subject ID", "Statistical Test"],
+        output_path=pathTo["figures"]
+        / "boxplot_figure_normalised_levenshtein_by_subject_unmapped.svg",
+    )
+    
+    generate_boxplot_grouped_by(
+        subjects=subjectSample,
+        hemispheres=allHemispheres,
+        tasks=[],
+        statistic=[
+            "Normalized Mutual Information - X as Truth",
+        ],
+        dataset=["cleaned_words_mapped"],
+        modules_df=allModules,
+        title_append="All modules, including non-optimal",
+        group_by=["Hemisphere", "Subject ID", "Statistical Test"],
+        output_path=pathTo["figures"]
+        / "boxplot_figure_mutual_information_by_subject_mapped.svg",
+    )
+
+    generate_boxplot_grouped_by(
+        subjects=subjectSample,
+        hemispheres=allHemispheres,
+        tasks=[],
+        statistic=[
+            "Normalized Mutual Information - X as Truth",
+        ],
+        dataset=["cleaned_words"],
+        modules_df=allModules,
+        title_append="All modules, including non-optimal",
+        group_by=["Hemisphere", "Subject ID", "Statistical Test"],
+        output_path=pathTo["figures"]
+        / "boxplot_figure_mutual_information_by_subject_unmapped.svg",
     )
 
     generate_boxplot_grouped_by(

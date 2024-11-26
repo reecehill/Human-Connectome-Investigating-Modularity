@@ -7,9 +7,10 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.cluster import KMeans
 from modules.utils.loadSpatialData import loadFacesAndVertices, loadRoiIds
+from modules.visualisation.includes.io.save_pickled_object import save_fig_as_pickle
 
 
-def plotRoiRegion(subjectId: str) -> bool:
+def plotRoiRegion(subjectId: str, pathTo: dict[str, Path]) -> bool:
     import config
 
     """
@@ -79,6 +80,7 @@ def plotRoiRegion(subjectId: str) -> bool:
         ),
         window_size=(1000, 1000),
         title=f"ROI Region for Subject {subjectId}",
+        off_screen=True,
     )
     light = pv.Light(position=(5, 5, 5), focal_point=(0, 0, 0), color="white", intensity=1.0, light_type="cameralight")
     # light.intensity = 1.0  # Adjust intensity as needed
@@ -117,5 +119,10 @@ def plotRoiRegion(subjectId: str) -> bool:
     plotter.add_text("y_raw Scalars", position="upper_left")
 
     plotter.link_views()
-    plotter.show()
+
+    plotter.save_graphic(pathTo["figures"] / 'module_mesh.svg')
+
+
+    plotter.close()
+    print(f"Mesh figure saved as '{str(pathTo['figures'] / 'module_mesh.svg')}'.")
     return True

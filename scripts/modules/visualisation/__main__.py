@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 from includes.visualisation.graphs import plotRoiRegion
 from modules.pipeline.stepper import prepStep
 from modules.visualisation.includes.wrappers import (
@@ -94,18 +94,18 @@ else:
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
 
             # We now mimic the prepStep setup just to get a figure
-            allSteps: "Dict[stepFnType, bool]" = {
+            allSteps: "Dict[Any, bool]" = {
                 plotRoiRegion: True
             }
             g.allSteps = allSteps
             subjectSample = ['100206']
-            
+
             for subjectId in subjectSample:
                 prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
-                plotRoiRegion(subjectId)
-                pass
+                plotRoiRegion(subjectId, pathTo=pathTo)
+
+            subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
             # Wrapper function to combine filtering and plotting
-            return
             make_boxplots(
                 pathTo,
                 allSubjects,

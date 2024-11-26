@@ -109,6 +109,38 @@ def make_violinplots(
     )
 
     generate_violinplot_grouped_by(
+        subjects=[],
+        hemispheres=allHemispheres,
+        tasks=[],
+        dataset=["cleaned_words_mapped"],
+        group_by=["Statistical Test", "Hemisphere"],
+        statistic=[
+            # "Levenshtein Distance - X as Truth",
+            # "Normalised Levenshtein Distance - X as Truth",
+            # "Mutual Information Score - X as Truth",
+            "Normalized Mutual Information - X as Truth",
+            "Adjusted Mutual Information - X as Truth",
+            "V-measure Cluster Labeling - X as Truth",
+            "Homogeneity Score - X as Truth",
+            "Adjusted Random Score - X as Truth",
+            "Fowlkes-Mallows Index - X as Truth",
+            # "Levenshtein Distance - Y as Truth",
+            # "Normalised Levenshtein Distance - Y as Truth",
+            # "Mutual Information Score - Y as Truth",
+            # "Normalized Mutual Information - Y as Truth",
+            # "Adjusted Mutual Information - Y as Truth",
+            # "V-measure Cluster Labeling - Y as Truth",
+            # "Homogeneity Score - Y as Truth",
+            # "Adjusted Random Score - Y as Truth",
+            # "Fowlkes-Mallows Index - Y as Truth",
+        ],
+        modules_df=allSubjects,
+        title_append="All modules, including non-optimal",
+        output_path=pathTo["figures"]
+        / "violinplot_figure_normalised_by_hemisphere_mapped.svg",
+    )
+
+    generate_violinplot_grouped_by(
         subjects=subjectSample,
         hemispheres=allHemispheres,
         tasks=[],

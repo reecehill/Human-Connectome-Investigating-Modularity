@@ -15,6 +15,7 @@ def make_boxplots(
     allTasks: List[Literal["lf", "rf", "rh", "lh", "t"]],
     subjectSample: List[str],
 ):
+    
     generate_boxplot_grouped_by(
         subjects=[],
         hemispheres=allHemispheres,
@@ -153,7 +154,7 @@ def make_boxplots(
     )
 
     generate_boxplot_grouped_by(
-        subjects=subjectSample,
+        subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
         statistic=[
@@ -167,7 +168,7 @@ def make_boxplots(
     )
 
     generate_boxplot_grouped_by(
-        subjects=subjectSample,
+        subjects=[],
         hemispheres=allHemispheres,
         tasks=[],
         statistic=[

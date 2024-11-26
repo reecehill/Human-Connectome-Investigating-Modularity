@@ -52,7 +52,7 @@ def generate_dynamic_violinplot(
         id_vars=[x_label],
         value_vars=[
             "Score: (x real, y real)",
-            "Score: (x real, y random)",
+            # "Score: (x real, y random)",
             "Score: (x random, y real)",
         ],
         var_name="Score Type",

@@ -46,12 +46,25 @@ def nonSpatialStatsPerTask(subjectId: str) -> bool:
         / "face_surface_areas"
         / f"{config.CURRENT_HEMISPHERE}_sa_by_face.csv"
     ).resolve(strict=True)
+
+    pathToCentroidCoords: Path = (
+        config.SUBJECT_DIR
+        / f"{config.CURRENT_HEMISPHERE}_centroidCoordinatesByROIId.csv"
+    ).resolve(strict=True)
+
     _ = [
         getFile(localPath=localFileToExist, localOnly=True)
-        for localFileToExist in [pathToXCsv, pathToYCsv, pathToXYSurfaceAreas]
+        for localFileToExist in [
+            pathToXCsv,
+            pathToYCsv,
+            pathToXYSurfaceAreas,
+            pathToCentroidCoords,
+        ]
     ]
 
-    return runTests(subjectId, pathToXCsv, pathToYCsv, pathToXYSurfaceAreas)
+    return runTests(
+        subjectId, pathToXCsv, pathToYCsv, pathToXYSurfaceAreas, pathToCentroidCoords
+    )
 
 
 def runDeprecatedStats(subjectId: str) -> bool:

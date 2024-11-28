@@ -1,5 +1,5 @@
 # Re-importing necessary libraries and preparing data again
-from typing import Union, cast
+from typing import Dict, Union, cast
 import numpy as np
 from includes.statistics.nan_handlers import white_noise
 from includes.statistics.testFunctions import pad_indexes
@@ -12,19 +12,13 @@ from includes.statistics import (
     generateInterpretation,
     convertModuleWideResultsToDataFrames,
 )
-from includes.statistics.clean_data import clean_data
-from includes.statistics.testVariables import Float, ResultRowModuleWide
+from includes.statistics.testVariables import Float, ResultRowModuleWide, XYZDict
 from includes.statistics.utils import (
-    calculateLevenshteinDistance,
-    convertNumericalModuleToWords,
-    calcModuleSizes,
-    convertNumericalModulesToWords,
+    calculateEuclidianDistance,
+    calcModuleSizes
 )
 from includes.stepper.functions import allStepsAreSuccessful
 from includes.statistics.save_results import save_results
-from sklearn.metrics.cluster import contingency_matrix
-from scipy.optimize import linear_sum_assignment  # type: ignore
-
 
 def getModuleXNameFromModuleYName(
     x_final: "pd.Series[str]",
@@ -56,6 +50,8 @@ def perModuleStat(
     x: "Union[pd.Series[str],pd.Series[int]]",
     y: "Union[pd.Series[str],pd.Series[int]]",
     xy_surface_areas: "pd.DataFrame",
+    centroid_coords: "pd.DataFrame",
+    mappedMatrixScores: "Dict[str, Dict[str, float]]",
 ) -> None:
     # --- MODULE-SPECIFIC TESTS [START] ---
     y_module_names: "pd.Series[str]" = y_final.drop_duplicates()
@@ -91,9 +87,7 @@ def perModuleStat(
             # The y module name only maps to NaN of x modules, so we cannot assume mapping and thus stats are skipped.
             x_final_module = pd.Series([], dtype=int)
             y_final_module_within_x = orig_y_module
-
         else:
-
             x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[
                 x_module.dropna().index
             ]
@@ -106,6 +100,7 @@ def perModuleStat(
                     + ", ".join(str(moduleName) for moduleName in x_module_orig_unique)
                     + "]"
                 )
+                x_module_name_orig = -50 # do not match as no module name reliable.
                 # raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
 
             x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(
@@ -167,6 +162,14 @@ def perModuleStat(
                 f"Invalid handler for NaN Y values: {handlerForNaNYValues}"
             )
 
+            # Get module centroid
+
+        x_final_module_centroid: XYZDict
+        y_final_module_within_x_centroid: XYZDict
+        centroid_distance, x_final_module_centroid, y_final_module_within_x_centroid = (
+            calculateEuclidianDistance(centroid_coords=centroid_coords, x=x_final_module, y=orig_y_module)
+        )
+
         if isinstance(x_final_module, pd.Series):
             if x_final_module.dtype == "object":
                 x_final_module.fillna("missing", inplace=True)
@@ -224,6 +227,13 @@ def perModuleStat(
                         x_module_sa,
                         y_module_sa,
                         ydivx_modula_sa,
+                        x_final_module_centroid,
+                        y_final_module_within_x_centroid,
+                        centroid_distance,
+                        mappedMatrixScores[y_module_name]['norm_centroid_distance'],
+                        mappedMatrixScores[y_module_name]['norm_cont'],
+                        mappedMatrixScores[y_module_name]['norm_lev'],
+                        mappedMatrixScores[y_module_name]['norm_total_cost'],
                         f"{test_name} - X as Truth",
                         score_x_defined,
                         score_x_imported_random_y,
@@ -275,6 +285,13 @@ def perModuleStat(
                         x_module_sa,
                         y_module_sa,
                         ydivx_modula_sa,
+                        x_final_module_centroid,
+                        y_final_module_within_x_centroid,
+                        centroid_distance,
+                        mappedMatrixScores[y_module_name]["norm_centroid_distance"],
+                        mappedMatrixScores[y_module_name]["norm_cont"],
+                        mappedMatrixScores[y_module_name]["norm_lev"],
+                        mappedMatrixScores[y_module_name]["norm_total_cost"],
                         f"{test_name} - Y as Truth",
                         score_y_defined,
                         score_y_imported_random_x,
@@ -298,6 +315,13 @@ def perModuleStat(
                         x_module_sa,
                         y_module_sa,
                         ydivx_modula_sa,
+                        {"x": 0, "y": 0, "z": 0},
+                        {"x": 0, "y": 0, "z": 0},
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.nan,
                         f"{test_name} - failed",
                         np.nan,
                         np.nan,

@@ -1,8 +1,9 @@
 # Re-importing necessary libraries and preparing data again
-from typing import cast
+from typing import Dict, Union, cast
 import modules.globals as g
 import pandas as pd
 import numpy as np
+import numpy.typing as npt
 from includes.statistics.perModuleStat import perModuleStat
 from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
@@ -14,7 +15,11 @@ from includes.statistics.clean_data import clean_data
 
 
 def runTests(
-    subjectId: str, pathToXCsv: Path, pathToYCsv: Path, pathToXYSurfaceAreas: Path
+    subjectId: str,
+    pathToXCsv: Path,
+    pathToYCsv: Path,
+    pathToXYSurfaceAreas: Path,
+    pathToCentroidCoords: Path
 ) -> bool:
     result = False
     try:
@@ -26,6 +31,12 @@ def runTests(
         ).T
         xy_surface_area: pd.DataFrame = pd.read_csv(
             (pathToXYSurfaceAreas).absolute().__str__(),
+            sep=",",
+            header=None,
+            keep_default_na=True,
+        ).T
+        centroid_coords: pd.DataFrame = pd.read_csv(
+            (pathToCentroidCoords).absolute().__str__(),
             sep=",",
             header=None,
             keep_default_na=True,
@@ -50,9 +61,11 @@ def runTests(
 
         # Map the cleaned words to the same set.
         orig_mapping: "dict[str,str]"
-        orig_mapping, _x_orig_mapped, _y_orig_mapped = mapAllModulesToSameSet(
-            x=x_orig, y=y_orig
+        mappedMatrixScores: "Dict[str, Dict[str, float]]"
+        orig_mapping, _x_orig_mapped, _y_orig_mapped, mappedMatrixScores = (
+            mapAllModulesToSameSet(x=x_orig, y=y_orig, centroid_coords=centroid_coords)
         )
+
         x_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_orig_mapped)
         y_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_orig_mapped)
 
@@ -78,19 +91,41 @@ def runTests(
         # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
         # ------
 
-        x_orig_words, y_orig_words = convertNumericalModulesToWords(x_orig, y_orig)
-
-        x_mapped_words, y_mapped_words = convertNumericalModulesToWords(
-            x=x_orig_mapped, y=y_orig_mapped, dataIsMapped=True
+        x_orig_words, y_orig_words, label_to_word_map_y = (
+            convertNumericalModulesToWords(x_orig, y_orig)
         )
+        mappedMatrixScores_orig_words = {
+            label_to_word_map_y.get(int(old_key), old_key): value
+            for old_key, value in mappedMatrixScores.items()
+        }
 
-        x_cleaned_words, y_cleaned_words = convertNumericalModulesToWords(
-            x_cleaned, y_cleaned
+        x_mapped_words, y_mapped_words, label_to_word_map_y = (
+            convertNumericalModulesToWords(
+                x=x_orig_mapped, y=y_orig_mapped, dataIsMapped=True
+            )
         )
+        mappedMatrixScores_mapped_words = {
+            label_to_word_map_y.get(int(old_key),old_key): value
+            for old_key, value in mappedMatrixScores.items()
+        }
 
-        x_cleaned_mapped_words, y_cleaned_mapped_words = convertNumericalModulesToWords(
-            x_cleaned_mapped, y_cleaned_mapped, dataIsMapped=True
+        x_cleaned_words, y_cleaned_words, label_to_word_map_y = (
+            convertNumericalModulesToWords(x_cleaned, y_cleaned)
         )
+        mappedMatrixScores_cleaned_words = {
+            label_to_word_map_y.get(int(old_key),old_key): value
+            for old_key, value in mappedMatrixScores.items()
+        }
+
+        x_cleaned_mapped_words, y_cleaned_mapped_words, label_to_word_map_y = (
+            convertNumericalModulesToWords(
+                x_cleaned_mapped, y_cleaned_mapped, dataIsMapped=True
+            )
+        )
+        mappedMatrixScores_cleaned_mapped_words = {
+            label_to_word_map_y.get(int(old_key),old_key): value
+            for old_key, value in mappedMatrixScores.items()
+        }
 
         # ------
         # Make x and y symmetric
@@ -111,12 +146,14 @@ def runTests(
         )
 
         perModuleStat(
-            "cleaned_words",
-            x_cleaned_words,
-            y_cleaned_words,
-            x_orig_words,
-            y_orig_words,
-            xy_surface_area,
+            datasetDescriptor="cleaned_words",
+            x_final=x_cleaned_words,
+            y_final=y_cleaned_words,
+            x=x_orig_words,
+            y=y_orig_words,
+            xy_surface_areas=xy_surface_area,
+            centroid_coords=centroid_coords,
+            mappedMatrixScores=mappedMatrixScores_cleaned_words,
         )
         perModuleStat(
             datasetDescriptor="cleaned_words_mapped",
@@ -125,6 +162,8 @@ def runTests(
             xy_surface_areas=xy_surface_area,
             x=x_mapped_words,
             y=y_mapped_words,
+            centroid_coords=centroid_coords,
+            mappedMatrixScores=mappedMatrixScores_cleaned_mapped_words,
         )
 
         result: bool = True

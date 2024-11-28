@@ -1,5 +1,4 @@
-from types import FunctionType
-from typing import Any, Callable, Optional, Union
+from typing import Callable, Optional, TypedDict, Union
 from sklearn.metrics import (
     mutual_info_score,
     normalized_mutual_info_score,
@@ -12,13 +11,16 @@ from sklearn.metrics import (
     fowlkes_mallows_score,
 )
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 
+
 from includes.statistics.utils import (
+    XYZDict,
     calculateLevenshteinDistance,
     calculateNormalisedLevenshteinDistance,
+    calculate_dice_coefficient,
 )
+
 
 Float = Union[float, np.float16, np.float32, np.float64]
 ResultRowSubjectWide = tuple[
@@ -33,6 +35,13 @@ ResultRowModuleWide = tuple[
     str,
     str,
     str,
+    Float,
+    Float,
+    Float,
+    XYZDict,
+    XYZDict,
+    Float,
+    Float,
     Float,
     Float,
     Float,
@@ -56,7 +65,10 @@ test_ranges: "dict[str, str]" = {
     "Adjusted Random Score": "[-1, 1]",
     "Fowlkes-Mallows Index": "[0, 1]",
     "Purity Score": "[0, 1]",
+    "Dice Coefficient": "[0, 1]",
 }
+
+
 # Define list of test functions and their names
 test_functions_with_range: "list[tuple[str, Callable[[Union[pd.Series[str], pd.Series[int]],Union[pd.Series[str], pd.Series[int]]], Float]]]" = [
     ("Levenshtein Distance", calculateLevenshteinDistance),
@@ -68,4 +80,5 @@ test_functions_with_range: "list[tuple[str, Callable[[Union[pd.Series[str], pd.S
     ("Homogeneity Score", homogeneity_score),
     ("Adjusted Random Score", adjusted_rand_score),
     ("Fowlkes-Mallows Index", fowlkes_mallows_score),
+    ("Dice Coefficient", calculate_dice_coefficient),
 ]

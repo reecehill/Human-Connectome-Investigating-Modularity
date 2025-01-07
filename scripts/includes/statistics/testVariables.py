@@ -3,12 +3,13 @@ from sklearn.metrics import (
     mutual_info_score,
     normalized_mutual_info_score,
     adjusted_mutual_info_score,
-)
-from sklearn.metrics import (
     v_measure_score,
     homogeneity_score,
     adjusted_rand_score,
     fowlkes_mallows_score,
+    cohen_kappa_score,
+    hamming_loss,
+    accuracy_score,
 )
 import numpy as np
 import pandas as pd
@@ -66,6 +67,9 @@ test_ranges: "dict[str, str]" = {
     "Fowlkes-Mallows Index": "[0, 1]",
     "Purity Score": "[0, 1]",
     "Dice Coefficient": "[0, 1]",
+    "Cohen Kappa Score": "[-1, 1]",
+    "Hamming Loss": "[0,1]",
+    "Accuracy Score": "[0,1]"
 }
 
 
@@ -81,4 +85,7 @@ test_functions_with_range: "list[tuple[str, Callable[[Union[pd.Series[str], pd.S
     ("Adjusted Random Score", adjusted_rand_score),
     ("Fowlkes-Mallows Index", fowlkes_mallows_score),
     ("Dice Coefficient", calculate_dice_coefficient),
+    ("Cohen Kappa Score", cohen_kappa_score),
+    ("Hamming Loss", hamming_loss),
+    ("Accuracy Score", accuracy_score),
 ]

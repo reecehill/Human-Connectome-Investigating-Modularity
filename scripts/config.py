@@ -11,7 +11,7 @@ import modules.globals as g
 CPU_THREADS: int = cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 FORCE_RUN: bool = False
-USE_PARALLEL_PROCESSING: bool = True
+USE_PARALLEL_PROCESSING: bool = False
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
@@ -28,7 +28,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD: int = 4  # was 7
 DSI_STUDIO_TRACKING_METHOD: int = 0  # 0:streamline (default), 1:rk4
 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT)
 DSI_STUDIO_ITERATION_COUNT: int = 1
-DSI_STUDIO_FIBRE_COUNT: int = 500000
+DSI_STUDIO_FIBRE_COUNT: int = 10000000
 # DSI_STUDIO_FIBRE_COUNT = 1000
 # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_USE_RECONST: bool = False

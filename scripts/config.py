@@ -10,7 +10,7 @@ import modules.globals as g
 
 CPU_THREADS: int = cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
-FORCE_RUN: bool = True
+FORCE_RUN: bool = False
 USE_PARALLEL_PROCESSING: bool = False
 # CPU_THREADS = 10
 
@@ -80,7 +80,7 @@ NETWORKX_FLUID_K: int = 3
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
 GENERATE_LABELS = True
-RUN_DSI_STUDIO = False
+RUN_DSI_STUDIO = True
 RUN_PROCESS_TRACTOGRAPHY = True
 RUN_CALC_FUNC_MODULARITY = False
 RUN_CALC_STRUC_MODULARITY = False

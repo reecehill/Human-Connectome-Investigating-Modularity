@@ -54,7 +54,7 @@ DSI_STUDIO_MAX_LENGTH: int = 300
 DSI_STUDIO_REF_IMG: str = "T1w_restore_brain.nii.gz"
 # DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG: str = "aparc+aseg.nii.gz"
-DSI_STUDIO_USE_ROI: bool = True
+DSI_STUDIO_USE_ROI: bool = False
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -82,11 +82,11 @@ EAGER_LOAD_DATA = False  # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 RUN_PROCESS_TRACTOGRAPHY = True
-RUN_CALC_FUNC_MODULARITY = True
-RUN_CALC_STRUC_MODULARITY = True
-RUN_MAPPING = True
-RUN_CLEAN_SUBJECT_DIR = True
-RUN_STATS = True
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY = False
+RUN_MAPPING = False
+RUN_CLEAN_SUBJECT_DIR = False
+RUN_STATS = False
 # ----------
 # [END] PIPELINE PARAMETERS
 # ----------

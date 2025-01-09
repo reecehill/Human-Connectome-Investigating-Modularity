@@ -1,7 +1,7 @@
 function [...
     edgeListRemote,...
     edgeListLocal...
-    ]=makeEdgeList(pathToFile,downsample)
+    ]=makeEdgeList(pathToFile,downsample,restrictToRoi)
 % NOTE: This function can only make one edgeList per run. If you want an
 % edgeList for low-resolution, then it must be ran with such parameter.
 % (Other functions may make both lo_ and hi_glpfaces, for instance.
@@ -9,6 +9,7 @@ disp("------");
 disp("Start of edgeList.m")
 tic
 disp("------");
+
 clear ft_hastoolbox;
 restoredefaultpath;
 %gcp;
@@ -36,7 +37,6 @@ load(fileToLoad, "trk_type", "trkEP_full"); %"trk_len": not used
 nbTracts=length(trkEP_full);
 %% get centres of triangles
 disp('computing centroids');
-restrictToRoi = true;
 
 if strcmp(downsample,'no') % method for no downsample
     %allCentroids is just allPoints but not filtered.
@@ -53,7 +53,7 @@ end
 %Add index to fourth column.
 allCentroids(:,4) = 1:1:length(allCentroids);
 
-if(restrictToRoi)
+if(restrictToRoi==1)
     % NOTE: Incompatible with subcortical ROIs.
     roi = "precentral";
     roiIds = find(contains(filenames,roi));

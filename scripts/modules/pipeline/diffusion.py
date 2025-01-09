@@ -97,7 +97,7 @@ def processDiffusionTracts(subjectId: str) -> bool:
         cmdLabel="MATLAB",
         cmd=[
             config.MATLAB,
-            f"-batch \"batch_process '{config.matLabDriveAndPathToSubjects}' '{subjectId}' {config.PIAL_SURFACE_TYPE} '{config.DOWNSAMPLE_SURFACE}' '{config.DOWNSAMPLE_RATE}' '{config.DSI_STUDIO_ITERATION_COUNT}' '{config.USE_PRESET_DOWNSAMPLED_MESH}' '{subjectLowResSurfacePath_left.resolve(strict=False)}' '{subjectLowResSurfacePath_right.resolve(strict=False)}'\"",
+            f"-batch \"batch_process '{config.matLabDriveAndPathToSubjects}' '{subjectId}' {config.PIAL_SURFACE_TYPE} '{config.DOWNSAMPLE_SURFACE}' '{config.DOWNSAMPLE_RATE}' '{1 if config.DSI_STUDIO_USE_ROI else 0}' '{config.DSI_STUDIO_ITERATION_COUNT}' '{config.USE_PRESET_DOWNSAMPLED_MESH}' '{subjectLowResSurfacePath_left.resolve(strict=False)}' '{subjectLowResSurfacePath_right.resolve(strict=False)}'\"",
         ],
         cwd=config.matlabScriptsFolder,
     )

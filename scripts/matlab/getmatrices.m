@@ -71,20 +71,19 @@ adj_local=sparse( ...
     ones(length(edgeListLocal(:,1)),1), ...
     nbFaces, ...
     nbFaces);
-
-%% make binary connection matrix
-disp('making adj_remote_bin')
-
-adj_remote_bin=sparse(double(edgeListRemote(:,1)),double(edgeListRemote(:,2)),ones(length(edgeListRemote(:,1)),1),nbFaces,nbFaces);
-adj_remote_bin=adj_remote_bin+adj_remote_bin';
-adj_remote_bin(adj_remote_bin>0)=1;
-
+adj_local=adj_local+adj_local';
+adj_local(adj_local>0)=1;
 
 %% make adj_remote_wei
 disp('making adj_remote_wei')
-
 adj_remote_wei=sparse(double(edgeListRemote(:,1)),double(edgeListRemote(:,2)),ones(length(edgeListRemote(:,1)),1),nbFaces,nbFaces);
 adj_remote_wei=adj_remote_wei+adj_remote_wei';
+
+%% make binary connection matrix
+disp('making adj_remote_bin')
+adj_remote_bin=adj_remote_wei;
+adj_remote_bin(adj_remote_bin>0)=1;
+
 
 %% make adj_matrix combining local and long rang connction matrix
 adj_matrix = adj_remote_bin + adj_local;
@@ -143,5 +142,4 @@ for i=1:ROIlen
         lo_adj_cortical_wei(i,j)=sum(sum(adj_remote_wei(ilocs,jlocs)));
     end 
 end
-
 end

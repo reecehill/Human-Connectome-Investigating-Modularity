@@ -1,5 +1,5 @@
 function batch_process(pathToFile,subject,type,downsample,...
-    rate,nTrackIterations,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R)
+    rate,restrictToRoi,nTrackIterations,presetDownsampledSurface,presetDownsampledSurface_L,presetDownsampledSurface_R)
 % pathToFile: path to all data folders
 % subjects: the list of subjects
 % type: two types of surface data:
@@ -49,6 +49,14 @@ elseif strcmp(downsample,'yes')
     sprintf('downsample=%s, rate=%1f',downsample,rate)
 elseif strcmp(downsample,'no')
     sprintf('downsample=%s',downsample)
+end
+restrictToRoi = str2double(restrictToRoi);
+if(restrictToRoi==1)
+    disp("Restricting to ROI only.")
+elseif(restrictToRoi==0)
+    disp("Allowing edges to align with any face in the brain - NOT restricted to an ROI")
+else
+    error("Incorrect restrict to roi set")
 end
 
 for i=1:length(subjects)
@@ -108,7 +116,7 @@ for i=1:length(subjects)
     [...
         edgeListRemote,...
         edgeListLocal,...
-        ]=makeEdgeList([pathToFile,subjects{i}],downsample);
+        ]=makeEdgeList([pathToFile,subjects{i}],downsample,restrictToRoi);
     filename=[pathToFile,subjects{i},'/edgeList.mat'];
     save(filename,'edgeListRemote','edgeListLocal','-v7.3');
     clear edgeListRemote edgeListLocal;

@@ -11,7 +11,7 @@ import modules.globals as g
 CPU_THREADS: int = cpu_count() - 2
 # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 FORCE_RUN: bool = False
-USE_PARALLEL_PROCESSING: bool = False
+USE_PARALLEL_PROCESSING: bool = True
 # CPU_THREADS = 10
 
 USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
@@ -28,7 +28,7 @@ DSI_STUDIO_RECONSTRUCTION_METHOD: int = 4  # was 7
 DSI_STUDIO_TRACKING_METHOD: int = 0  # 0:streamline (default), 1:rk4
 # int: number of times dsi studio is ran to track fibres (thus total fibres = DSI_STUDIO_ITERATION_COUNT * DSI_STUDIO_FIBRE_COUNT)
 DSI_STUDIO_ITERATION_COUNT: int = 1
-DSI_STUDIO_FIBRE_COUNT: int = 10000000
+DSI_STUDIO_FIBRE_COUNT: int = 500000
 # DSI_STUDIO_FIBRE_COUNT = 1000
 # True: Use DSI Studio's reconstruction algorithm. False: Convert bedpostX file to DSI Studio format.
 DSI_STUDIO_USE_RECONST: bool = False
@@ -54,7 +54,7 @@ DSI_STUDIO_MAX_LENGTH: int = 300
 DSI_STUDIO_REF_IMG: str = "T1w_restore_brain.nii.gz"
 # DSI_STUDIO_REF_IMG = "aparc+aseg.nii.gz" # was aparc+aseg.nii.gz image. Relative from T1w/ folder.
 DSI_STUDIO_ANNOTATED_IMG: str = "aparc+aseg.nii.gz"
-DSI_STUDIO_USE_ROI: bool = False
+DSI_STUDIO_USE_ROI: bool = True
 # ----------
 # [END] DSI STUDIO PARAMETERS
 # ----------
@@ -82,11 +82,11 @@ EAGER_LOAD_DATA = False  # Not implemented
 GENERATE_LABELS = True
 RUN_DSI_STUDIO = True
 RUN_PROCESS_TRACTOGRAPHY = True
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY = False
-RUN_MAPPING = False
-RUN_CLEAN_SUBJECT_DIR = False
-RUN_STATS = False
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY = True
+RUN_MAPPING = True
+RUN_CLEAN_SUBJECT_DIR = True
+RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
 # ----------
@@ -243,7 +243,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
 SUBJECTS_INTO_N_BATCHES: int = 25  # Number of batches
 

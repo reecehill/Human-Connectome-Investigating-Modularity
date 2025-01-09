@@ -31,7 +31,6 @@ lowestRhLabelId = find(contains(filenames,'rh.'), 1, 'first' );
 
 figure;
 title("Weighted adjacency matrix - Remote + Local");
-subtitle("Whole brain in MNINonLinear space; seeded by ROI (precentral); sorted by labels (ascend)");
 allFileNames = [filenames subfilenames];
 downsample=true;
 if(downsample)
@@ -43,6 +42,8 @@ indicesOfLabelledFaces = labelIds >= 1; %ignore NaNs
 plottedLabelIds = labelIds(indicesOfLabelledFaces);
 plottedLabelsNames=allFileNames(plottedLabelIds);
 [plottedLabelNamesSorted, I] =sort(string(plottedLabelsNames), 'ascend');
+nFibres = int2str(sum(adj_matrix_wei(I, I), "all") / 2);
+subtitle(['Whole brain in MNINonLinear space; seeded by whole brain; sorted by labels (ascend); ', nFibres, ' fibres;']);
 plottedLabelIdsSorted=plottedLabelIds(I);
 hold on;
 grid on;
@@ -82,13 +83,13 @@ rectangle('Position',[[hemisphereR_start, hemisphereR_start], hemisphereR_length
 rectangle('Position',[[miscellaneous_start, miscellaneous_start], miscellaneous_length, miscellaneous_length], 'FaceColor', [0 0 0 0.05], 'EdgeColor', [0 0 0 0.2]);
 rectangle('Position',[[roiL_start, roiL_start], roiL_length, roiL_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
 rectangle('Position',[[roiR_start roiR_start], roiR_length, roiR_length], 'FaceColor', [1 0 0 0.1], 'EdgeColor', [1 0 0 0.2]);
-
-cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',10);
+grid off
+cspy(adj_matrix_wei(I,I),'ColorMap','jet','MarkerSize',5);
 legends = [];
 legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[1 0 0 0.4])];
 legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 0 0.05])];
 legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1])];
-legend(legends,'Hemispheres','Precentral Gyri','Edge');
+legend(legends,'Precentral Gyri','Hemispheres','Edge');
 
 figure;
 title("Left ROI only")

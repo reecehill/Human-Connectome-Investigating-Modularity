@@ -105,11 +105,11 @@ R_MATRIX = "adj_matrix_wei_roiR"  # adj_matrix_wei_roiR, adj_matrix_bin_roiR
 # [START] FMRI PARAMETERS
 # ----------
 DESIRED_FMRI_MAPS: "list[str]" = [
-    "$subjectId$_tfMRI_MOTOR_level2_LF_hp200_s2_MSMAll",
-    "$subjectId$_tfMRI_MOTOR_level2_RF_hp200_s2_MSMAll",
-    "$subjectId$_tfMRI_MOTOR_level2_LH_hp200_s2_MSMAll",
-    "$subjectId$_tfMRI_MOTOR_level2_RH_hp200_s2_MSMAll",
-    "$subjectId$_tfMRI_MOTOR_level2_T_hp200_s2_MSMAll",
+    "$subjectId$_tfMRI_MOTOR_level2_LF-AVG_hp200_s2_MSMAll",
+    "$subjectId$_tfMRI_MOTOR_level2_RF-AVG_hp200_s2_MSMAll",
+    "$subjectId$_tfMRI_MOTOR_level2_LH-AVG_hp200_s2_MSMAll",
+    "$subjectId$_tfMRI_MOTOR_level2_RH-AVG_hp200_s2_MSMAll",
+    "$subjectId$_tfMRI_MOTOR_level2_T-AVG_hp200_s2_MSMAll",
 ]  # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
 # fMRI values above this percentile will indicate a cluster.
 CLUSTER_THRESHOLD: float = 50
@@ -243,7 +243,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
 # ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:1]
 SUBJECTS_INTO_N_BATCHES: int = 25  # Number of batches
 

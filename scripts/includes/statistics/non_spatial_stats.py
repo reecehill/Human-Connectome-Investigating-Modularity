@@ -21,6 +21,7 @@ def runTests(
     pathToXYSurfaceAreas: Path,
     pathToCentroidCoords: Path
 ) -> bool:
+    import config
     result = False
     try:
         x_raw: pd.DataFrame = pd.read_csv(
@@ -138,6 +139,73 @@ def runTests(
             y_clean_words: "pd.Series[str]" = pd.concat(
                 [y_cleaned_words, pd.Series(np.flip(y_cleaned_words))]
             )
+
+        # For visualisation purposes, save the new x and y.
+        x_cleaned.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_{pathToXCsv.name}",
+            index=True,
+            header=False,
+        )
+        x_cleaned_mapped.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_mapped_{pathToXCsv.name}",
+            index=True,
+            header=False,
+        )
+        x_cleaned_words.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_words_{pathToXCsv.name}",
+            index=True,
+            header=False,
+        )
+
+        y_cleaned.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_{pathToYCsv.name}",
+            index=True,
+            header=False,
+        )
+        y_cleaned_mapped.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_mapped_{pathToYCsv.name}",
+            index=True,
+            header=False,
+        )
+        y_cleaned_words.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_words_{pathToYCsv.name}",
+            index=True,
+            header=False,
+        )
+        x_cleaned_mapped_words.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_mapped_words_{pathToXCsv.name}",
+            index=True,
+            header=False,
+        )
+        y_cleaned_mapped_words.to_csv(
+            config.SUBJECT_STAT_DIR
+            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+            / "datasets"
+            / f"cleaned_mapped_words_{pathToYCsv.name}",
+            index=True,
+            header=False,
+        )
 
         # TODO: For some reason -> the stats show no improvement in performance for modules against randomised data. This is impossible.
         perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)

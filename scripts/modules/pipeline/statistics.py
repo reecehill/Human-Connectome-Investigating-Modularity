@@ -12,7 +12,10 @@ def runStatistics(subjectId: str) -> bool:
     statDir = config.SUBJECT_DIR / "statistics"
     for hemisphere in config.HEMISPHERES:
         createDirectories(
-            directoryPaths=[statDir / f"{hemisphere}_hemisphere"],
+            directoryPaths=[
+                statDir / f"{hemisphere}_hemisphere",
+                statDir / f"{hemisphere}_hemisphere" / "datasets",
+            ],
             createParents=True,
             throwErrorIfExists=False,
         )

@@ -33,5 +33,12 @@ if(useROI)
     
 end
 
-
+if ~exist([pathToFile,'/exported_modules/',roiFilename_L,'_L_faceIds.csv'], 'file')
+    roiL_ids_s = string(roiL_ids);
+    writematrix(roiL_ids_s',[pathToFile,'/exported_modules/',roiFilename_L,'_L_faceIds.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
+end
+if ~exist([pathToFile,'/exported_modules/',roiFilename_R,'_R_faceIds.csv'], 'file')
+    roiR_ids_s = string(roiR_ids);
+    writematrix(roiR_ids_s',[pathToFile,'/exported_modules/',roiFilename_R,'_R_faceIds.csv'],"Delimiter",',',"QuoteStrings","all",'WriteMode', 'overwrite');
+end
 end

@@ -12,7 +12,7 @@ load(fileToLoad, ...
 
 faceROI_L=lo_faceROIidL(:,1);
 %faceROI_R=lo_faceROIidR(:,1);
-[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, "lh.L_precentral", "rh.R_precentral");
+[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, 'lh.L_precentral', 'rh.R_precentral');
 
 for conditionIndex=1:length(conditions)
     condition = char(conditions(conditionIndex));

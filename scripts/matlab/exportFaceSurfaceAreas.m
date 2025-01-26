@@ -15,7 +15,7 @@ load(fileToLoad, ...
 faceROI_L=lo_faceROIidL(:,1);
 %faceROI_R=lo_faceROIidR(:,1);
 
-[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, "lh.L_precentral", "rh.R_precentral");
+[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, 'lh.L_precentral', 'rh.R_precentral');
 
 lo_faceSurfaceAreas_L = elemvolume(lo_glpvertex,lo_glpfaces(roiL_ids,1:3));
 lo_faceSurfaceAreas_R = elemvolume(lo_grpvertex,lo_grpfaces(roiR_ids-length(faceROI_L),1:3));

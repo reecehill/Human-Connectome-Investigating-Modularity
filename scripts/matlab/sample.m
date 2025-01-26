@@ -26,7 +26,7 @@ load(['../../data/subjects/',subjectId,'/matrices.mat']);
 load(['../../data/subjects/',subjectId,'/trsfmTrk.mat']);
 load(['../../data/subjects/',subjectId,'/optimal_struc_modules.mat']);
 
-[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, "lh.L_precentral", "rh.R_precentral");
+[roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, 'lh.L_precentral', 'rh.R_precentral');
 roiR_ids = roiR_ids - length(lo_glpfaces(:,1));
 usePreStatsModules = false;
 if(usePreStatsModules)

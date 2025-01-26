@@ -1,4 +1,5 @@
 function sample()
+gcp;
 clear ft_hastoolbox;
 restoredefaultpath;
 savepath;
@@ -12,11 +13,11 @@ ft_hastoolbox('gifti',1);
 close all;
 
 
-subjectId = '100206';
+subjectId = '100408';
 downsample = 'yes';
-pathToFile = '../../data/subjects/100206';
+pathToFile = '../../data/subjects/100408';
 type = 1;
-condition = 'lh';
+condition = 'lf';
 
 adj_matrix = matfile(['../../data/subjects/',subjectId,'/matrices.mat']).adj_matrix;
 %adj_matrix_ds = matfile('../../data/subjects/100610/whole_brain_FreeSurferDKT_Cortical.mat');
@@ -28,14 +29,19 @@ load(['../../data/subjects/',subjectId,'/optimal_struc_modules.mat']);
 
 [roiL_ids, roiR_ids] = getROIIds(pathToFile, downsample, 'lh.L_precentral', 'rh.R_precentral');
 roiR_ids = roiR_ids - length(lo_glpfaces(:,1));
-usePreStatsModules = false;
+usePreStatsModules = 0;
 if(usePreStatsModules)
-    roiStrucModulesL = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/left_structural_modules.csv'])';
-    roiStrucModulesR =  readmatrix(['../../data/subjects/',subjectId,'/exported_modules/right_structural_modules.csv'])';
+    roiStrucModulesL = [[1:length(roiL_ids)]', readmatrix(['../../data/subjects/',subjectId,'/exported_modules/left_structural_modules.csv'])'];
+    roiStrucModulesR =  [[1:length(roiR_ids)]', readmatrix(['../../data/subjects/',subjectId,'/exported_modules/right_structural_modules.csv'])'];
     allStrucModulesL = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/all_left_structural_modules.csv'])';
     allStrucModulesR = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/all_right_structural_modules.csv'])';
-    roiFuncModulesL_lf = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/left_',condition,'_functional_modules.csv'])';
-    roiFuncModulesR_lf = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/right_',condition,'_functional_modules.csv'])';
+    
+    roiFuncModulesL_lf = [[1:length(roiL_ids)]', readmatrix(['../../data/subjects/',subjectId,'/exported_modules/left_',condition,'_functional_modules.csv'])'];
+    roiFuncModulesR_lf = [[1:length(roiR_ids)]', readmatrix(['../../data/subjects/',subjectId,'/exported_modules/right_',condition,'_functional_modules.csv'])'];
+    allFuncModulesL_lf = ones(size(lo_glpfaces(:,1)))*-1;
+    allFuncModulesR_lf = ones(size(lo_grpfaces(:,1)))*-1;
+    allFuncModulesL_lf(roiL_ids,:) = roiFuncModulesL_lf(:,2);
+    allFuncModulesR_lf(roiR_ids,:) = roiFuncModulesR_lf(:,2);
 else
     allStrucModulesL = ones(size(lo_glpfaces(:,1)))*-1;
     allStrucModulesR = ones(size(lo_grpfaces(:,1)))*-1;
@@ -51,8 +57,8 @@ else
     allFuncModulesR_lf = ones(size(lo_grpfaces(:,1)))*-1;
     roiFuncModulesL_lf = readmatrix(['../../data/subjects/',subjectId,'/statistics/left_hemisphere/datasets/cleaned_mapped_left_',condition,'_functional_modules.csv']);
     roiFuncModulesR_lf = readmatrix(['../../data/subjects/',subjectId,'/statistics/right_hemisphere/datasets/cleaned_mapped_right_',condition,'_functional_modules.csv']);
-    allFuncModulesL_lf(roiL_ids(roiFuncModulesL_lf(:,1))) = roiFuncModulesL_lf(:,2);
-    allFuncModulesR_lf(roiR_ids(roiFuncModulesR_lf(:,1))) = roiFuncModulesR_lf(:,2);
+    allFuncModulesL_lf(roiL_ids(roiFuncModulesL_lf(:,1)),:) = roiFuncModulesL_lf(:,2);
+    allFuncModulesR_lf(roiR_ids(roiFuncModulesR_lf(:,1)),:) = roiFuncModulesR_lf(:,2);
 end
 
 
@@ -160,7 +166,7 @@ legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',[0 0 1 1]
 legendText = [legendText; 'Precentral Gyri'; 'Hemispheres'; 'Edge'];
 
 cspy(adj_matrix_wei(I(roiL_ids(I_strucModulesL)),I(roiL_ids(I_strucModulesL))),'ColorMap','jet','MarkerSize',10);
-for moduleId=1:max(strucModulesL_sorted)
+for moduleId=unique(strucModulesL_sorted)'
     moduleIds = find(strucModulesL_sorted == moduleId);
     moduleStart = min(moduleIds);
     moduleEnd = max(moduleIds);
@@ -187,7 +193,7 @@ plotsurf(lo_glpvertex,[lo_glpfaces(roiL_ids,:) allStrucModulesL(roiL_ids)],graph
 plotsurf(lo_grpvertex,[lo_grpfaces(roiR_ids,:) allStrucModulesR(roiR_ids)],graphOpts{:});
 campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
 lighting gouraud;
-camlight;
+camlight('headlight');
 
 figure;
 title("Functional (left foot movement) modules on brain surface (precentral only) ");
@@ -199,7 +205,7 @@ plotsurf(lo_glpvertex,[lo_glpfaces(roiL_ids,:) allFuncModulesL_lf(roiL_ids)],gra
 plotsurf(lo_grpvertex,[lo_grpfaces(roiR_ids,:) allFuncModulesR_lf(roiR_ids)],graphOpts{:});
 campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
 lighting gouraud;
-camlight;
+camlight('headlight');
 
 %% Inflated image
 figure;
@@ -217,7 +223,7 @@ plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(roiR_ids,:) allFuncModulesR
 
 campos(1.0e+03 * [-0.7198    1.0299    0.4153]);
 lighting gouraud;
-camlight;
+camlight('headlight');
 
 figure;
 title("Structural modules on brain surface (precentral only) - inflated");
@@ -227,7 +233,7 @@ nModules_R = length(unique(allStrucModulesR));
 nModules = nModules_L + nModules_R;
 
 
-% Use flattened surface
+% Use inflated surface
 plotsurf(inflated_lo_glpvertex,inflated_lo_glpfaces(~ismember(1:end,roiL_ids),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
 plotsurf(inflated_lo_grpvertex,inflated_lo_grpfaces(~ismember(1:end,roiR_ids),:),'FaceAlpha',1,'EdgeAlpha',0.05,'FaceColor',[0.5 0 0]);
 plotsurf(inflated_lo_glpvertex,[inflated_lo_glpfaces(roiL_ids,:) allStrucModulesL(roiL_ids)]);
@@ -235,11 +241,11 @@ plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(roiR_ids,:) allStrucModules
 
 campos(1.0e+03 * [-1.1603    0.2411    0.5211]);
 lighting gouraud;
-camlight;
+camlight('headlight');
 
 %% Superimpose functional onto structural data
 figure;
-title("Structural and functional modules (left foot) on brain surface (precentral only) - inflated");
+title(["Structural and functional modules (" condition ") on brain surface (precentral only) - inflated"]);
 hold on;
 nModules_L = length(unique(allStrucModulesL)) + length(unique(allFuncModulesL_lf));
 nModules_R = length(unique(allStrucModulesR)) + length(unique(allFuncModulesR_lf));
@@ -268,14 +274,15 @@ colorIndex = 1;
 %     legends = [legends, patch(NaN,NaN,moduleColor)];
 %     legendText = [legendText; ['(L) Structural Module: #' num2str(strucModuleIndex)]];
 % end
-for strucModuleIndex=0:nStrucModules_R
-    faceIndicesOfModule = find(allStrucModulesR == strucModuleIndex);
+for strucModuleIndex=unique(allStrucModulesR)'
+    faceIndicesOfModule = intersect(find(allStrucModulesR == strucModuleIndex), roiR_ids);
     moduleColor = colormap_lines(colorIndex,:);
     colorIndex = colorIndex + 1;
     plotsurf(inflated_lo_grpvertex,[inflated_lo_grpfaces(faceIndicesOfModule,:) allStrucModulesR(faceIndicesOfModule)],'DisplayName',['Structural Module: #',num2str(strucModuleIndex)], 'FaceColor', moduleColor);
     legends = [legends, patch(NaN,NaN,moduleColor)];
     legendText = [legendText; ['(R) Structural Module: #' num2str(strucModuleIndex)]];
 end
+
 
 % for funcModuleIndex=1:nFuncModules_L
 %     faceIndicesOfModule = allFuncModulesL_lf == funcModuleIndex;
@@ -286,8 +293,11 @@ end
 %     legends = [legends, line(NaN,NaN,'LineWidth',4,'LineStyle','-','Color',moduleColor)];
 %     legendText = [legendText; ['Functional Module: #' num2str(funcModuleIndex)]];
 % end
-for funcModuleIndex=1:nFuncModules_R
-    faceIndicesOfModule = allFuncModulesR_lf == funcModuleIndex;
+for funcModuleIndex=unique(allFuncModulesR_lf)'
+    if funcModuleIndex < 2
+        continue; % Skip the iteration if index is -1,0,1
+    end
+    faceIndicesOfModule = intersect(find(allFuncModulesR_lf == funcModuleIndex), roiR_ids);
     moduleColor = colormap_lines(colorIndex,:);
     colorIndex = colorIndex + 1;
     edgesOfModules = surfedge(inflated_lo_grpfaces(faceIndicesOfModule,:));
@@ -297,8 +307,8 @@ for funcModuleIndex=1:nFuncModules_R
 end
 campos(1.0e+03 * [1.0518    0.1297    0.7534]);
 lighting gouraud;
-material dull
-camlight;
+material dull;
+camlight('headlight');
 legend(legends,legendText{:});
 zoom on;
 axis off
@@ -311,7 +321,7 @@ return
 
 %% Superimposed modules on flat surface
 figure;
-title("Structural and functional modules (left foot) on brain surface (precentral only) - flat");
+title("Structural and functional modules (left hand) on brain surface (precentral only) - flat");
 hold on;
 legends = [];
 legendText = {};
@@ -370,7 +380,7 @@ end
 campos(1.0e+03 * [0.0088    0.0414    3.0932]);
 lighting gouraud;
 material dull
-camlight;
+camlight('headlight');
 legend(legends,legendText{:});
 zoom on;
 camva(11);

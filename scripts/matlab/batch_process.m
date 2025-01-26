@@ -67,7 +67,7 @@ end
 for i=1:length(subjects)
     subject = subjects{i};
     pathToSubjectData = [pathToFile,num2str(subject)];
-    [trkEP_full,trk_len,trk_type]=conversion_tt(pathToSubjectData,type,nTrackIterations);
+    [trkEP_full,trk_len,trk_type]=conversion_mni(pathToSubjectData,type,nTrackIterations);
     filename=[pathToFile,num2str(subjects{i}),'/trsfmTrk.mat'];
     save(filename,'trkEP_full','trk_len','trk_type','-v7.3');
     clear trkEP trk_len trk_type

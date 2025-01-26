@@ -4,6 +4,12 @@ from modules.hcp_data_manager.downloader import getFile
 from ..file_directory.file_directory import createDirectories
 from modules.subprocess_caller.call import *
 from shutil import copy2
+from scipy.io.matlab import loadmat
+from numpy import typing as npt
+import numpy as np
+import ants
+import pandas as pd
+import nibabel as nib
 
 
 def runDsiStudio(subjectId: str) -> bool:
@@ -11,7 +17,8 @@ def runDsiStudio(subjectId: str) -> bool:
         generateSrcFile(subjectId)
         and reconstructImage(subjectId)
         and trackFibres(subjectId)
-        and registerDsiStudioTemplateToSubject(subjectId)
+        and registerFibresToMNI152(subjectId)
+        # and registerDsiStudioTemplateToSubject(subjectId) # No longer used
     )
 
 
@@ -263,7 +270,9 @@ def trackFibres(subjectId: str) -> bool:
 
         # Limit tracks to only those that pass through the precentral gyri.
         lhTractFile: str = destinationFile.replace("/1m", "/" + "L_" + "1m")
+        lhEndPointsFile: str = lhTractFile.replace(".trk", ".mat")
         rhTractFile: str = destinationFile.replace("/1m", "/" + "R_" + "1m")
+        rhEndPointsFile: str = rhTractFile.replace(".trk", ".mat")
         if config.DSI_STUDIO_USE_ROI:
             if config.NORMALISE_TO_MNI152:
                 lhRoiFilePath_dti: Path = Path(
@@ -273,6 +282,11 @@ def trackFibres(subjectId: str) -> bool:
                         / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
                     ).replace(".nii.gz", ".dti_space.nii.gz")
                 ).resolve(strict=True)
+                # lhRoiFilePath: Path = (
+                #     config.SUBJECT_DIR
+                #     / "T1w"
+                #     / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
+                # ).resolve(strict=True)
                 rhRoiFilePath_dti: Path = Path(
                     str(
                         config.SUBJECT_DIR
@@ -280,12 +294,18 @@ def trackFibres(subjectId: str) -> bool:
                         / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
                     ).replace(".nii.gz", ".dti_space.nii.gz")
                 ).resolve(strict=True)
+                # rhRoiFilePath: Path = (
+                #     config.SUBJECT_DIR
+                #     / "T1w"
+                #     / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
+                # ).resolve(strict=True)
 
                 # Run command on left hemisphere.
                 lhCmd = cmd.copy()
                 lhCmd = lhCmd + [
                     f"--tip_iteration=16",
                     f"--output={lhTractFile}",
+                    f"--end_point={lhEndPointsFile}",
                     # f'--lim={roiFile.resolve(strict=True)},dilation',
                     f"--seed={lhRoiFilePath_dti}",
                     # f'--end2={roiFile.resolve(strict=True)},dilation',
@@ -298,6 +318,7 @@ def trackFibres(subjectId: str) -> bool:
                 rhCmd = rhCmd + [
                     f"--tip_iteration=16",
                     f"--output={rhTractFile}",
+                    f"--end_point={rhEndPointsFile}",
                     # f'--lim={roiFile.resolve(strict=True)},dilation',
                     f"--seed={rhRoiFilePath_dti}",
                     # f'--end2={roiFile.resolve(strict=True)},dilation',
@@ -316,8 +337,312 @@ def trackFibres(subjectId: str) -> bool:
             ]
             iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=cmd))
 
+        # ----------------------------------------------------------------
+        # Export tracts as an image too
+        # ----------------------------------------------------------------
+        iterationSuccess.append(
+            call(
+                cmdLabel="DSIStudio",
+                cmd=[
+                    config.DSI_STUDIO,
+                    "--action=ana",
+                    f"--source={str(sourceFile)}",
+                    f"--tract={str(destinationFile)}",
+                    f"--other_slices={str(refFile)}",
+                    f"--output={destinationFile.replace('.trk', '.nii.gz')}",
+                ],
+            )
+        )
+        iterationSuccess.append(
+            call(
+                cmdLabel="FSL: fslcpgeom",
+                cmd=[
+                    "fslcpgeom",
+                    f"{str(refFile)}",
+                    f"{destinationFile.replace('.trk', '.nii.gz')}",
+                    "-d",
+                ],
+            )
+        )
+        iterationSuccess.append(
+            call(
+                cmdLabel="Freesurfer: mri_convert",
+                cmd=[
+                    "mri_convert",
+                    "--in_orientation",
+                    "LPS",
+                    "--out_orientation",
+                    "LAS",
+                    "-rt",
+                    "nearest",  # Nearest neighbour resampling
+                    f"{destinationFile.replace('.trk', '.nii.gz')}",
+                    f"{destinationFile.replace('.trk', '_negy.nii.gz')}",
+                ],
+            )
+        )
+
     g.logger.info("Running DSI Studio: tracking fibres.")
     return all(iterationSuccess)
+
+
+def convertFnirtTransformIntoITK(subjectId: str) -> bool:
+    import config
+
+    fnirtTransformationFile = (
+        config.SUBJECT_DIR / "MNINonLinear" / "xfms" / "standard2acpc_dc.nii.gz"
+    )
+    srcFile = config.SUBJECT_DIR / "MNINonLinear" / "T1w_restore.nii.gz"
+
+    remoteFilesToExist = [fnirtTransformationFile, srcFile]
+    _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
+    cmd = [
+        config.WB_COMMAND,
+        "-convert-warpfield",
+        "-from-fnirt",
+        # "-from-world",
+        str(fnirtTransformationFile),
+        str(srcFile),
+        "-to-itk",
+        str(fnirtTransformationFile).replace(".nii.gz", "_ants.nii.gz"),
+    ]
+    return call(cmdLabel="wb_command", cmd=cmd)
+
+
+def registerFibresToMNI152(subjectId: str) -> bool:
+    import config
+
+    # Generate transformation file in ANTS format.
+    convertFnirtTransformIntoITK(subjectId)
+
+    nonlinearTransformationFile = (
+        config.SUBJECT_DIR / "MNINonLinear" / "xfms" / "standard2acpc_dc_ants.nii.gz"
+    )
+    remoteFilesToExist = [nonlinearTransformationFile]
+    _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
+    if config.NORMALISE_TO_MNI152:
+        destinationFolder = config.SUBJECT_DIR / "T1w" / config.DIFFUSION_FOLDER
+    else:
+        raise Exception("Logic needed if MNI152 normalisation is disabled.")
+
+    for currentIteration in range(0, config.DSI_STUDIO_ITERATION_COUNT, 1):
+        # ----------------------------------------------------------------
+        # Ensure files exist
+        # ----------------------------------------------------------------
+        # We use the diffusion mask just because its a small file and we need header only.
+        diffusionMask = (
+            config.SUBJECT_DIR / "T1w" / "Diffusion" / "nodif_brain_mask.nii.gz"
+        )
+        refFile = config.SUBJECT_DIR / "T1w" / "aparc+aseg.nii.gz"
+
+        filesToExist = [refFile, diffusionMask]
+        if config.DSI_STUDIO_USE_ROI:
+            destinationFile: str = str(
+                destinationFolder / ("1m" + str(currentIteration) + ".trk")
+            )
+            lhTractFile: str = destinationFile.replace("/1m", "/" + "L_" + "1m")
+            lhEndPointsFile: str = lhTractFile.replace(".trk", ".mat")
+            filesToExist.append(Path(lhEndPointsFile))
+            rhTractFile: str = destinationFile.replace("/1m", "/" + "R_" + "1m")
+            rhEndPointsFile: str = rhTractFile.replace(".trk", ".mat")
+            filesToExist.append(Path(rhEndPointsFile))
+        else:
+            raise Exception("Logic is needed if DSI_STUDIO_USE_ROI is disabled")
+
+        _ = [
+            getFile(localPath=fileToExist, localOnly=True)
+            for fileToExist in filesToExist
+        ]
+
+        # ----------------------------------------------------------------
+        # Transform the coordinates and save as .csv
+        # ----------------------------------------------------------------
+        lhEndPointsFileMat: npt.NDArray = loadmat(lhEndPointsFile)["end_points"].T
+        rhEndPointsFileMat: npt.NDArray = loadmat(rhEndPointsFile)["end_points"].T
+
+        # Load NIfTI files
+        anatomical_info = nib.load(f"{refFile}").header # type:ignore
+        diffusion_info = nib.load(f"{diffusionMask}").header # type:ignore
+
+        # Get pixel dimensions (voxel sizes)
+        anatomical_voxel_size: float = anatomical_info.get_zooms()[:3]  # type:ignore
+        diffusion_voxel_size: float = diffusion_info.get_zooms()[:3]  # type:ignore
+
+        # Compute the sampling ratio
+        sampling_ratio = np.array(anatomical_voxel_size) / np.array(
+            diffusion_voxel_size
+        )
+
+        y_dim: int = anatomical_info.get_data_shape()[1]  # type:ignore
+        # Create the T_to_dif matrix
+        T_to_dif = np.array(
+            [
+                [sampling_ratio[0], 0.0, 0.0, 0.0],
+                [0.0, -sampling_ratio[1], 0.0, y_dim * sampling_ratio[1]],
+                [0.0, 0.0, sampling_ratio[2], 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
+        T_RAS_to_LPS = np.array(
+            [
+                [-1, 0.0, 0.0, 0],
+                [0.0, -1, 0.0, 0],
+                [0.0, 0.0, 1, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
+
+        # Add column of ones to coordinates.
+        lhEndPointsFileMat_ones = np.hstack(
+            [lhEndPointsFileMat, np.ones((lhEndPointsFileMat.shape[0], 1))]
+        ).T
+        rhEndPointsFileMat_ones = np.hstack(
+            [rhEndPointsFileMat, np.ones((rhEndPointsFileMat.shape[0], 1))]
+        ).T
+
+        # Transform the coordinates
+        lhEndPointsFileMat_in_t1 = (
+            np.linalg.inv(T_to_dif).dot(lhEndPointsFileMat_ones).T
+        )
+        rhEndPointsFileMat_in_t1 = (
+            np.linalg.inv(T_to_dif).dot(rhEndPointsFileMat_ones).T
+        )
+
+        np.savetxt(
+            f"{lhEndPointsFile.replace('.mat', '_int1w.csv')}",
+            lhEndPointsFileMat_in_t1,
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+        np.savetxt(
+            f"{rhEndPointsFile.replace('.mat', '_int1w.csv')}",
+            rhEndPointsFileMat_in_t1,
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+        np.savetxt(
+            f"{destinationFile.replace('.trk', '.csv')}",
+            np.vstack((lhEndPointsFileMat_in_t1, rhEndPointsFileMat_in_t1)),
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+
+        # lhEndPointsFileMat_in_t1 stores the coordinates in CRS (RAS) format. We need to convert these to real world coordinates (*sform) and then to LPS for ANTS.
+        sform: npt.NDArray = anatomical_info.get_sform() # type:ignore
+        lhEndPointsFileMat_in_t1_xyz = sform.dot(lhEndPointsFileMat_in_t1.T)
+        rhEndPointsFileMat_in_t1_xyz = sform.dot(rhEndPointsFileMat_in_t1.T)
+
+        # Now convert to LPS.
+        lhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(lhEndPointsFileMat_in_t1_xyz)
+        rhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(rhEndPointsFileMat_in_t1_xyz)
+
+        lhEndPointsFileMat_MNI152_xyz_warped: npt.NDArray = (
+            ants.apply_transforms_to_points(  # type:ignore
+                3,
+                pd.DataFrame(
+                    lhEndPointsFileMat_in_t1_xyz_lps.T,
+                    columns=["x", "y", "z", "t"],
+                ),
+                [str(nonlinearTransformationFile.resolve(strict=True))],
+                verbose=True,
+            )
+        ).to_numpy()
+        rhEndPointsFileMat_MNI152_xyz_warped: npt.NDArray = (
+            ants.apply_transforms_to_points(  # type:ignore
+                3,
+                pd.DataFrame(
+                    rhEndPointsFileMat_in_t1_xyz_lps.T,
+                    columns=["x", "y", "z", "t"],
+                ),
+                [str(nonlinearTransformationFile.resolve(strict=True))],
+                verbose=True,
+            )
+        ).to_numpy()
+
+        # Now revert back to RAS
+        lhEndPointsFileMat_MNI152_xyz_ras_warped = (
+            np.linalg.inv(T_RAS_to_LPS)
+            .dot(lhEndPointsFileMat_MNI152_xyz_warped.T)
+            .T
+        )
+        rhEndPointsFileMat_MNI152_xyz_ras_warped = (
+            np.linalg.inv(T_RAS_to_LPS)
+            .dot(rhEndPointsFileMat_MNI152_xyz_warped.T)
+            .T
+        )
+
+        # Now revert back to CRS
+        lhEndPointsFileMat_MNI152_ijk_ras_warped = (
+            np.linalg.inv(sform)
+            .dot(lhEndPointsFileMat_MNI152_xyz_ras_warped.T)
+            .T
+        )
+        rhEndPointsFileMat_MNI152_ijk_ras_warped = (
+            np.linalg.inv(sform)
+            .dot(rhEndPointsFileMat_MNI152_xyz_ras_warped.T)
+            .T
+        )
+
+        lhEndPointsFileMat_MNI152_warped = lhEndPointsFileMat_MNI152_ijk_ras_warped
+        rhEndPointsFileMat_MNI152_warped = rhEndPointsFileMat_MNI152_ijk_ras_warped
+
+        np.savetxt(
+            f"{lhEndPointsFile.replace('.mat', '_int1w_mni.csv')}",
+            lhEndPointsFileMat_MNI152_warped,
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+        np.savetxt(
+            f"{rhEndPointsFile.replace('.mat', '_int1w_mni.csv')}",
+            rhEndPointsFileMat_MNI152_warped,
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+        np.savetxt(
+            f"{destinationFile.replace('.trk', '_int1w_mni.csv')}",
+            np.vstack(
+                (lhEndPointsFileMat_MNI152_warped, rhEndPointsFileMat_MNI152_warped)
+            ),
+            delimiter=",",
+            header="x,y,z,t",
+            comments="",
+            fmt="%.6f",
+        )
+
+    return True
+
+
+def registerFibresToT1w(subjectId: str) -> bool:
+    import config
+
+    # Flip y dimension (LPS -> LAS)
+    # fslswapdim ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/whole_brain_in_T1w_acpc_dc_restore_brain_headers.tt.nii x -y z ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/whole_brain_in_T1w_acpc_dc_restore_brain_headers_negy.tt.nii
+
+    # Set sform to match T1w
+    # fslorient -setsform $(fslorient -getsform ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/aparc+aseg.nii.gz) ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/whole_brain_in_T1w_acpc_dc_restore_brain_headers_negy.tt.nii.gz
+
+    # Get tracts in MNINonLinear space
+    # applywarp -r ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/T1w.nii.gz -i ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/whole_brain_in_T1w_acpc_dc_restore_brain_headers_negy.tt.nii.gz -w ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/xfms/acpc_dc2standard.nii.gz -o ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/trks_warped_from_acpc.nii.gz -vv
+
+    # ? Now how to do this for coordinates?
+    # First, convert transform (FNIRT) in ANTS
+    # wb_command -convert-warpfield -from-fnirt ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/xfms/acpc_dc2standard.nii.gz ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/T1w_acpc_dc_restore.nii.gz -to-itk ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/xfms/acpc_dc2standard_ants.nii.gz
+
+    # Then apply the transformation to the coords
+    # antsApplyTransformsToPoints -d 3 -i ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/L_1m0.csv -o ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/Diffusion/L_1m0_warped.csv -t ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/xfms/acpc_dc2standard_ants.nii.gz -p
+
+    # For proof, you can visualise the same transform on images
+    # antsApplyTransforms -d 3 -i ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/T1w_acpc_dc_restore.nii.gz -r ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/T1w_restore.nii.gz -o ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/T1w/test.nii.gz -t ./HCIM/core/Human-Connectome-Investigating-Modularity/data/subjects/100206/MNINonLinear/xfms/acpc_dc2standard_ants.nii.gz
+    return True
 
 
 def registerDsiStudioTemplateToSubject(subjectId: str) -> bool:

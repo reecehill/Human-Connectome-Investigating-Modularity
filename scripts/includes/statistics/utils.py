@@ -36,14 +36,42 @@ def createLabelToRandomWordLookup(
 
     unique_labels_xory: set[int] = set(x.to_list() + y.to_list())
 
-    # Step 2: Create a dictionary to map each label to a random word
-    label_to_word_map_xory: "dict[int, str]" = {
-        label: random_word() for label in unique_labels_xory
-    }
+    def label_to_string(label: int) -> str:
+        """
+        Converts a label into a predictable string by encoding its digits.
 
-    # Step 3: For missing modules, make their labels "missing". (So we can easily identify them)
-    if -1 in unique_labels_xory:
-        label_to_word_map_xory[-1] = f"missing"
+        Each digit (1-9) is mapped to A-I, and 0 is mapped to Z.
+        For multi-digit numbers, the characters are concatenated in order.
+        """
+        encoding = {
+            -1: "Z",
+            0: "A",
+            1: "B",
+            2: "C",
+            3: "D",
+            4: "E",
+            5: "F",
+            6: "G",
+            7: "H",
+            8: "I",
+            9: "J",
+        }
+        if label == -1:
+            # Handle negative numbers by prefixing "NEG-" to the encoded digits
+            digits = [int(d) for d in str(abs(label))]
+            return "missing-" + "".join(encoding[d] for d in digits)
+        else:
+            digits = [int(d) for d in str(label)]
+            return "".join(encoding[d] for d in digits)
+
+    # Step 2: Create a dictionary to map each label to a predictable string
+    try:
+        label_to_word_map_xory: "dict[int, str]" = {
+            label: label_to_string(label) for label in unique_labels_xory
+        }
+    except Exception as e:
+        print(f"Error while creating label_to_word_map_xory: {e}")
+        return {}  # Return an empty dictionary in case of error.
 
     return label_to_word_map_xory
 
@@ -59,8 +87,9 @@ def convertNumericalModuleToWords(
 
 
 def convertNumericalModulesToWords(
-    x: "pd.Series[int]", y: "pd.Series[int]", dataIsMapped: bool = False
+    x: "pd.Series[int]", y: "pd.Series[int]", dataIsMapped: bool = False, mapName: str = "blankMapName"
 ) -> "tuple[pd.Series[str], pd.Series[str], dict[int, str]]":
+    import config
     if dataIsMapped:
         # Take from same dictionary of labels
         label_to_word_map_xory: dict[int, str] = createLabelToRandomWordLookup(x=x, y=y)
@@ -82,6 +111,11 @@ def convertNumericalModulesToWords(
     y_as_words: "pd.Series[str]" = convertNumericalModuleToWords(
         xory=y, label_to_word_map_xory=y_labels
     )
+
+    # Write the DataFrame to a CSV file without a header
+    df = pd.DataFrame(list(label_to_word_map_xory.items()), columns=["int", "str"])
+    map_csv = config.SUBJECT_DIR / "exported_modules" / f"map_{mapName}.csv"
+    df.to_csv(str(map_csv), index=False, header=False)
 
     return x_as_words, y_as_words, label_to_word_map_xory
 

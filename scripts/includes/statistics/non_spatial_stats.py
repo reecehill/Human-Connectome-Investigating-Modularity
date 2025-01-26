@@ -93,7 +93,7 @@ def runTests(
         # ------
 
         x_orig_words, y_orig_words, label_to_word_map_y = (
-            convertNumericalModulesToWords(x_orig, y_orig)
+            convertNumericalModulesToWords(x_orig, y_orig, mapName=f"orig_{config.CURRENT_TASK}")
         )
         mappedMatrixScores_orig_words = {
             label_to_word_map_y.get(int(old_key), old_key): value
@@ -102,7 +102,10 @@ def runTests(
 
         x_mapped_words, y_mapped_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
-                x=x_orig_mapped, y=y_orig_mapped, dataIsMapped=True
+                x=x_orig_mapped,
+                y=y_orig_mapped,
+                dataIsMapped=True,
+                mapName=f"mapped_{config.CURRENT_TASK}",
             )
         )
         mappedMatrixScores_mapped_words = {
@@ -111,7 +114,9 @@ def runTests(
         }
 
         x_cleaned_words, y_cleaned_words, label_to_word_map_y = (
-            convertNumericalModulesToWords(x_cleaned, y_cleaned)
+            convertNumericalModulesToWords(
+                x_cleaned, y_cleaned, mapName=f"cleaned_{config.CURRENT_TASK}"
+            )
         )
         mappedMatrixScores_cleaned_words = {
             label_to_word_map_y.get(int(old_key),old_key): value
@@ -120,7 +125,10 @@ def runTests(
 
         x_cleaned_mapped_words, y_cleaned_mapped_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
-                x_cleaned_mapped, y_cleaned_mapped, dataIsMapped=True
+                x_cleaned_mapped,
+                y_cleaned_mapped,
+                dataIsMapped=True,
+                mapName=f"cleaned_mapped_{config.CURRENT_TASK}",
             )
         )
         mappedMatrixScores_cleaned_mapped_words = {

@@ -68,7 +68,7 @@ subColor = getAtlasIndicesInGroups('subColor');
 ColorInd = atlas.anatomy;
 
 all_subroi = cumsum(subColor ~=8 & subColor ~= 47); %if cerebellar, count as 8 (lh) and 47 (rh).
-for i = 1:length(subColor)
+parfor i = 1:length(subColor)
     color = subColor(i);
     subroi = all_subroi(i);
     [r,u,v] = ind2sub(size(ColorInd),find(ColorInd==color));

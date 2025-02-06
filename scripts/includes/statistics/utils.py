@@ -27,6 +27,15 @@ def random_word(length=10):
 def createLabelToRandomWordLookup(
     x: "Optional[pd.Series[int]]" = None, y: "Optional[pd.Series[int]]" = None
 ) -> dict[int, str]:
+    def get_latest_label_to_word_map(
+        x: "pd.Series[Any]", y: "pd.Series[Any]"
+    ) -> "set[int]":
+        attrs = x.attrs.get("applied_handlers", y.attrs.get("applied_handlers", []))
+        for item in reversed(attrs):  # Check from the latest to earliest
+            if "metadata" in item and "label_to_word_map_xory" in item["metadata"]:
+                return item["metadata"]["label_to_word_map_xory"]
+        return set(x.to_list() + y.to_list())
+
     if x is None and y is None:
         raise ValueError("At least one of x or y must be provided.")
     if x is None:
@@ -34,7 +43,7 @@ def createLabelToRandomWordLookup(
     if y is None:
         y = pd.Series([], dtype=int)
 
-    unique_labels_xory: set[int] = set(x.to_list() + y.to_list())
+    unique_labels_xory: set[int] = get_latest_label_to_word_map(x, y)
 
     def label_to_string(label: int) -> str:
         """
@@ -83,13 +92,19 @@ def convertNumericalModuleToWords(
     xory_as_words: "pd.Series[str]" = pd.Series(
         [label_to_word_map_xory[label] for label in xory], index=xory.index
     )
+    xory_as_words.attrs = xory.attrs
     return xory_as_words
 
 
 def convertNumericalModulesToWords(
-    x: "pd.Series[int]", y: "pd.Series[int]", dataIsMapped: bool = False, mapName: str = "blankMapName"
+    x: "pd.Series[int]",
+    y: "pd.Series[int]",
+    dataIsMapped: bool = False,
+    mapName: str = "blankMapName",
 ) -> "tuple[pd.Series[str], pd.Series[str], dict[int, str]]":
+
     import config
+
     if dataIsMapped:
         # Take from same dictionary of labels
         label_to_word_map_xory: dict[int, str] = createLabelToRandomWordLookup(x=x, y=y)
@@ -117,10 +132,43 @@ def convertNumericalModulesToWords(
     map_csv = config.SUBJECT_DIR / "exported_modules" / f"map_{mapName}.csv"
     df.to_csv(str(map_csv), index=False, header=False)
 
+    x_as_words.attrs.update(
+        {
+            "dataset_descriptors": {
+                **x_as_words.attrs.get("dataset_descriptors", {}),
+                "data_type": "words",
+            },
+            "applied_handlers": x_as_words.attrs["applied_handlers"]
+            + [
+                {
+                    "name": "convertNumericalModulesToWords",
+                    "metadata": {"label_to_word_map_xory": label_to_word_map_xory},
+                }
+            ],
+        }
+    )
+
+    y_as_words.attrs.update(
+        {
+            "dataset_descriptors": {
+                **y_as_words.attrs.get("dataset_descriptors", {}),
+                "data_type": "words",
+            },
+            "applied_handlers": y_as_words.attrs["applied_handlers"]
+            + [
+                {
+                    "name": "convertNumericalModulesToWords",
+                    "metadata": {"label_to_word_map_xory": label_to_word_map_xory},
+                }
+            ],
+        }
+    )
     return x_as_words, y_as_words, label_to_word_map_xory
 
 
-def enlarge_mask_with_mode_priority(mask: "pd.Series[int]", n: int, mode_method: str):
+def enlarge_mask_with_mode_priority(
+    mask: "pd.Series[int]", n: int, mode_method: str
+) -> "pd.Series[int]":
     if n == 1:
         # No padding needed
         return mask
@@ -205,104 +253,161 @@ def mapAllModulesToSameSet(
     col_ind: list[int]
     x_mapped: Union[pd.Series[int], pd.Series[str]] = x.copy()
     y_mapped: Union[pd.Series[int], pd.Series[str]] = y.copy()
-    if mappedNames is None or mappedMatrixScores is None:
-        # Mapping has not been performed before.
-        mappingProvided = False
+    x_str: "pd.Series[str]" = x.astype(str)
+    y_str: pd.Series[str] = y.astype(str)
 
+    if mappedNames is None or mappedMatrixScores is None:
         # CONTINGENCY MATRIX
         # Get a matrix of occurrence of each module name
-        cont_matrix: npt.NDArray = cast(
-            npt.NDArray,
-            contingency_matrix(
-                labels_true=x.to_numpy(), labels_pred=y.to_numpy(), sparse=False
+        y_unique = np.unique(y_str.to_numpy()).astype(str)
+        x_unique = np.unique(x_str.to_numpy()).astype(str)
+
+        cont_matrix: pd.DataFrame = pd.DataFrame(
+            cast(
+                npt.NDArray,
+                contingency_matrix(
+                    labels_true=x_str.to_numpy(),
+                    labels_pred=y_str.to_numpy(),
+                    sparse=False,
+                ),
             ),
+            index=x_unique,
+            columns=y_unique,
         )
+
+        # We avoid mapping Y=-1 as this could prevent an optimal mapping of a good module
+        cont_matrix.drop(
+            np.array([-1]).astype(str).tolist(), inplace=True, errors="ignore", axis=0
+        )
+        cont_matrix.drop(
+            np.array([-1]).astype(str).tolist(), inplace=True, errors="ignore", axis=1
+        )
+
+        x_labels = cont_matrix.index.tolist()
+        y_labels = cont_matrix.columns.tolist()
+
         # Normalize both matrices and combine them into a cost matrix
-        max_contingency = cont_matrix.max() if cont_matrix.max() != 0 else 1
-        # Normalize contingency to 0-1 range
-        norm_cont_matrix = (1 - (cont_matrix / max_contingency)) / 3
-
-        # LEVENSHTEIN MATRIX
-        unique_x = pd.Series(x.unique())  # Unique labels in x
-        unique_y = pd.Series(y.unique())  # Unique labels in y
-        norm_lev_matrix: npt.NDArray[np.float64] = np.zeros(
-            (len(unique_x), len(unique_y))
-        )  # Initialize the matrix with zeros
-
-        g.logger.info(
-            "Computing normalised levenshtein distance for all possible module pairs"
+        max_contingency = (
+            np.max(cont_matrix.values) if np.max(cont_matrix.values) != 0 else 1
         )
-        # Populate the Levenshtein distance matrix
-        for i, x_label in enumerate(unique_x):
-            for j, y_label in enumerate(unique_y):
-                norm_lev_matrix[i, j] = np.float64(
-                    calculateNormalisedLevenshteinDistance(
-                        x=pd.Series(np.where(x == x_label, 1, 0)).astype(int),
-                        y=pd.Series(np.where(y == y_label, 1, 0)).astype(int),
-                    )
-                )
-        # max_lev_distance = norm_lev_matrix.max().max()
-        # norm_lev_matrix = (norm_lev_matrix / max_lev_distance) / 3
-        norm_lev_matrix = norm_lev_matrix / 3
+
+        # Normalize contingency to 0-1 range
+        # norm_cont_matrix = (1 - (cont_matrix / max_contingency)) / 2
+        norm_cont_matrix = 1 - (cont_matrix / max_contingency)
 
         # CENTROID DISTANCE MATRIX
-        centroid_distance_matrix = np.zeros(
-            (len(unique_x), len(unique_y))
+        centroid_distance_matrix = pd.DataFrame(
+            np.zeros(cont_matrix.shape, dtype=np.float64),
+            index=x_labels,
+            columns=y_labels,
         )  # Initialize the matrix with zeros
         g.logger.info(
             "Computing centroid Euclidean distance for all possible module pairs"
         )
+
         # Populate the centroid Euclidean distance matrix
-        for i, x_label in enumerate(unique_x):
-            for j, y_label in enumerate(unique_y):
-                centroid_distance_matrix[i, j], _, _ = calculateEuclidianDistance(
-                    centroid_coords=centroid_coords,
-                    x=x.where(x == x_label),
-                    y=y.where(y == y_label),
+        # Cache labels to avoid redundant calls
+
+        # Precompute masks for x and y
+        x_conditions = {label: (x_str == label) for label in x_labels}
+        y_conditions = {label: (y_str == label) for label in y_labels}
+
+        for x_label in x_labels:
+            for y_label in y_labels:
+                x_filtered = x_str.where(x_conditions[x_label])
+                y_filtered = y_str.where(y_conditions[y_label])
+
+                # Calculate the Euclidean distance
+                centroid_distance_matrix.at[x_label, y_label], _, _ = (
+                    calculateEuclidianDistance(
+                        centroid_coords=centroid_coords,
+                        x=x_filtered,
+                        y=y_filtered,
+                    )
                 )
+
         # Normalise the Euclidian distance matrix
         max_centroid_distance = centroid_distance_matrix.max().max()
-        norm_centroid_distance_matrix: npt.NDArray[np.float64] = (
+        norm_centroid_distance_matrix: pd.DataFrame = (
             centroid_distance_matrix / max_centroid_distance
-        ) / 3
+        )
 
         # Combine the contingency matrix, Levenshtein distance matrix, and centroid Euclidean distance matrix
         # Use Hungarian algorithm to find the optimal mapping between the two sets
         row_ind, col_ind = linear_sum_assignment(
             # NOTE: Matrices are divided by three previously so cost sum should be 1.
-            (1 * (norm_cont_matrix))
-            + (1 * norm_lev_matrix)
-            + (1 * norm_centroid_distance_matrix)
+            (1 * (norm_cont_matrix / 1))
+            # + (1 * norm_centroid_distance_matrix /2)
         )
         # Create a mapping of the modules
-        mapping = zip(row_ind, col_ind)
-
-        xLabels: "npt.NDArray" = x.unique()
-        yLabels: "npt.NDArray" = y.unique()
+        mapping = zip(cont_matrix.index[row_ind], cont_matrix.columns[col_ind])
         mappedNames = dict()
         mappedMatrixScores = dict()
-        norm_total_cost_matrix = (
-            norm_cont_matrix + norm_lev_matrix + norm_centroid_distance_matrix
-        )
-        for row, col in mapping:
-            mappedNames[f"{yLabels[col]}"] = f"{xLabels[row]}"
-            mappedMatrixScores[f"{yLabels[col]}"] = {
-                "norm_cont": float(norm_cont_matrix[row, col]),
-                "norm_lev": float(norm_lev_matrix[row, col]),
+        # norm_total_cost_matrix = norm_cont_matrix + norm_centroid_distance_matrix
+        norm_total_cost_matrix = norm_cont_matrix
+        for xLabel, yLabel in mapping:
+            pass
+            if f"{yLabel}" == "-1":
+                # Do not map missing values
+                xLabel = "-1"
+            mappedNames[f"{yLabel}"] = f"{xLabel}"
+            # Note we map according to X value (as if post-mapping)
+            mappedMatrixScores[f"{xLabel}"] = {
+                "norm_cont": float(norm_cont_matrix.at[xLabel, yLabel]),
                 "norm_centroid_distance": float(
-                    norm_centroid_distance_matrix[row, col]
+                    norm_centroid_distance_matrix.at[xLabel, yLabel]
                 ),
-                "norm_total_cost": float(norm_total_cost_matrix[row, col]),
+                "norm_total_cost": float(norm_total_cost_matrix.at[xLabel, yLabel]),
             }
+            pass
         pass
     else:
         pass
     # We must apply a previously acquired map to the data
-    for yModuleName, xModuleName in mappedNames.items():
-        if yModuleName == "-1":
-            # continue
-            xModuleName = f"missing"
-        y_mapped[y_mapped == yModuleName] = xModuleName
+    y_mapped = y_mapped.astype(str).map(mappedNames).fillna(y_mapped.astype(str))
+
+    if y_mapped.attrs["dataset_descriptors"]["data_type"] == "int":
+        # Ensure "1"(str) is cast back to 1(int).
+        y_mapped = y_mapped.astype(int)
+
+    x_mapped.attrs.update(
+        {
+            "dataset_descriptors": {
+                **x_mapped.attrs.get("dataset_descriptors", {}),
+                "dataset_name": "mapped",
+            },
+            "applied_handlers": x_mapped.attrs["applied_handlers"]
+            + [
+                {
+                    "name": "mapAllModulesToSameSet",
+                    "metadata": {
+                        "pre_handler_length": x_mapped.size,
+                        "mappedNames": mappedNames,
+                        "mappedMatrixScores": mappedMatrixScores,
+                    },
+                }
+            ],
+        }
+    )
+    y_mapped.attrs.update(
+        {
+            "dataset_descriptors": {
+                **y_mapped.attrs.get("dataset_descriptors", {}),
+                "dataset_name": "mapped",
+            },
+            "applied_handlers": y_mapped.attrs["applied_handlers"]
+            + [
+                {
+                    "name": "mapAllModulesToSameSet",
+                    "metadata": {
+                        "pre_handler_length": y_mapped.size,
+                        "mappedNames": mappedNames,
+                        "mappedMatrixScores": mappedMatrixScores,
+                    },
+                }
+            ],
+        }
+    )
     return mappedNames, x_mapped, y_mapped, mappedMatrixScores
 
 
@@ -419,3 +524,30 @@ def calculate_dice_coefficient(
 
     # Return the average Dice Coefficient across all labels
     return float(np.mean(dice_scores))
+
+
+def calculate_percent_identity(
+    labels_truth: "Union[pd.Series[str], pd.Series[int]]",
+    labels_pred: "Union[pd.Series[int], pd.Series[str]]",
+) -> "np.float64":
+    """
+    Calculate the percent identity between true labels and predicted labels.
+
+    Parameters:
+    labels_truth (pd.Series[str] or pd.Series[int]): The ground truth labels.
+    labels_pred (pd.Series[str] or pd.Series[int]): The predicted labels.
+
+    Returns:
+    np.float64: The percent identity as a float64 value.
+    """
+    # Ensure both Series have the same shape
+    if labels_truth.shape != labels_pred.shape:
+        raise ValueError("labels_truth and labels_pred must have the same shape.")
+
+    # Calculate the number of matches
+    matches = (labels_truth == labels_pred).sum()
+
+    # Calculate the percent identity
+    percent_identity_value = (matches / len(labels_truth))
+
+    return np.float64(percent_identity_value)

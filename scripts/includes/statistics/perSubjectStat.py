@@ -1,5 +1,6 @@
 # Re-importing necessary libraries and preparing data again
 import numpy as np
+from includes.visualisation.plot_timeline import plot_timeline
 import modules.globals as g
 import pandas as pd
 import config
@@ -21,28 +22,43 @@ def perSubjectStat(
     # Prepare results storage
     results_x_truth_with_range: "list[ResultRowSubjectWide]" = []
     results_y_truth_with_range: "list[ResultRowSubjectWide]" = []
+    random_x = pd.Series()
+    random_y = pd.Series()
 
     # --- SUBJECT-WIDE TESTS [START] ---
     # Run tests for X as truth
     for test_name, test_func in test_functions_with_range:
         try:
             score_x_defined: Float = test_func(x_final, y_final)
+
+            y_probabilities: pd.Series[float] = y_final.value_counts(normalize=True)
+            random_y = pd.Series(
+                g.randomGen.choice(
+                    y_probabilities.index,
+                    size=y_final.size,
+                    p=y_probabilities.to_numpy(),
+                ),
+                index=y_final.index,
+            ).astype(y_final.dtype)
+            random_y.attrs = y_final.attrs
+
             score_x_imported_random_y: Float = test_func(
                 x_final,
-                pd.Series(
-                    g.randomGen.choice(
-                        a=y_final,
-                        size=len(x_final),
-                    ),
-                ).astype(y_final.dtype),
+                random_y,
             )
+
+            x_probabilities: pd.Series[float] = x_final.value_counts(normalize=True)
+            random_x = pd.Series(
+                g.randomGen.choice(
+                    x_probabilities.index,
+                    size=x_final.size,
+                    p=x_probabilities.to_numpy(),
+                ),
+                index=x_final.index,
+            ).astype(x_final.dtype)
+            random_x.attrs = x_final.attrs
             score_x_random_y_imported: Float = test_func(
-                pd.Series(
-                    g.randomGen.choice(
-                        a=x_final,
-                        size=len(x_final),
-                    ),
-                ).astype(x_final.dtype),
+                random_x,
                 y_final,
             )
 
@@ -70,22 +86,36 @@ def perSubjectStat(
     for test_name, test_func in test_functions_with_range:
         try:
             score_y_defined = test_func(y_final, x_final)
+
+            x_probabilities: pd.Series[float] = x_final.value_counts(normalize=True)
+            random_x = pd.Series(
+                g.randomGen.choice(
+                    x_probabilities.index,
+                    size=x_final.size,
+                    p=x_probabilities.to_numpy(),
+                ),
+                index=x_final.index,
+            ).astype(x_final.dtype)
+            random_x.attrs = x_final.attrs
+
             score_y_imported_random_x = test_func(
                 y_final,
-                pd.Series(
-                    g.randomGen.choice(
-                        a=x_final,
-                        size=len(x_final),
-                    ),
-                ).astype(x_final.dtype),
+                random_x,
             )
+
+            y_probabilities: pd.Series[float] = y_final.value_counts(normalize=True)
+            random_y = pd.Series(
+                g.randomGen.choice(
+                    y_probabilities.index,
+                    size=y_final.size,
+                    p=y_probabilities.to_numpy(),
+                ),
+                index=y_final.index,
+            ).astype(y_final.dtype)
+            random_y.attrs = y_final.attrs
+
             score_y_random_x_imported = test_func(
-                pd.Series(
-                    g.randomGen.choice(
-                        a=y_final,
-                        size=len(y_final),
-                    ),
-                ).astype(y_final.dtype),
+                random_y,
                 x_final,
             )
 
@@ -125,6 +155,14 @@ def perSubjectStat(
             )
 
         # Convert results to DataFrames
+
+    # For demo purposes, make a timeline plot of random.
+    plot_timeline(
+        x_final, random_y, title=f"Real X, Random Y - perSubject[{datasetDescriptor}]"
+    )
+    plot_timeline(
+        random_x, y_final, title=f"Random X, Real Y - perSubject[{datasetDescriptor}]"
+    )
 
     # For tests not requiring truth, take x.
     dfXTruthWithRange, dfYTruthWithRange = convertSubjectWideResultsToDataFrames(

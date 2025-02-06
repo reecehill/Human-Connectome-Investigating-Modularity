@@ -1,11 +1,13 @@
 # Re-importing necessary libraries and preparing data again
-from typing import Dict, Union, cast
+from typing import Any, Dict, List, Literal, Union, cast
 import numpy as np
 from includes.statistics.nan_handlers import white_noise
 from includes.statistics.testFunctions import pad_indexes
+from includes.visualisation.plot_timeline import plot_timeline
 import modules.globals as g
 import pandas as pd
 import config
+from includes.statistics.clean_data import clean_data
 from includes.statistics import (
     test_ranges,
     test_functions_with_range,
@@ -13,12 +15,10 @@ from includes.statistics import (
     convertModuleWideResultsToDataFrames,
 )
 from includes.statistics.testVariables import Float, ResultRowModuleWide, XYZDict
-from includes.statistics.utils import (
-    calculateEuclidianDistance,
-    calcModuleSizes
-)
+from includes.statistics.utils import calculateEuclidianDistance, calcModuleSizes
 from includes.stepper.functions import allStepsAreSuccessful
 from includes.statistics.save_results import save_results
+
 
 def getModuleXNameFromModuleYName(
     x_final: "pd.Series[str]",
@@ -43,22 +43,74 @@ def getModuleXNameFromModuleYName(
     return x_module_name
 
 
+def transformMappedMatrixScores(
+    y: "pd.Series[Any]",
+    mappedMatrixScores: "Dict[str, Dict[str, float]]",
+) -> "Dict[str, Dict[str, float]]":
+    # Matrix scores are stored in a dictionary using keys equal to the name of Y modules at the time. Following mapping, these may have changed. Hence, we remap the matrix to conform to the new Y names. We loop, in reverse order, through changes to the dataset until we arrive at mapAllModulesToSameSet (which should only be applied to the set once!)
+
+    y_applied_handlers: list[Dict[str, Any]] = y.attrs.get("applied_handlers", [])
+
+    # Check specifically for 'mapAllModulesToSameSet' duplication
+    handlers_used = np.array([handler["name"] for handler in y_applied_handlers])
+    if np.count_nonzero(handlers_used == "mapAllModulesToSameSet") != 1:
+        raise ValueError("Must apply 'mapAllModulesToSameSet' once to a dataset.")
+
+    # Find the index of 'mapAllModulesToSameSet', so we can apply transformations from this point.
+    mapper_is_applied_from = np.argmax(handlers_used == "mapAllModulesToSameSet")
+
+    for y_applied_handler in y_applied_handlers[mapper_is_applied_from + 1 :]:
+        if y_applied_handler["name"] == "convertNumericalModulesToWords":
+            # Map the matrix scores to the new Y module names.
+            mapping = y_applied_handler["metadata"]["label_to_word_map_xory"].items()
+            pass
+
+    return mappedMatrixScores
+
+
 def perModuleStat(
     datasetDescriptor: str,
-    x_final: "pd.Series[str]",
-    y_final: "pd.Series[str]",
+    x_final: "Union[pd.Series[str],pd.Series[int]]",
+    y_final: "Union[pd.Series[str],pd.Series[int]]",
     x: "Union[pd.Series[str],pd.Series[int]]",
     y: "Union[pd.Series[str],pd.Series[int]]",
     xy_surface_areas: "pd.DataFrame",
     centroid_coords: "pd.DataFrame",
     mappedMatrixScores: "Dict[str, Dict[str, float]]",
 ) -> None:
+    
+    _x_cleaned_mapped_modules, _y_cleaned_mapped_modules = clean_data(
+            nan_handlers=[
+                # "mask_removeMissing",
+                "get_main_fn_module_by_topology",
+                "filter_by_parent",
+            ],
+            x=x_final,
+            y=y_final,
+            orig_x=x,  # Used to pass original x to filter_by_parent
+            xRetrievalMethod="getMode",
+            centroid_coords=centroid_coords,
+        )
+    x_cleaned_mapped_modules: "pd.Series[int]" = cast(
+            "pd.Series[int]", _x_cleaned_mapped_modules
+        )
+    y_cleaned_mapped_modules: "pd.Series[int]" = cast(
+            "pd.Series[int]", _y_cleaned_mapped_modules
+        )
+    del _x_cleaned_mapped_modules, _y_cleaned_mapped_modules
+
+    x_final = x_cleaned_mapped_modules.astype(str)
+    y_final = y_cleaned_mapped_modules.astype(str)
+
     # --- MODULE-SPECIFIC TESTS [START] ---
-    y_module_names: "pd.Series[str]" = y_final.drop_duplicates()
+    y_module_names: "pd.Series[str]" = y_final.drop_duplicates().astype(str)
+    # transformMappedMatrixScores(y=y_final, mappedMatrixScores=mappedMatrixScores)
+    random_x = pd.Series()
+    random_y = pd.Series()
 
     for _, y_module_name in enumerate(y_module_names):
         # Looping through each Y module.
-        if y_module_name == "missing":
+        if any(substring in y_module_name for substring in ["missing", "-1", "nan"]):
             # Do not process missing fMRI modules and proceed to next module.
             continue
 
@@ -68,53 +120,53 @@ def perModuleStat(
 
         # ------
         # Get current Y module
-        # NB: This works because indexes persist as we constrain the vector.
+        # NB: This works because indexes persist despite constraining the vector.
         # ------
-        orig_y_module: "pd.Series[str]" = y_final.where(y_final == y_module_name)
+        orig_y_module: "pd.Series[str]" = y_final.where(
+            y_final == y_module_name
+        ).dropna()
 
-        x_module_name = getModuleXNameFromModuleYName(
-            x_final=x_final,
-            orig_y_module=orig_y_module,
-            y_module_name=y_module_name,
-            useModeMethod="mapped" not in datasetDescriptor,
-        )
+        if "mapped" not in datasetDescriptor:
+            x_module_name = getModuleXNameFromModuleYName(
+                x_final=x_final,
+                orig_y_module=orig_y_module,
+                y_module_name=y_module_name,
+                useModeMethod=True,
+            )
+            pass
+        else:
+            x_module_name = (
+                y_module_name  # For mapped data, we use Y module name as X module name.
+            )
+
+        orig_x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
 
         # With the optimal x-y pair found within our filtered x and y, we now get pre-filtered x (to expose missing y values that were removed by masking).
-        x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
+        x_final_module, y_final_module_within_x = clean_data(
+            nan_handlers=[
+                "filter_by_parent",
+            ],
+            x=x_final,  # type: ignore
+            y=orig_y_module,  # type: ignore
+            orig_x=x,
+            xRetrievalMethod="getMode",
+            title="final_module_hard_masked",
+            hardMask=True,
+        )
+        x_final_module.dropna(inplace=True)
+        y_final_module_within_x.dropna(inplace=True)
 
-        # Check if the Series contains only NaN values
-        if x_module.isna().all():
-            # The y module name only maps to NaN of x modules, so we cannot assume mapping and thus stats are skipped.
-            x_final_module = pd.Series([], dtype=int)
-            y_final_module_within_x = orig_y_module
-        else:
-            x_module_orig: "Union[pd.Series[str], pd.Series[int]]" = x[
-                x_module.dropna().index
-            ]
-            x_module_orig_unique = x_module_orig.unique()
-            if x_module_orig_unique.size == 1:
-                x_module_name_orig: int = x_module_orig.values[0]
-            else:
-                g.logger.error(
-                    "X module is not unique. Explicit logic for this edge case is required. X modules found: ["
-                    + ", ".join(str(moduleName) for moduleName in x_module_orig_unique)
-                    + "]"
-                )
-                x_module_name_orig = -50 # do not match as no module name reliable.
-                # raise ValueError("X module is not unique, or is possibly empty. Statistics for this subject skipped.")
+        # Ensure type consistency as clean_data returns pd.Series[int]
+        if pd.api.types.infer_dtype(y_final) == "string":
+            y_final_module_within_x = y_final_module_within_x.replace(-1, "missing-B")
 
-            x_final_module: "Union[pd.Series[str], pd.Series[int]]" = x.where(
-                x == x_module_name_orig
-            )
-
-            y_final_module_within_x: "Union[pd.Series[str], pd.Series[int]]" = y.where(
-                y.index.isin(x_final_module[x_final_module.notna()].index)
-            )
+        if pd.api.types.infer_dtype(x_final) == "string":
+            x_final_module = x_final_module.replace(-1, "missing-B")
 
         # Calculate module surface areas, including relative x-y SA (y divided by x)
-        x_module_sa, y_module_sa, ydivx_modula_sa = calcModuleSizes(
-            x_final_module.dropna(),
-            orig_y_module.dropna(),
+        x_module_sa, y_module_sa, ydivx_module_sa = calcModuleSizes(
+            x_final_module,
+            orig_y_module,
             xy_surface_areas.to_numpy().flatten(),
         )
 
@@ -167,19 +219,23 @@ def perModuleStat(
         x_final_module_centroid: XYZDict
         y_final_module_within_x_centroid: XYZDict
         centroid_distance, x_final_module_centroid, y_final_module_within_x_centroid = (
-            calculateEuclidianDistance(centroid_coords=centroid_coords, x=x_final_module, y=orig_y_module)
+            calculateEuclidianDistance(
+                centroid_coords=centroid_coords,
+                x=x_final_module,
+                y=orig_y_module,
+            )
         )
 
         if isinstance(x_final_module, pd.Series):
             if x_final_module.dtype == "object":
-                x_final_module.fillna("missing", inplace=True)
-                y_final_module_within_x.fillna("missing", inplace=True)
+                x_final_module.fillna("missing-B", inplace=True)
+                y_final_module_within_x.fillna("missing-B", inplace=True)
             elif pd.api.types.is_integer_dtype(x_final_module):
                 x_final_module.fillna(-1, inplace=True)
                 y_final_module_within_x.fillna(-1, inplace=True)
             else:
                 raise ValueError(
-                    f"Invalid data typee for x_final_module: {x_final_module.dtype}"
+                    f"Invalid data type for x_final_module: {x_final_module.dtype}"
                 )
         else:
             raise ValueError(
@@ -194,23 +250,35 @@ def perModuleStat(
                     x_final_module, y_final_module_within_x
                 )
 
+                y_probabilities: pd.Series[float] = y_final.value_counts(normalize=True)
+                random_y = pd.Series(
+                    g.randomGen.choice(
+                        y_probabilities.index,
+                        size=y_final_module_within_x.size,
+                        p=y_probabilities.to_numpy(),
+                    ),
+                    index=y_final_module_within_x.index,
+                ).astype(y_final_module_within_x.dtype)
+                random_y.attrs = y_final_module_within_x.attrs
+
                 score_x_imported_random_y: Float = test_func(
                     x_final_module,
-                    pd.Series(
-                        g.randomGen.choice(
-                            a=y.unique(),
-                            size=y_final_module_within_x.size,
-                        ),
-                    ).astype(y_final_module_within_x.dtype),
+                    random_y,
                 )
 
+                x_probabilities: pd.Series[float] = x_final.value_counts(normalize=True)
+                random_x = pd.Series(
+                    g.randomGen.choice(
+                        x_probabilities.index,
+                        size=x_final_module.size,
+                        p=x_probabilities.to_numpy(),
+                    ),
+                    index=x_final_module.index,
+                ).astype(x_final_module.dtype)
+                random_x.attrs = x_final_module.attrs
+
                 score_x_random_y_imported: Float = test_func(
-                    pd.Series(
-                        g.randomGen.choice(
-                            a=x.unique(),
-                            size=y_final_module_within_x.size,
-                        ),
-                    ).astype(x_final_module.dtype),
+                    random_x,
                     y_final_module_within_x,
                 )
 
@@ -225,15 +293,16 @@ def perModuleStat(
                         x_module_name,
                         y_module_name,
                         x_module_sa,
+                        x_final_module.size,
                         y_module_sa,
-                        ydivx_modula_sa,
+                        orig_y_module.size,
+                        ydivx_module_sa,
                         x_final_module_centroid,
                         y_final_module_within_x_centroid,
                         centroid_distance,
-                        mappedMatrixScores[y_module_name]['norm_centroid_distance'],
-                        mappedMatrixScores[y_module_name]['norm_cont'],
-                        mappedMatrixScores[y_module_name]['norm_lev'],
-                        mappedMatrixScores[y_module_name]['norm_total_cost'],
+                        mappedMatrixScores[y_module_name]["norm_centroid_distance"],
+                        mappedMatrixScores[y_module_name]["norm_cont"],
+                        mappedMatrixScores[y_module_name]["norm_total_cost"],
                         f"{test_name} - X as Truth",
                         score_x_defined,
                         score_x_imported_random_y,
@@ -248,27 +317,44 @@ def perModuleStat(
                 # Run tests for Y as truth
 
             # Run tests for Y as truth
+
+        # For demo purposes, make a timeline plot of random.
+        plot_timeline(x_final_module, random_y, title="Real X, Random Y - perModule")
+        plot_timeline(
+            random_x, y_final_module_within_x, title="Random X, Real Y - perModule"
+        )
+
         # Run tests for Y as truth
         for test_name, test_func in test_functions_with_range:
             try:
                 score_y_defined = test_func(y_final_module_within_x, x_final_module)
 
-                score_y_imported_random_x = test_func(
-                    y_final_module_within_x,
-                    pd.Series(
-                        g.randomGen.choice(
-                            a=x.unique(),
-                            size=y_final_module_within_x.size,
-                        ),
-                    ).astype(x_final_module.dtype),
-                )
+                x_probabilities: pd.Series[float] = x_final.value_counts(normalize=True)
+                random_x = pd.Series(
+                    g.randomGen.choice(
+                        x_probabilities.index,
+                        size=x_final_module.size,
+                        p=x_probabilities.to_numpy(),
+                    ),
+                    index=x_final_module.index,
+                ).astype(x_final_module.dtype)
+                random_x.attrs = x_final_module.attrs
+
+                score_y_imported_random_x = test_func(y_final_module_within_x, random_x)
+
+                y_probabilities: pd.Series[float] = y_final.value_counts(normalize=True)
+                random_y = pd.Series(
+                    g.randomGen.choice(
+                        y_probabilities.index,
+                        size=y_final_module_within_x.size,
+                        p=y_probabilities.to_numpy(),
+                    ),
+                    index=y_final_module_within_x.index,
+                ).astype(y_final_module_within_x.dtype)
+                random_y.attrs = y_final_module_within_x.attrs
+
                 score_y_random_x_imported = test_func(
-                    pd.Series(
-                        g.randomGen.choice(
-                            a=y.unique(),
-                            size=x_final_module.size,
-                        ),
-                    ).astype(y_final_module_within_x.dtype),
+                    random_y,
                     x_final_module,
                 )
 
@@ -283,14 +369,15 @@ def perModuleStat(
                         x_module_name,
                         y_module_name,
                         x_module_sa,
+                        x_final_module.size,
                         y_module_sa,
-                        ydivx_modula_sa,
+                        orig_y_module.size,
+                        ydivx_module_sa,
                         x_final_module_centroid,
                         y_final_module_within_x_centroid,
                         centroid_distance,
                         mappedMatrixScores[y_module_name]["norm_centroid_distance"],
                         mappedMatrixScores[y_module_name]["norm_cont"],
-                        mappedMatrixScores[y_module_name]["norm_lev"],
                         mappedMatrixScores[y_module_name]["norm_total_cost"],
                         f"{test_name} - Y as Truth",
                         score_y_defined,
@@ -313,11 +400,12 @@ def perModuleStat(
                         x_module_name,
                         y_module_name,
                         x_module_sa,
+                        x_final_module.size,
                         y_module_sa,
-                        ydivx_modula_sa,
+                        orig_y_module.size,
+                        ydivx_module_sa,
                         {"x": 0, "y": 0, "z": 0},
                         {"x": 0, "y": 0, "z": 0},
-                        np.nan,
                         np.nan,
                         np.nan,
                         np.nan,

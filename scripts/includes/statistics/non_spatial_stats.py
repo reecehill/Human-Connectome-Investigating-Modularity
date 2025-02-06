@@ -1,9 +1,10 @@
 # Re-importing necessary libraries and preparing data again
 from typing import Dict, Union, cast
+
+from includes.visualisation.plot_timeline import plot_timeline
 import modules.globals as g
 import pandas as pd
 import numpy as np
-import numpy.typing as npt
 from includes.statistics.perModuleStat import perModuleStat
 from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
@@ -19,9 +20,10 @@ def runTests(
     pathToXCsv: Path,
     pathToYCsv: Path,
     pathToXYSurfaceAreas: Path,
-    pathToCentroidCoords: Path
+    pathToCentroidCoords: Path,
 ) -> bool:
     import config
+
     result = False
     try:
         x_raw: pd.DataFrame = pd.read_csv(
@@ -43,23 +45,54 @@ def runTests(
             keep_default_na=True,
         ).T
 
+
         # We begin by standardising what "missing" data looks like (set it to -1).
-        x_orig: "pd.Series[int]" = x_raw[0].replace(
-            to_replace=[np.nan, -1, 0],
-            value=-1,
-            inplace=False,
+        x_orig = x_raw[0].replace([np.nan, -1, 0], -1)
+        x_orig.attrs.update(
+            {
+                "applied_handlers": x_orig.attrs.get("applied_handlers", [])
+                + [
+                    {
+                        "name": "read_csv",
+                        "metadata": {"pre_handler_length": x_orig.size},
+                    }
+                ],
+                "dataset_descriptors": {
+                    "dataset_name": "orig",
+                    "data_type": "int",
+                    "subject_id": config.CURRENT_SUBJECT,
+                    "task": config.CURRENT_TASK,
+                    "hemisphere": config.CURRENT_HEMISPHERE,
+                },
+            }
         )
-        y_orig: "pd.Series[int]" = y_raw[0].replace(
-            to_replace=[np.nan, -1, 0, 1], value=-1, inplace=False
+
+        y_orig = y_raw[0].replace([np.nan, -1, 0, 1], -1)
+        y_orig.attrs.update(
+            {
+                "dataset_descriptors": {
+                    "dataset_name": "orig",
+                    "subject_id": config.CURRENT_SUBJECT,
+                    "data_type": "int",
+                    "task": config.CURRENT_TASK,
+                    "hemisphere": config.CURRENT_HEMISPHERE,
+                },
+                "applied_handlers": y_orig.attrs.get("applied_handlers", [])
+                + [
+                    {
+                        "name": "read_csv",
+                        "metadata": {"pre_handler_length": y_orig.size},
+                    }
+                ],
+            }
         )
 
         # ------
         # Map x and y to same set
-        # NB: This uses Hungarian algorith to map modules to the same set of words.
+        # NB: This uses Hungarian algorithm to map modules to the same set of words.
         # ?This may introduce some artefacts into the data (i.e., inappropriate mapping)
         # We map once using the complete dataset, then apply this mapping to subsets.
         # ------
-
         # Map the cleaned words to the same set.
         orig_mapping: "dict[str,str]"
         mappedMatrixScores: "Dict[str, Dict[str, float]]"
@@ -69,47 +102,52 @@ def runTests(
 
         x_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_orig_mapped)
         y_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_orig_mapped)
+        del _x_orig_mapped, _y_orig_mapped
+
+        # ------
+        # There are now two datasets: mapped and unmapped.
+        # The statistics that can be calculated on each are different owing to their different labelling.
+        # ------
+
+        # ----------------------------------------------------------------
+        # Handle unmapped dataset.
+        # 1. Smooth structural and functional modules.
+        # 2. Convert pd.Series[int] -> pd.Series[str]
+        # ----------------------------------------------------------------
 
         # ------
         # Mask, or smooth module names.
         # ------
         # Clean original data.
+
         _x_cleaned, _y_cleaned = clean_data(
-            nan_handler="filter_by_parent", x=x_orig, y=y_orig
+            nan_handlers=[
+                "mask_removeMissing",
+                # "get_main_fn_module_by_topology",
+                "filter_by_parent",
+            ],
+            x=x_orig,
+            y=y_orig,
+            orig_x=x_orig_mapped,  # Used to pass original x to filter_by_parent
+            # xRetrievalMethod="getMode",
+            # centroid_coords=centroid_coords,
         )
         x_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned)
         y_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned)
+        del _x_cleaned, _y_cleaned
 
-        # Clean mapped data.
-        _x_cleaned_mapped, _y_cleaned_mapped = clean_data(
-            nan_handler="filter_by_parent", x=x_orig_mapped, y=y_orig_mapped
-        )
-        x_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned_mapped)
-        y_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned_mapped)
-
-        # ------
+        # -----
         # Convert pd.Series[int] => pd.Series[str]
         # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
         # ------
-
+        # Convert original mapped data to words. (For comparison only.)
         x_orig_words, y_orig_words, label_to_word_map_y = (
-            convertNumericalModulesToWords(x_orig, y_orig, mapName=f"orig_{config.CURRENT_TASK}")
+            convertNumericalModulesToWords(
+                x_orig_mapped, x_orig_mapped, mapName=f"orig_{config.CURRENT_TASK}"
+            )
         )
         mappedMatrixScores_orig_words = {
             label_to_word_map_y.get(int(old_key), old_key): value
-            for old_key, value in mappedMatrixScores.items()
-        }
-
-        x_mapped_words, y_mapped_words, label_to_word_map_y = (
-            convertNumericalModulesToWords(
-                x=x_orig_mapped,
-                y=y_orig_mapped,
-                dataIsMapped=True,
-                mapName=f"mapped_{config.CURRENT_TASK}",
-            )
-        )
-        mappedMatrixScores_mapped_words = {
-            label_to_word_map_y.get(int(old_key),old_key): value
             for old_key, value in mappedMatrixScores.items()
         }
 
@@ -119,7 +157,52 @@ def runTests(
             )
         )
         mappedMatrixScores_cleaned_words = {
-            label_to_word_map_y.get(int(old_key),old_key): value
+            label_to_word_map_y.get(int(old_key), old_key): value
+            for old_key, value in mappedMatrixScores.items()
+        }
+
+        # ----------------------------------------------------------------
+        # Handle mapped dataset.
+        # 1. Smooth structural and functional modules.
+        # 2. Convert pd.Series[int] -> pd.Series[str]
+        # ----------------------------------------------------------------
+        # ------
+        # Mask, or smooth module names.
+        # ------
+        # Clean original data.
+        # Clean mapped data.
+        _x_cleaned_mapped, _y_cleaned_mapped = clean_data(
+            nan_handlers=[
+                "mask_removeMissing",
+                "get_main_fn_module_by_topology",
+                "filter_by_parent",
+            ],
+            x=x_orig_mapped,
+            y=y_orig_mapped,
+            orig_x=x_orig_mapped,  # Used to pass original x to filter_by_parent
+            xRetrievalMethod="getMode",
+            centroid_coords=centroid_coords,
+        )
+        x_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned_mapped)
+        y_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned_mapped)
+        del _x_cleaned_mapped, _y_cleaned_mapped
+
+        # ------
+        # Convert pd.Series[int] => pd.Series[str]
+        # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
+        # ------
+        x_mapped_words, y_mapped_words, label_to_word_map_y = (
+            convertNumericalModulesToWords(
+                x=x_orig_mapped,
+                y=y_orig_mapped,
+                dataIsMapped=True,
+                mapName=f"mapped_{config.CURRENT_TASK}",
+            )
+        )
+        mappedMatrixScores_mapped_words = {
+            label_to_word_map_y.get(
+                int(old_key), f"KeyNotFoundInIntToStringMap-{old_key}"
+            ): value
             for old_key, value in mappedMatrixScores.items()
         }
 
@@ -132,7 +215,7 @@ def runTests(
             )
         )
         mappedMatrixScores_cleaned_mapped_words = {
-            label_to_word_map_y.get(int(old_key),old_key): value
+            label_to_word_map_y.get(int(old_key), old_key): value
             for old_key, value in mappedMatrixScores.items()
         }
 
@@ -149,95 +232,68 @@ def runTests(
             )
 
         # For visualisation purposes, save the new x and y.
-        x_cleaned.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_{pathToXCsv.name}",
-            index=True,
-            header=False,
-        )
-        x_cleaned_mapped.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_mapped_{pathToXCsv.name}",
-            index=True,
-            header=False,
-        )
-        x_cleaned_words.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_words_{pathToXCsv.name}",
-            index=True,
-            header=False,
-        )
+        for descriptor, x, y in [
+            ("orig", x_orig, y_orig),
+            ("orig_mapped", x_orig_mapped, y_orig_mapped),
+            ("orig_words", x_orig_words, y_orig_words),
+            ("mapped_words", x_mapped_words, y_mapped_words),
+            ("cleaned", x_cleaned, y_cleaned),
+            ("cleaned_words", x_cleaned_words, y_cleaned_words),
+            ("cleaned_mapped", x_cleaned_mapped, y_cleaned_mapped),
+            ("cleaned_mapped_words", x_cleaned_mapped_words, y_cleaned_mapped_words),
+        ]:
+            x: "pd.Series[Union[int,str]]"
+            y: "pd.Series[Union[int,str]]"
+            plot_timeline(x=x, y=y)
+            x.to_csv(
+                config.SUBJECT_STAT_DIR
+                / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+                / "datasets"
+                / f"{descriptor}_{pathToXCsv.name}",
+                index=True,
+                header=False,
+            )
+            y.to_csv(
+                config.SUBJECT_STAT_DIR
+                / f"{config.CURRENT_HEMISPHERE}_hemisphere"
+                / "datasets"
+                / f"{descriptor}_{pathToYCsv.name}",
+                index=True,
+                header=False,
+            )
 
-        y_cleaned.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_{pathToYCsv.name}",
-            index=True,
-            header=False,
-        )
-        y_cleaned_mapped.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_mapped_{pathToYCsv.name}",
-            index=True,
-            header=False,
-        )
-        y_cleaned_words.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_words_{pathToYCsv.name}",
-            index=True,
-            header=False,
-        )
-        x_cleaned_mapped_words.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_mapped_words_{pathToXCsv.name}",
-            index=True,
-            header=False,
-        )
-        y_cleaned_mapped_words.to_csv(
-            config.SUBJECT_STAT_DIR
-            / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-            / "datasets"
-            / f"cleaned_mapped_words_{pathToYCsv.name}",
-            index=True,
-            header=False,
-        )
-
-        # TODO: For some reason -> the stats show no improvement in performance for modules against randomised data. This is impossible.
         perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)
         perSubjectStat(
             "cleaned_words_mapped", x_cleaned_mapped_words, y_cleaned_mapped_words
         )
 
+        # perModuleStat(
+        #     datasetDescriptor="cleaned_words",
+        #     x_final=x_cleaned_words,
+        #     y_final=y_cleaned_words,
+        #     x=x_orig_words,
+        #     y=y_orig_words,
+        #     xy_surface_areas=xy_surface_area,
+        #     centroid_coords=centroid_coords,
+        #     mappedMatrixScores=mappedMatrixScores_cleaned_words,
+        # )
         perModuleStat(
-            datasetDescriptor="cleaned_words",
-            x_final=x_cleaned_words,
-            y_final=y_cleaned_words,
-            x=x_orig_words,
-            y=y_orig_words,
+            datasetDescriptor="mapped_words",
+            x_final=x_mapped_words.copy(),
+            y_final=y_mapped_words.copy(),
+            x=x_mapped_words.copy(),
+            y=y_mapped_words.copy(),
             xy_surface_areas=xy_surface_area,
             centroid_coords=centroid_coords,
-            mappedMatrixScores=mappedMatrixScores_cleaned_words,
+            mappedMatrixScores=mappedMatrixScores_mapped_words,
         )
         perModuleStat(
             datasetDescriptor="cleaned_words_mapped",
-            x_final=x_cleaned_mapped_words,
-            y_final=y_cleaned_mapped_words,
+            x_final=x_cleaned_mapped_words.copy(),
+            y_final=y_cleaned_mapped_words.copy(),
+            x=x_mapped_words.copy(),
+            y=y_mapped_words.copy(),
             xy_surface_areas=xy_surface_area,
-            x=x_mapped_words,
-            y=y_mapped_words,
             centroid_coords=centroid_coords,
             mappedMatrixScores=mappedMatrixScores_cleaned_mapped_words,
         )

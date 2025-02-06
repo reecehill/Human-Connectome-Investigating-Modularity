@@ -1,4 +1,4 @@
-from typing import Callable, Optional, TypedDict, Union
+from typing import Callable, Optional, TypedDict, Union, cast
 from sklearn.metrics import (
     mutual_info_score,
     normalized_mutual_info_score,
@@ -10,6 +10,7 @@ from sklearn.metrics import (
     cohen_kappa_score,
     hamming_loss,
     accuracy_score,
+    jaccard_score,
 )
 import numpy as np
 import pandas as pd
@@ -20,7 +21,15 @@ from includes.statistics.utils import (
     calculateLevenshteinDistance,
     calculateNormalisedLevenshteinDistance,
     calculate_dice_coefficient,
+    calculate_percent_identity,
 )
+
+# Wrapper function to ensure a float is returned
+def calculate_jaccard_score(
+    label_true: "Union[pd.Series[str], pd.Series[int]]",
+    label_pred: "Union[pd.Series[str], pd.Series[int]]",
+) -> "np.float64":
+    return cast(np.float64, jaccard_score(label_true, label_pred, average="macro"))
 
 
 Float = Union[float, np.float16, np.float32, np.float64]
@@ -39,9 +48,10 @@ ResultRowModuleWide = tuple[
     Float,
     Float,
     Float,
-    XYZDict,
-    XYZDict,
     Float,
+    Float,
+    XYZDict,
+    XYZDict,
     Float,
     Float,
     Float,
@@ -67,9 +77,11 @@ test_ranges: "dict[str, str]" = {
     "Fowlkes-Mallows Index": "[0, 1]",
     "Purity Score": "[0, 1]",
     "Dice Coefficient": "[0, 1]",
+    "Percent Identity": "[0, 1]",
+    "Jaccard Index": "[0, 1]",
     "Cohen Kappa Score": "[-1, 1]",
     "Hamming Loss": "[0,1]",
-    "Accuracy Score": "[0,1]"
+    "Accuracy Score": "[0,1]",
 }
 
 
@@ -85,6 +97,8 @@ test_functions_with_range: "list[tuple[str, Callable[[Union[pd.Series[str], pd.S
     ("Adjusted Random Score", adjusted_rand_score),
     ("Fowlkes-Mallows Index", fowlkes_mallows_score),
     ("Dice Coefficient", calculate_dice_coefficient),
+    ("Percent Identity", calculate_percent_identity),
+    ("Jaccard Index", calculate_jaccard_score),
     ("Cohen Kappa Score", cohen_kappa_score),
     ("Hamming Loss", hamming_loss),
     ("Accuracy Score", accuracy_score),

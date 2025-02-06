@@ -47,8 +47,8 @@ else
     allStrucModulesR = ones(size(lo_grpfaces(:,1)))*-1;
     roiStrucModulesL = readmatrix(['../../data/subjects/',subjectId,'/statistics/left_hemisphere/datasets/cleaned_mapped_left_structural_modules.csv']);
     roiStrucModulesR =  readmatrix(['../../data/subjects/',subjectId,'/statistics/right_hemisphere/datasets/cleaned_mapped_right_structural_modules.csv']);
-    allStrucModulesL(roiL_ids(roiStrucModulesL(:,1))) = roiStrucModulesL(:,2);
-    allStrucModulesR(roiR_ids(roiStrucModulesR(:,1))) = roiStrucModulesR(:,2);
+    allStrucModulesL(roiL_ids(roiStrucModulesL(:,1)+1)) = roiStrucModulesL(:,2);
+    allStrucModulesR(roiR_ids(roiStrucModulesR(:,1)+1)) = roiStrucModulesR(:,2);
     %allStrucModulesL = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/all_left_structural_modules.csv'])';
     %allStrucModulesR = readmatrix(['../../data/subjects/',subjectId,'/exported_modules/all_right_structural_modules.csv'])';
 
@@ -57,8 +57,8 @@ else
     allFuncModulesR_lf = ones(size(lo_grpfaces(:,1)))*-1;
     roiFuncModulesL_lf = readmatrix(['../../data/subjects/',subjectId,'/statistics/left_hemisphere/datasets/cleaned_mapped_left_',condition,'_functional_modules.csv']);
     roiFuncModulesR_lf = readmatrix(['../../data/subjects/',subjectId,'/statistics/right_hemisphere/datasets/cleaned_mapped_right_',condition,'_functional_modules.csv']);
-    allFuncModulesL_lf(roiL_ids(roiFuncModulesL_lf(:,1)),:) = roiFuncModulesL_lf(:,2);
-    allFuncModulesR_lf(roiR_ids(roiFuncModulesR_lf(:,1)),:) = roiFuncModulesR_lf(:,2);
+    allFuncModulesL_lf(roiL_ids(roiFuncModulesL_lf(:,1)+1),:) = roiFuncModulesL_lf(:,2);
+    allFuncModulesR_lf(roiR_ids(roiFuncModulesR_lf(:,1)+1),:) = roiFuncModulesR_lf(:,2);
 end
 
 

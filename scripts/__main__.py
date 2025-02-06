@@ -16,9 +16,6 @@ from subprocess import Popen, PIPE
 from traceback import format_exc
 from typing import Any, cast
 
-from modules.saver.saverClass import SaverType
-
-
 def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> None:
     import config
 

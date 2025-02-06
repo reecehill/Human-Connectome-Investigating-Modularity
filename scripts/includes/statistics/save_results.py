@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from includes.statistics.utils import append_result_to_csv
 from pathlib import Path
 

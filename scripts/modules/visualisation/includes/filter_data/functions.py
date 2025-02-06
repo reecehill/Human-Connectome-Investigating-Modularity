@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Any, Dict, List, Literal, Optional, Tuple
-
+from pathlib import Path
 
 def check_filters_are_valid(filters: Dict[str, Any], df: pd.DataFrame) -> None:
     for col, _ in filters.items():
@@ -116,3 +116,32 @@ def filter_modules(
     check_filters_are_valid(applied_filters, df)
 
     return df[conditions], applied_filters
+
+
+def separate_missing_modules(df: pd.DataFrame, pathTo: dict[str, Path]) -> pd.DataFrame:
+    """
+    Separate module pairs where one or more module contains the word "missing" into a separate csv and returns the dataframe without them.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame to filter.
+
+    Returns:
+    - pd.DataFrame: The filtered DataFrame.
+    """
+    missing_modules_df = df[df["X Module Name"].str.contains("missing") | df[
+        "Y Module Name"
+    ].str.contains("missing")]
+    df = df[~df["X Module Name"].str.contains("missing") & ~df[
+        "Y Module Name"
+    ].str.contains("missing")]
+
+    missing_modules_df.to_csv(
+        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_missing.csv')}",
+        index=False,
+    )
+    df.to_csv(
+        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_valid.csv')}",
+        index=False,
+    )
+
+    return df

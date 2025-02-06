@@ -1,15 +1,15 @@
 from typing import Any, Dict
 from includes.visualisation.graphs import plotRoiRegion
 from modules.pipeline.stepper import prepStep
+from modules.visualisation.includes.filter_data.functions import (
+    separate_missing_modules
+)
 from modules.visualisation.includes.wrappers import (
     make_boxplots,
     make_scatterplots,
     make_violinplots,
     make_corrplots,
 )
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 if __name__ == "__main__":
     raise Exception("This file is not meant to be run directly.")
@@ -62,7 +62,13 @@ else:
                 ),
             }
             allSubjects: DataFrame = read_csv(pathTo["subjects"])
-            allModules: DataFrame = read_csv(pathTo["modules"])
+            allModules_raw: DataFrame = read_csv(pathTo["modules"])
+
+            # ----
+            # We first clean the statistics by removing module pairs where one or more module contains the word "missing"
+            # ----
+            allModules = separate_missing_modules(allModules_raw, pathTo)
+
             allStats: List[str] = [
                 "Levenshtein Distance - X as Truth",
                 "Normalised Levenshtein Distance - X as Truth",

@@ -11,10 +11,16 @@ from modules.hcp_data_manager.downloader import getFile
 def runStatistics(subjectId: str) -> bool:
     statDir = config.SUBJECT_DIR / "statistics"
     for hemisphere in config.HEMISPHERES:
+
         createDirectories(
             directoryPaths=[
                 statDir / f"{hemisphere}_hemisphere",
                 statDir / f"{hemisphere}_hemisphere" / "datasets",
+                statDir / f"{hemisphere}_hemisphere" / "figures",
+            ]
+            + [
+                statDir / f"{hemisphere}_hemisphere" / "figures" / task
+                for task in config.ALL_FMRI_TASKS
             ],
             createParents=True,
             throwErrorIfExists=False,

@@ -10,6 +10,7 @@ from sklearn.metrics.cluster import contingency_matrix
 from scipy.optimize import linear_sum_assignment  # type: ignore
 import Levenshtein
 import modules.globals as g
+import config
 
 
 # Function to generate a random word
@@ -130,7 +131,11 @@ def convertNumericalModulesToWords(
     # Write the DataFrame to a CSV file without a header
     df = pd.DataFrame(list(label_to_word_map_xory.items()), columns=["int", "str"])
     map_csv = config.SUBJECT_DIR / "exported_modules" / f"map_{mapName}.csv"
-    df.to_csv(str(map_csv), index=False, header=False)
+    df.to_csv(
+        f"{map_csv}{'.gz' if config.COMPRESS_FILE else ''}",
+        index=False,
+        header=False,
+    )
 
     x_as_words.attrs.update(
         {
@@ -219,10 +224,20 @@ def append_result_to_csv(df: pd.DataFrame, filename: Path):
     # Check if the file exists
     if not filename.is_file():
         # If the file doesn't exist, write the header and data
-        df.to_csv(filename, mode="w", header=True, index=False)
+        df.to_csv(
+            f"{filename}{'.gz' if config.COMPRESS_FILE else ''}",
+            mode="w",
+            header=True,
+            index=False,
+        )
     else:
         # If the file exists, append the data without writing the header
-        df.to_csv(filename, mode="a", header=False, index=False)
+        df.to_csv(
+            f"{filename}{'.gz' if config.COMPRESS_FILE else ''}",
+            mode="a",
+            header=False,
+            index=False,
+        )
 
 
 def calcModuleSizes(
@@ -548,6 +563,6 @@ def calculate_percent_identity(
     matches = (labels_truth == labels_pred).sum()
 
     # Calculate the percent identity
-    percent_identity_value = (matches / len(labels_truth))
+    percent_identity_value = matches / len(labels_truth)
 
     return np.float64(percent_identity_value)

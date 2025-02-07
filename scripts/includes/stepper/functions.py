@@ -55,7 +55,10 @@ def updateStepSuccessStatus():
         columns=["Step", "Success", "Last Modified"],
     )
     # Save the updated DataFrame back to the CSV file, overwriting the old file
-    df_updated.to_csv(config.PIPELINE_SUCCESS_FILE, index=False)
+    df_updated.to_csv(
+        f"{config.PIPELINE_SUCCESS_FILE}{'.gz' if config.COMPRESS_FILE else ''}",
+        index=False,
+    )
 
 
 def allStepsAreSuccessful() -> bool:
@@ -149,6 +152,9 @@ def updateBatchStatus(batchSubjects: list[str]) -> bool:
 
     allSubjectsAllStepsSuccess: bool = df["allSteps_success"].all()
     # Step 5: Export the DataFrame to a CSV file
-    df.to_csv(config.BATCH_SUCCESS_FILE, index=False)
+    df.to_csv(
+        f"{config.BATCH_SUCCESS_FILE}{'.gz' if config.COMPRESS_FILE else ''}",
+        index=False,
+    )
 
     return allSubjectsAllStepsSuccess

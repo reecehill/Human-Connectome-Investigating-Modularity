@@ -1,14 +1,52 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import glob
 from matplotlib.offsetbox import AnchoredText
 from modules.file_directory.file_directory import createDirectories
 
-
-def plot_timeline(x: "pd.Series[Any]", y: "pd.Series[Any]", title="") -> None:
+def plotTimelines(subjectId: str, pathTo: dict[str, Path]) -> None:
     import config
+    import modules.globals as g
+    subjectDirectory = config.SUBJECT_DIR / "statistics"
+
+    csv_files = glob.glob(f"{subjectDirectory}/**/*.pkl.gz", recursive=True)
+    # Dictionary to store paired files
+    paired_files = defaultdict(dict)
+
+    for file in map(Path, csv_files):  # Convert all to Path objects
+        if file.name.startswith(("s_", "f_")):
+            paired_files[file.name[2:]][file.name[:2]] = file  # Extract core name and prefix
+
+    paired_files = dict(paired_files)  # Convert defaultdict to dict (if needed)
+
+    # Keep only those pairs that contain both "s_" and "f_"
+    paired_files = {core: pair for core, pair in paired_files.items() if "s_" in pair and "f_" in pair}
+
+    for coreDataName, files in paired_files.items():
+        fileName = coreDataName.replace(".pkl.gz", "").translate(
+            str.maketrans("", "", "aeiouAEIOU")
+        )
+        x = pd.read_pickle(files["s_"])
+        y = pd.read_pickle(files["f_"])
+        subPath = Path(*files["s_"].parts[files["s_"].parts.index("subjects") + 1 :]).parent
+        g.logger.info(f"Plotting a timeline for: {subPath.resolve()}/{fileName}")
+        plotTimeline(
+            x,
+            y,
+            title=fileName,
+            filePath=pathTo["figures"] / "subjects" / subPath,
+        )
+        pass
+    pass
+
+def plotTimeline(x: "pd.Series[Any]", y: "pd.Series[Any]", filePath: Path, title = "") -> None:
+    import config
+
+    
     if(len(config.ALL_SUBJECTS) > 5):
         import modules.globals as g
         g.logger.info("[Performance] Skipped creating timeline plot as large sample size.")
@@ -114,23 +152,12 @@ def plot_timeline(x: "pd.Series[Any]", y: "pd.Series[Any]", title="") -> None:
     )
 
     ax.add_artist(text_box)
-    filepath = Path(
-        config.SUBJECT_STAT_DIR
-        / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-        / "figures"
-        / f"{config.CURRENT_TASK}",
-        *[
-            str(item)
-            for kv in x.attrs["dataset_descriptors"].items()
-            if kv[0] not in {"subject_id", "task", "hemisphere"}
-            for item in kv
-        ],
-    )
-    createDirectories([filepath], createParents=True, throwErrorIfExists=False)
+
+    createDirectories([filePath], createParents=True, throwErrorIfExists=False)
     filename = f"{title if title else '-'.join(applied_handler['name'] for applied_handler in x.attrs['applied_handlers'])}"
     plt.legend(loc="upper right")
     plt.tight_layout()
 
-    svgPath = filepath / f"{filename}_timeline.svg"
+    svgPath = filePath / f"{filename}_timeline.svg"
     plt.savefig(svgPath, format="svg", dpi=100, bbox_inches="tight")
     plt.close()

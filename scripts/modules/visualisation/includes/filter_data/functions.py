@@ -1,6 +1,8 @@
 import pandas as pd
 from typing import Any, Dict, List, Literal, Optional, Tuple
 from pathlib import Path
+import config
+
 
 def check_filters_are_valid(filters: Dict[str, Any], df: pd.DataFrame) -> None:
     for col, _ in filters.items():
@@ -128,19 +130,21 @@ def separate_missing_modules(df: pd.DataFrame, pathTo: dict[str, Path]) -> pd.Da
     Returns:
     - pd.DataFrame: The filtered DataFrame.
     """
-    missing_modules_df = df[df["X Module Name"].str.contains("missing") | df[
-        "Y Module Name"
-    ].str.contains("missing")]
-    df = df[~df["X Module Name"].str.contains("missing") & ~df[
-        "Y Module Name"
-    ].str.contains("missing")]
+    missing_modules_df = df[
+        df["X Module Name"].str.contains("missing")
+        | df["Y Module Name"].str.contains("missing")
+    ]
+    df = df[
+        ~df["X Module Name"].str.contains("missing")
+        & ~df["Y Module Name"].str.contains("missing")
+    ]
 
     missing_modules_df.to_csv(
-        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_missing.csv')}",
+        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_missing.csv')}{'.gz' if config.COMPRESS_FILE else ''}",
         index=False,
     )
     df.to_csv(
-        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_valid.csv')}",
+        path_or_buf=f"{str(pathTo['modules']).replace('.csv', '_valid.csv')}{'.gz' if config.COMPRESS_FILE else ''}",
         index=False,
     )
 

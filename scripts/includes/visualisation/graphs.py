@@ -5,10 +5,11 @@ import pandas as pd
 import pyvista as pv
 import numpy as np
 import numpy.typing as npt
-from sklearn.cluster import KMeans
 from modules.utils.loadSpatialData import loadFacesAndVertices, loadRoiIds
 from modules.visualisation.includes.io.save_pickled_object import save_fig_as_pickle
 
+
+from includes.visualisation.plot_timeline import *
 
 def plotRoiRegion(subjectId: str, pathTo: dict[str, Path]) -> bool:
     import config

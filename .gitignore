@@ -574,5 +574,8 @@ FodyWeavers.xsd
 *.zip
 
 *.csv
+*.pkl
+*.csv.gz
+*.pkl.gz
 *.xlsx
 *.npz

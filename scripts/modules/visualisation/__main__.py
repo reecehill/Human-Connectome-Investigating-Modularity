@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from includes.visualisation.graphs import plotRoiRegion
+from includes.visualisation.graphs import plotRoiRegion, plotTimelines
 from modules.pipeline.stepper import prepStep
 from modules.visualisation.includes.filter_data.functions import (
     separate_missing_modules
@@ -40,7 +40,6 @@ else:
             g.queue_listener = config_root_logger(log_queue=g.log_queue)
             g.queue_listener.start()
             g.logger.info("Logger is running for VISUALISATION.")
-            # ------------------------------------------------------------
 
             g.logger.info(
                 "You must ensure the .csv files are copied to <project_root>/data_processed/allSubjects.csv and <project_root>/data_processed/allModules.csv"
@@ -104,12 +103,12 @@ else:
                 plotRoiRegion: True
             }
             g.allSteps = allSteps
-            subjectSample = ['100206']
+            subjectSample = ['100408']
 
             for subjectId in subjectSample:
                 prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
                 plotRoiRegion(subjectId, pathTo=pathTo)
-
+                plotTimelines(subjectId, pathTo=pathTo)
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
             # Wrapper function to combine filtering and plotting
             make_boxplots(

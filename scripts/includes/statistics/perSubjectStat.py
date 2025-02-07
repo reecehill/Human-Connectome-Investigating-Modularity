@@ -1,6 +1,5 @@
 # Re-importing necessary libraries and preparing data again
 import numpy as np
-from includes.visualisation.plot_timeline import plot_timeline
 import modules.globals as g
 import pandas as pd
 import config
@@ -11,9 +10,8 @@ from includes.statistics import (
     convertSubjectWideResultsToDataFrames,
 )
 from includes.statistics.testVariables import Float, ResultRowSubjectWide
-from includes.statistics.utils import convertNumericalModuleToWords
 from includes.stepper.functions import allStepsAreSuccessful
-from includes.statistics.save_results import save_results
+from includes.statistics.save_results import append_results
 
 
 def perSubjectStat(
@@ -157,18 +155,18 @@ def perSubjectStat(
         # Convert results to DataFrames
 
     # For demo purposes, make a timeline plot of random.
-    plot_timeline(
-        x_final, random_y, title=f"Real X, Random Y - perSubject[{datasetDescriptor}]"
-    )
-    plot_timeline(
-        random_x, y_final, title=f"Random X, Real Y - perSubject[{datasetDescriptor}]"
-    )
+    # plot_timeline(
+    #     x_final, random_y, title=f"Real X, Random Y - perSubject[{datasetDescriptor}]"
+    # )
+    # plot_timeline(
+    #     random_x, y_final, title=f"Random X, Real Y - perSubject[{datasetDescriptor}]"
+    # )
 
     # For tests not requiring truth, take x.
     dfXTruthWithRange, dfYTruthWithRange = convertSubjectWideResultsToDataFrames(
         results_x_truth_with_range, results_y_truth_with_range
     )
 
-    save_results(dfXTruthWithRange, dfYTruthWithRange, config.STAT_FILE_BY_SUBJECT)
+    append_results(dfXTruthWithRange, dfYTruthWithRange, config.STAT_FILE_BY_SUBJECT)
     del results_y_truth_with_range, results_x_truth_with_range
     # --- SUBJECT-WIDE TESTS [END] ---

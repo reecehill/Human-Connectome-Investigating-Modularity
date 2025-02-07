@@ -1,7 +1,9 @@
 # Re-importing necessary libraries and preparing data again
 from typing import Dict, Union, cast
 
-from includes.visualisation.plot_timeline import plot_timeline
+from includes.statistics.save_results import save_modules
+from includes.visualisation.plot_timeline import plotTimeline
+from modules.file_directory.file_directory import createDirectories
 import modules.globals as g
 import pandas as pd
 import numpy as np
@@ -45,7 +47,6 @@ def runTests(
             keep_default_na=True,
         ).T
 
-
         # We begin by standardising what "missing" data looks like (set it to -1).
         x_orig = x_raw[0].replace([np.nan, -1, 0], -1)
         x_orig.attrs.update(
@@ -86,6 +87,7 @@ def runTests(
                 ],
             }
         )
+        x_orig, y_orig = clean_data(nan_handlers=["save"], x=x_orig, y=y_orig)
 
         # ------
         # Map x and y to same set
@@ -96,13 +98,11 @@ def runTests(
         # Map the cleaned words to the same set.
         orig_mapping: "dict[str,str]"
         mappedMatrixScores: "Dict[str, Dict[str, float]]"
-        orig_mapping, _x_orig_mapped, _y_orig_mapped, mappedMatrixScores = (
+        orig_mapping, _x_mapped, _y_mapped, mappedMatrixScores = (
             mapAllModulesToSameSet(x=x_orig, y=y_orig, centroid_coords=centroid_coords)
         )
-
-        x_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_orig_mapped)
-        y_orig_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_orig_mapped)
-        del _x_orig_mapped, _y_orig_mapped
+        x_mapped, y_mapped = clean_data(nan_handlers=["save"], x=_x_mapped, y=_y_mapped)
+        del _x_mapped, _y_mapped
 
         # ------
         # There are now two datasets: mapped and unmapped.
@@ -120,7 +120,7 @@ def runTests(
         # ------
         # Clean original data.
 
-        _x_cleaned, _y_cleaned = clean_data(
+        x_cleaned, y_cleaned = clean_data(
             nan_handlers=[
                 "mask_removeMissing",
                 # "get_main_fn_module_by_topology",
@@ -128,34 +128,41 @@ def runTests(
             ],
             x=x_orig,
             y=y_orig,
-            orig_x=x_orig_mapped,  # Used to pass original x to filter_by_parent
+            orig_x=x_orig,  # Used to pass original x to filter_by_parent
             # xRetrievalMethod="getMode",
             # centroid_coords=centroid_coords,
         )
-        x_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned)
-        y_cleaned: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned)
-        del _x_cleaned, _y_cleaned
 
         # -----
         # Convert pd.Series[int] => pd.Series[str]
         # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
         # ------
         # Convert original mapped data to words. (For comparison only.)
-        x_orig_words, y_orig_words, label_to_word_map_y = (
+        _x_orig_words, _y_orig_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
-                x_orig_mapped, x_orig_mapped, mapName=f"orig_{config.CURRENT_TASK}"
+                x_orig, x_orig, mapName=f"orig_{config.CURRENT_TASK}"
             )
         )
+        x_orig_words, y_orig_words = clean_data(
+            nan_handlers=["save"], x=_x_orig_words, y=_y_orig_words
+        )
+        del _x_orig_words, _y_orig_words
+
         mappedMatrixScores_orig_words = {
             label_to_word_map_y.get(int(old_key), old_key): value
             for old_key, value in mappedMatrixScores.items()
         }
 
-        x_cleaned_words, y_cleaned_words, label_to_word_map_y = (
+        _x_cleaned_words, _y_cleaned_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
                 x_cleaned, y_cleaned, mapName=f"cleaned_{config.CURRENT_TASK}"
             )
         )
+        x_cleaned_words, y_cleaned_words = clean_data(
+            nan_handlers=["save"], x=_x_cleaned_words, y=_y_cleaned_words
+        )
+        del _x_cleaned_words, _y_cleaned_words
+
         mappedMatrixScores_cleaned_words = {
             label_to_word_map_y.get(int(old_key), old_key): value
             for old_key, value in mappedMatrixScores.items()
@@ -171,34 +178,35 @@ def runTests(
         # ------
         # Clean original data.
         # Clean mapped data.
-        _x_cleaned_mapped, _y_cleaned_mapped = clean_data(
+        x_mapped_cleaned, y_mapped_cleaned = clean_data(
             nan_handlers=[
                 "mask_removeMissing",
-                "get_main_fn_module_by_topology",
                 "filter_by_parent",
             ],
-            x=x_orig_mapped,
-            y=y_orig_mapped,
-            orig_x=x_orig_mapped,  # Used to pass original x to filter_by_parent
-            xRetrievalMethod="getMode",
+            x=x_mapped,
+            y=y_mapped,
+            orig_x=x_mapped,  # Used to pass original x to filter_by_parent
+            xRetrievalMethod="getAll",
             centroid_coords=centroid_coords,
         )
-        x_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _x_cleaned_mapped)
-        y_cleaned_mapped: "pd.Series[int]" = cast("pd.Series[int]", _y_cleaned_mapped)
-        del _x_cleaned_mapped, _y_cleaned_mapped
 
         # ------
         # Convert pd.Series[int] => pd.Series[str]
         # NB: To demonstrate that statistical tests must work on categorical named data (and definitely not numerical), map module names (e.g., "2") to random words (e.g., "hsjjrnsyhf").
         # ------
-        x_mapped_words, y_mapped_words, label_to_word_map_y = (
+        _x_mapped_words, _y_mapped_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
-                x=x_orig_mapped,
-                y=y_orig_mapped,
+                x=x_mapped,
+                y=y_mapped,
                 dataIsMapped=True,
                 mapName=f"mapped_{config.CURRENT_TASK}",
             )
         )
+        x_mapped_words, y_mapped_words = clean_data(
+            nan_handlers=["save"], x=_x_mapped_words, y=_y_mapped_words
+        )
+        del _x_mapped_words, _y_mapped_words
+
         mappedMatrixScores_mapped_words = {
             label_to_word_map_y.get(
                 int(old_key), f"KeyNotFoundInIntToStringMap-{old_key}"
@@ -206,14 +214,19 @@ def runTests(
             for old_key, value in mappedMatrixScores.items()
         }
 
-        x_cleaned_mapped_words, y_cleaned_mapped_words, label_to_word_map_y = (
+        _x_cleaned_mapped_words, _y_cleaned_mapped_words, label_to_word_map_y = (
             convertNumericalModulesToWords(
-                x_cleaned_mapped,
-                y_cleaned_mapped,
+                x_mapped_cleaned,
+                y_mapped_cleaned,
                 dataIsMapped=True,
                 mapName=f"cleaned_mapped_{config.CURRENT_TASK}",
             )
         )
+        x_mapped_cleaned_words, y_mapped_cleaned_words = clean_data(
+            nan_handlers=["save"], x=_x_cleaned_mapped_words, y=_y_cleaned_mapped_words
+        )
+        del _x_cleaned_mapped_words, _y_cleaned_mapped_words
+
         mappedMatrixScores_cleaned_mapped_words = {
             label_to_word_map_y.get(int(old_key), old_key): value
             for old_key, value in mappedMatrixScores.items()
@@ -234,43 +247,31 @@ def runTests(
         # For visualisation purposes, save the new x and y.
         for descriptor, x, y in [
             ("orig", x_orig, y_orig),
-            ("orig_mapped", x_orig_mapped, y_orig_mapped),
+            ("mapped", x_mapped, y_mapped),
+
             ("orig_words", x_orig_words, y_orig_words),
             ("mapped_words", x_mapped_words, y_mapped_words),
+
             ("cleaned", x_cleaned, y_cleaned),
             ("cleaned_words", x_cleaned_words, y_cleaned_words),
-            ("cleaned_mapped", x_cleaned_mapped, y_cleaned_mapped),
-            ("cleaned_mapped_words", x_cleaned_mapped_words, y_cleaned_mapped_words),
+            
+            ("mapped_cleaned", x_mapped_cleaned, y_mapped_cleaned),
+            ("mapped_cleaned_words", x_mapped_cleaned_words, y_mapped_cleaned_words),
+
         ]:
             x: "pd.Series[Union[int,str]]"
             y: "pd.Series[Union[int,str]]"
-            plot_timeline(x=x, y=y)
-            x.to_csv(
-                config.SUBJECT_STAT_DIR
-                / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-                / "datasets"
-                / f"{descriptor}_{pathToXCsv.name}",
-                index=True,
-                header=False,
-            )
-            y.to_csv(
-                config.SUBJECT_STAT_DIR
-                / f"{config.CURRENT_HEMISPHERE}_hemisphere"
-                / "datasets"
-                / f"{descriptor}_{pathToYCsv.name}",
-                index=True,
-                header=False,
-            )
+            pass
 
         perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)
         perSubjectStat(
-            "cleaned_words_mapped", x_cleaned_mapped_words, y_cleaned_mapped_words
+            "cleaned_words_mapped", x_mapped_cleaned_words, y_mapped_cleaned_words
         )
 
         # perModuleStat(
         #     datasetDescriptor="cleaned_words",
-        #     x_final=x_cleaned_words,
-        #     y_final=y_cleaned_words,
+        #     x_final=x_mapped_cleaned_words,
+        #     y_final=y_mapped_cleaned_words,
         #     x=x_orig_words,
         #     y=y_orig_words,
         #     xy_surface_areas=xy_surface_area,
@@ -278,7 +279,6 @@ def runTests(
         #     mappedMatrixScores=mappedMatrixScores_cleaned_words,
         # )
         perModuleStat(
-            datasetDescriptor="mapped_words",
             x_final=x_mapped_words.copy(),
             y_final=y_mapped_words.copy(),
             x=x_mapped_words.copy(),
@@ -288,9 +288,8 @@ def runTests(
             mappedMatrixScores=mappedMatrixScores_mapped_words,
         )
         perModuleStat(
-            datasetDescriptor="cleaned_words_mapped",
-            x_final=x_cleaned_mapped_words.copy(),
-            y_final=y_cleaned_mapped_words.copy(),
+            x_final=x_mapped_cleaned_words.copy(),
+            y_final=y_mapped_cleaned_words.copy(),
             x=x_mapped_words.copy(),
             y=y_mapped_words.copy(),
             xy_surface_areas=xy_surface_area,

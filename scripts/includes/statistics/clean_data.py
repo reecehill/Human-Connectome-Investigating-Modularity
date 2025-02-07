@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, cast
+from typing import Any, Dict, Literal, Optional, Tuple, Union, cast
 from includes.statistics.nan_handlers import (
     mask_removeMissing,
     ffill,
@@ -9,17 +9,18 @@ from includes.statistics.nan_handlers import (
 )
 import pandas as pd
 import numpy as np
-from includes.visualisation.plot_timeline import plot_timeline
+from includes.statistics.save_results import save_modules
 import modules.globals as g
 
 # Cleaning data to exclude NaN values
 
 
 def clean_data(
-    nan_handlers: "Union[str,list[str]]",
+    nan_handlers: "list[Literal['mask_removeMissing','ffill','smoothed','filter_by_parent','type_consistency','drop_na','white_noise','get_main_fn_module_by_topology','save']]",
     x: "Union[pd.Series[str],pd.Series[int]]",
     y: "Union[pd.Series[str],pd.Series[int]]",
     title: Optional[str] = "",
+    dataset_name: Optional[str] = None,
     **kwargs: Any,
 ) -> "tuple[pd.Series[Any],pd.Series[Any]]":
     """
@@ -44,26 +45,21 @@ def clean_data(
     x_out: "pd.Series[Any]"
     y_out: "pd.Series[Any]"
 
-    if isinstance(nan_handlers, list):
+    if len(nan_handlers) != 1:
         x_temp, y_temp = x.copy(), y.copy()  # start with unmodified series
         for nan_handler in nan_handlers:
             # Build the title with the current nan_handler in bold
-            title = title if title else "-".join(
-                [
-                    handler.upper() if handler == nan_handler else handler.lower()
-                    for handler in nan_handlers
-                ]
-            )
+            title = title if title else None
             x_temp, y_temp = clean_data(
-                nan_handler, x_temp, y_temp, title=title, **kwargs
+                [nan_handler], x_temp, y_temp, title=title, dataset_name=dataset_name, **kwargs
             )
         x_out, y_out = (
             x_temp,
             y_temp,
         )  # end with cleaned series if multiple handlers specified
 
-    else:  # single handler specified
-        nan_handler = nan_handlers
+    elif len(nan_handlers) == 1:  # single handler specified
+        nan_handler = nan_handlers[0]
         if nan_handler == "mask_removeMissing":
             x_out, y_out = mask_removeMissing(x, y)
         elif nan_handler == "ffill":
@@ -78,47 +74,78 @@ def clean_data(
             x_out, y_out = white_noise(x, y, **white_noise_kwargs)
         elif nan_handler == "get_main_fn_module_by_topology":
             topology_kwargs: "pd.DataFrame" = cast("pd.DataFrame", kwargs)
-            x_out, y_out = get_main_fn_module_by_topology(x, y, **topology_kwargs) # type: ignore
-        elif nan_handler == "none":
+            x_out, y_out = get_main_fn_module_by_topology(x, y, **topology_kwargs)  # type: ignore
+        elif nan_handler == "drop_na":
+            x_out, y_out = x.dropna(), y.dropna()
+        elif nan_handler == "type_consistency":
+            # Ensure same type for x and y
+            if x.dtype != y.dtype or x.attrs["dataset_descriptors"]["data_type"] != y.attrs["dataset_descriptors"]["data_type"]:
+                raise ValueError(f"Data types of x and y should be the same. x: {x.dtype}, y: {y.dtype} | x: {x.attrs['dataset_descriptors']['data_type']}, y: {y.attrs['dataset_descriptors']['data_type']}")
+
+            # Ensure same length for x and y
+            if len(x) != len(y):
+                raise ValueError(f"Length of x and y should be the same. x: {len(x)}, y: {len(y)}")
+
+            x_out, y_out = x.copy(), y.copy()
+
+            # Convert np.nan and -1 to "missing-B" for words of data type
+            if x.attrs["dataset_descriptors"]["data_type"] == "words":
+                x_out.replace([np.nan,-1,"nan"], "missing-B", inplace=True)
+                y_out.replace([np.nan,-1,"nan"], "missing-B", inplace=True)
+
+            # Convert any string containing "missing" and np.nan to -1 (int) for integers of data type
+            if x.attrs["dataset_descriptors"]["data_type"] == "int":
+                x_out.replace([r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True)
+                y_out.replace([r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True)
+
+        elif nan_handler == "save":
+            # Purpose of running clean_data is just to save the data.
             x_out, y_out = (
                 x.copy(),
                 y.copy(),
             )  # no modification needed for "none" handler
         else:
             raise ValueError(
-                f'Invalid nan_handler: {nan_handler}. Expected "mask", "ffill", "smoothed", or "filter_by_parent".'
+                f'Invalid nan_handler: {nan_handler}. Options are "mask_removeMissing", "ffill", "smoothed", "filter_by_parent", "white_noise", "drop_na", "get_main_fn_module_by_topology", or "save".'
             )
 
-        x_out.attrs.update(
-            {
-                "dataset_descriptors": {
-                    **x_out.attrs.get("dataset_descriptors", {}),
-                    "dataset_name": (
-                        x_out.attrs["dataset_descriptors"]["dataset_name"]
-                        if "cleaned"
-                        in x_out.attrs["dataset_descriptors"]["dataset_name"]
-                        else f"{x_out.attrs['dataset_descriptors']['dataset_name']}_cleaned"
+        for preHandlerSize, out in [(x.size, x_out), (y.size, y_out)]:
+            out.attrs.update(
+                {
+                    "dataset_descriptors": (
+                        {
+                            **out.attrs.get("dataset_descriptors", {}),
+                            "dataset_name": dataset_name if dataset_name 
+                            else (
+                                out.attrs["dataset_descriptors"]["dataset_name"]
+                                if "cleaned"
+                                in out.attrs["dataset_descriptors"]["dataset_name"]
+                                or nan_handler == "save"
+                                else f"{out.attrs['dataset_descriptors']['dataset_name']}_cleaned"
+                                )
+                            ,
+                        }
                     ),
-                },
-                "applied_handlers": x_out.attrs["applied_handlers"]
-                + [{"name": nan_handler, "metadata": {"pre_handler_length": x.size}}],
-            }
+                    "applied_handlers": out.attrs["applied_handlers"]
+                    + [
+                        {
+                            "name": nan_handler,
+                            "metadata": {"pre_handler_length": preHandlerSize},
+                        }
+                    ],
+                }
+            )
+
+        appliedHandlers = "-".join(
+            [
+                str(applied_handler["name"]).lower()
+                for applied_handler in x.attrs["applied_handlers"]
+            ]
+            + [str(nan_handler).upper()]
         )
-        y_out.attrs.update(
-            {
-                "dataset_descriptors": {
-                    **y_out.attrs.get("dataset_descriptors", {}),
-                    "dataset_name": (
-                        y_out.attrs["dataset_descriptors"]["dataset_name"]
-                        if "cleaned"
-                        in y_out.attrs["dataset_descriptors"]["dataset_name"]
-                        else f"{y_out.attrs['dataset_descriptors']['dataset_name']}_cleaned"
-                    ),
-                },
-                "applied_handlers": y_out.attrs["applied_handlers"]
-                + [{"name": nan_handler, "metadata": {"pre_handler_length": y.size}}],
-            }
-        )
+
+        title = title if title else f"{appliedHandlers}"
+        save_modules(x_out, y_out, title=f"{title}")
 
         diffInStrucAndFnModules: int = len(x_out.unique()) - len(y_out.unique())
         g.logger.info(
@@ -129,12 +156,19 @@ def clean_data(
             + "]"
         )
 
-        title = title if title else f"{nan_handler}"
-        plot_timeline(x_out, y_out, title=title)
+        # plot_timeline(x_out, y_out, title=title)
 
-    makeLabelsSymmetric = False
-    if makeLabelsSymmetric:
-        x_out = pd.Series(np.append(x_out, np.flip(x_out.to_numpy().copy())).tolist())
-        y_out = pd.Series(np.append(y_out, np.flip(y_out.to_numpy().copy())).tolist())
+        makeLabelsSymmetric = False
+        if makeLabelsSymmetric:
+            x_out = pd.Series(
+                np.append(x_out, np.flip(x_out.to_numpy().copy())).tolist()
+            )
+            y_out = pd.Series(
+                np.append(y_out, np.flip(y_out.to_numpy().copy())).tolist()
+            )
 
+    else:
+        raise ValueError(
+            "nan_handlers should be a list with exactly one or more elements."
+        )
     return x_out, y_out

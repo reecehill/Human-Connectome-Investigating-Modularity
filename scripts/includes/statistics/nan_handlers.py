@@ -18,7 +18,7 @@ def mask_removeMissing(
     x_out = x_str[
         (x_str != "-1") & (x_str != "0") & (~x_str.str.contains("missing", na=False))
     ]
-    if "mapped" in y.attrs['dataset_descriptors']['dataset_name']:
+    if "mapped" in y.attrs["dataset_descriptors"]["dataset_name"]:
         y_out = y_str[
             (y_str != "-1")
             & (y_str != "0")
@@ -42,6 +42,18 @@ def mask_removeMissing(
 def ffill(
     x: "Union[pd.Series[str],pd.Series[int]]", y: "Union[pd.Series[str],pd.Series[int]]"
 ) -> "tuple[Union[pd.Series[str],pd.Series[int]],Union[pd.Series[str],pd.Series[int]]]":
+    """
+    This function performs forward and backward fill (ffill) on the input series x and y.
+    It replaces missing values (-1 in x and -1, 0, 1 in y) with NaN, then fills NaN values
+    using forward and backward fill with specified limits.
+
+    Parameters:
+    - x (Union[pd.Series[str],pd.Series[int]]): The input series x.
+    - y (Union[pd.Series[str],pd.Series[int]]): The input series y.
+
+    Returns:
+    - A tuple containing the filled series x and y. Both series are of type Union[pd.Series[str],pd.Series[int]].
+    """
     x_filled: "Union[pd.Series[str],pd.Series[int]]" = (
         x.replace(-1, np.nan).ffill(limit=1).bfill(limit=1)
     )
@@ -132,9 +144,8 @@ def get_main_fn_module_by_topology(
     x: "pd.Series[int]", y: "pd.Series[int]", **kwargs: "pd.DataFrame"
 ) -> "tuple[pd.Series[int],pd.Series[int]]":
     import config
-    centroid_coords: "pd.DataFrame" = kwargs.get(
-        "centroid_coords", pd.DataFrame([])
-    )
+
+    centroid_coords: "pd.DataFrame" = kwargs.get("centroid_coords", pd.DataFrame([]))
     if centroid_coords.empty:
         raise ValueError("Centroid coordinates are required for this method.")
 
@@ -163,15 +174,39 @@ def get_main_fn_module_by_topology(
         },
     }
 
-    expected_module_location = reference_points[config.CURRENT_HEMISPHERE][config.CURRENT_TASK]
+    expected_module_location = reference_points[config.CURRENT_HEMISPHERE][
+        config.CURRENT_TASK
+    ]
     distances = np.linalg.norm(y_modules_centroids - expected_module_location, axis=1)
 
     # Find the y module with the minimum distance
     closest_module_index = np.argmin(distances)
     closest_module = unique_y_modules[closest_module_index]
 
+    # Filter x and y to only contain the data points belonging to the closest module
+    x_filtered = x.copy()
+    y_filtered = y.copy()
+
     y_filtered = y[y == closest_module]
     x_filtered = x[y_filtered.index]
+
+    for preHandlerSize, moduleSet in [(x.size, x_filtered), (y.size, y_filtered)]:
+        moduleSet.attrs.update(
+            {
+                "dataset_descriptors": {
+                    **moduleSet.attrs.get("dataset_descriptors", {}),
+                    "fn_module_name": f"fnModule_{closest_module}",
+                },
+                "applied_handlers": moduleSet.attrs["applied_handlers"]
+                + [
+                    {
+                        "name": "get_main_fn_module_by_topology",
+                        "metadata": {"pre_handler_length": preHandlerSize},
+                    }
+                ],
+            }
+        )
+
     return x_filtered, y_filtered
 
 
@@ -191,13 +226,11 @@ def filter_by_parent(
     # Statistically, it would appear the labels align perfectly. But this is not the case before filtering.
     # Instead, we will enlarge the y window (padded with -1) to match the x window.
     attrs = x.attrs
-    if(not orig_x.empty):
+    if not orig_x.empty:
         g.logger.info("Using orig_x in filter_by_parent as it is supplied.")
         x = orig_x
 
-    x_final_modules: "pd.Series[Any]" = pd.Series(
-        np.full(x.size, -1), index=x.index
-    )
+    x_final_modules: "pd.Series[Any]" = pd.Series(np.full(x.size, -1), index=x.index)
 
     x_final_modules.attrs = attrs
 
@@ -223,11 +256,11 @@ def filter_by_parent(
         y_final_modules[y_indices] = y_module_name
 
     if hardMask:
-        # Exclude faces from final list that do not have any corresponding module (i.e., not selected by functional or functional's parent structural module)) 
+        # Exclude faces from final list that do not have any corresponding module (i.e., not selected by functional or functional's parent structural module))
         idsOfNan = (x_final_modules == -1) & (y_final_modules == -1)
     else:
         idsOfNan = np.full(x.size, False)
-        
+
     x_out: "pd.Series[Any]" = x_final_modules[~idsOfNan]
     y_out: "pd.Series[Any]" = y_final_modules[~idsOfNan]
     return x_out, y_out

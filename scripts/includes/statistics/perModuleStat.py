@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Literal, Union, cast
 import numpy as np
 from includes.statistics.nan_handlers import white_noise
 from includes.statistics.testFunctions import pad_indexes
-from includes.visualisation.plot_timeline import plot_timeline
 import modules.globals as g
 import pandas as pd
 import config
@@ -17,7 +16,7 @@ from includes.statistics import (
 from includes.statistics.testVariables import Float, ResultRowModuleWide, XYZDict
 from includes.statistics.utils import calculateEuclidianDistance, calcModuleSizes
 from includes.stepper.functions import allStepsAreSuccessful
-from includes.statistics.save_results import save_results
+from includes.statistics.save_results import append_results
 
 
 def getModuleXNameFromModuleYName(
@@ -69,7 +68,6 @@ def transformMappedMatrixScores(
 
 
 def perModuleStat(
-    datasetDescriptor: str,
     x_final: "Union[pd.Series[str],pd.Series[int]]",
     y_final: "Union[pd.Series[str],pd.Series[int]]",
     x: "Union[pd.Series[str],pd.Series[int]]",
@@ -78,25 +76,30 @@ def perModuleStat(
     centroid_coords: "pd.DataFrame",
     mappedMatrixScores: "Dict[str, Dict[str, float]]",
 ) -> None:
-    
+    datasetDescriptor: str = x_final.attrs["dataset_descriptors"][
+        "dataset_name"
+    ]
+    datasetType: str = x_final.attrs["dataset_descriptors"]["data_type"]
+
     _x_cleaned_mapped_modules, _y_cleaned_mapped_modules = clean_data(
-            nan_handlers=[
-                # "mask_removeMissing",
-                "get_main_fn_module_by_topology",
-                "filter_by_parent",
-            ],
-            x=x_final,
-            y=y_final,
-            orig_x=x,  # Used to pass original x to filter_by_parent
-            xRetrievalMethod="getMode",
-            centroid_coords=centroid_coords,
-        )
-    x_cleaned_mapped_modules: "pd.Series[int]" = cast(
-            "pd.Series[int]", _x_cleaned_mapped_modules
-        )
-    y_cleaned_mapped_modules: "pd.Series[int]" = cast(
-            "pd.Series[int]", _y_cleaned_mapped_modules
-        )
+        nan_handlers=[
+            # "mask_removeMissing",
+            "get_main_fn_module_by_topology",
+            "filter_by_parent",
+        ],
+        x=x_final,
+        y=y_final,
+        dataset_name=datasetDescriptor,  # do not append _cleaned,
+        orig_x=x,  # Used to pass original x to filter_by_parent
+        xRetrievalMethod="getMode",
+        centroid_coords=centroid_coords,
+    )
+    x_cleaned_mapped_modules: "Union[pd.Series[str],pd.Series[int]]" = cast(
+        "Union[pd.Series[str],pd.Series[int]]", _x_cleaned_mapped_modules
+    )
+    y_cleaned_mapped_modules: "Union[pd.Series[str],pd.Series[int]]" = cast(
+        "Union[pd.Series[str],pd.Series[int]]", _y_cleaned_mapped_modules
+    )
     del _x_cleaned_mapped_modules, _y_cleaned_mapped_modules
 
     x_final = x_cleaned_mapped_modules.astype(str)
@@ -142,26 +145,23 @@ def perModuleStat(
         orig_x_module: "pd.Series[str]" = x_final.where(x_final == x_module_name)
 
         # With the optimal x-y pair found within our filtered x and y, we now get pre-filtered x (to expose missing y values that were removed by masking).
-        x_final_module, y_final_module_within_x = clean_data(
-            nan_handlers=[
-                "filter_by_parent",
-            ],
-            x=x_final,  # type: ignore
-            y=orig_y_module,  # type: ignore
+        hardMask = True
+        _x_final_module, _y_final_module_within_x = clean_data(
+            nan_handlers=["filter_by_parent", "drop_na", "type_consistency"],
+            x=x_final,
+            y=orig_y_module,
             orig_x=x,
+            dataset_name=datasetDescriptor,  # do not append _cleaned,
             xRetrievalMethod="getMode",
-            title="final_module_hard_masked",
-            hardMask=True,
+            hardMask=hardMask,
         )
-        x_final_module.dropna(inplace=True)
-        y_final_module_within_x.dropna(inplace=True)
-
-        # Ensure type consistency as clean_data returns pd.Series[int]
-        if pd.api.types.infer_dtype(y_final) == "string":
-            y_final_module_within_x = y_final_module_within_x.replace(-1, "missing-B")
-
-        if pd.api.types.infer_dtype(x_final) == "string":
-            x_final_module = x_final_module.replace(-1, "missing-B")
+        x_final_module, y_final_module_within_x = clean_data(
+            nan_handlers=["save"],
+            x=_x_final_module,
+            y=_y_final_module_within_x,
+            dataset_name=datasetDescriptor,  # do not append _cleaned,
+            title=f"final_module_{'hard' if hardMask else 'soft'}_masked - perModule[{datasetDescriptor}; s{x_module_name}; f{y_module_name}]",
+        )
 
         # Calculate module surface areas, including relative x-y SA (y divided by x)
         x_module_sa, y_module_sa, ydivx_module_sa = calcModuleSizes(
@@ -225,22 +225,6 @@ def perModuleStat(
                 y=orig_y_module,
             )
         )
-
-        if isinstance(x_final_module, pd.Series):
-            if x_final_module.dtype == "object":
-                x_final_module.fillna("missing-B", inplace=True)
-                y_final_module_within_x.fillna("missing-B", inplace=True)
-            elif pd.api.types.is_integer_dtype(x_final_module):
-                x_final_module.fillna(-1, inplace=True)
-                y_final_module_within_x.fillna(-1, inplace=True)
-            else:
-                raise ValueError(
-                    f"Invalid data type for x_final_module: {x_final_module.dtype}"
-                )
-        else:
-            raise ValueError(
-                f"Invalid data type for x_final_module: {type(x_final_module)}"
-            )
 
         # ------
         # Run tests for X as truth
@@ -319,10 +303,10 @@ def perModuleStat(
             # Run tests for Y as truth
 
         # For demo purposes, make a timeline plot of random.
-        plot_timeline(x_final_module, random_y, title="Real X, Random Y - perModule")
-        plot_timeline(
-            random_x, y_final_module_within_x, title="Random X, Real Y - perModule"
-        )
+        # plot_timeline(x_final_module, random_y, title="Real X, Random Y - perModule")
+        # plot_timeline(
+        #     random_x, y_final_module_within_x, title="Random X, Real Y - perModule"
+        # )
 
         # Run tests for Y as truth
         for test_name, test_func in test_functions_with_range:
@@ -423,4 +407,4 @@ def perModuleStat(
             results_x_truth_by_module, results_y_truth_by_module
         )
 
-        save_results(dfXTruthByModule, dfYTruthByModule, config.STAT_FILE_BY_MODULE)
+        append_results(dfXTruthByModule, dfYTruthByModule, config.STAT_FILE_BY_MODULE)

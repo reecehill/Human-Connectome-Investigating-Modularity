@@ -34,6 +34,7 @@ humanize==4.11.0
 idna==3.10
 igraph==0.11.6
 importlib_metadata==8.5.0
+importlib_resources==6.5.2
 ipython==8.29.0
 iso8601==2.1.0
 itables==2.2.3
@@ -57,8 +58,8 @@ msgpack==1.1.0
 multiprocessing-logging==0.3.4
 mypy-extensions==1.0.0
 networkx==3.3
-numpy==2.0.1
 nibabel==5.3.2
+numpy==2.0.1
 packaging==24.1
 pandas==2.2.3
 parso==0.8.4
@@ -74,6 +75,7 @@ prompt_toolkit==3.0.48
 ptyprocess==0.7.0
 PuLP==2.9.0
 pure_eval==0.2.3
+pycairo==1.27.0
 pycparser==2.22
 Pygments==2.18.0
 pyparsing==3.1.4

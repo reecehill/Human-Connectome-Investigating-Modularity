@@ -2,7 +2,7 @@
 # [START] Logging schema, taken from:
 # https://stackoverflow.com/questions/7507825/where-is-a-complete-example-of-logging-config-dictconfig
 # ----------
-from config import LOGS_DIR
+from config import LOGS_DIR, LOG_LEVEL
 
 logging_schema = {
     # Always 1. Schema versioning may be added in a future release of logging
@@ -31,7 +31,7 @@ logging_schema = {
             "class": "logging.StreamHandler",
             # This is the formatter name declared above
             "formatter": "simple",
-            "level": "INFO",
+            "level": LOG_LEVEL,
             # The default is stderr
             "stream": "ext://sys.stdout",
         },
@@ -42,7 +42,7 @@ logging_schema = {
             "class": "logging.StreamHandler",
             # This is the formatter name declared above
             "formatter": "standard",
-            "level": "INFO",
+            "level": LOG_LEVEL,
             # The default is stderr
             "stream": "ext://sys.stdout",
         },
@@ -51,7 +51,7 @@ logging_schema = {
         "file_simple": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "simple",
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "filename": LOGS_DIR / "log-simple.txt",
             "mode": "a",
             "encoding": "utf-8",
@@ -61,7 +61,7 @@ logging_schema = {
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "standard",
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "filename": LOGS_DIR / "log.txt",
             "mode": "a",
             "encoding": "utf-8",
@@ -73,33 +73,33 @@ logging_schema = {
     "loggers": {
         "root_logger": {
             "handlers": ["console", "file"],
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "propagate": True,
         },
         "__main__": {  # if __name__ == "__main__"
             # Use a list even if one handler is used
             "handlers": ["console_simple", "file_simple"],
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "propagate": True,
         },
         "boto3": {
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "handlers": ["console_simple", "file_simple"],
             "propagate": True,
         },
         "botocore": {
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "handlers": ["console_simple", "file_simple"],
             "propagate": True,
         },
         "nose": {
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "handlers": ["console_simple", "file_simple"],
             "propagate": True,
         },
     },
     # Just a standalone kwarg for the root logger
-    "root": {"level": "INFO", "handlers": ["file_simple", "console_simple"]},
+    "root": {"level": LOG_LEVEL, "handlers": ["file_simple", "console_simple"]},
 }
 
 

@@ -3,6 +3,7 @@
 # ----------
 
 from multiprocessing import cpu_count
+import multiprocessing
 from typing import Literal, Optional, Union
 from includes.automated import *
 from includes.all_subjects import all_healthy_young_adults
@@ -18,6 +19,8 @@ COMPRESS_FILE: bool = (
     True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
 )
 # CPU_THREADS = 10
+
+LOG_LEVEL = 10  # https://docs.python.org/3/library/logging.html#levels
 
 USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
 # Bool, either True = coregister data to MNI152 space first.
@@ -247,7 +250,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[30:31]
 # ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[2]]
 # ALL_SUBJECTS: "list[str]" = ["100408"]
 SUBJECTS_INTO_N_BATCHES: int = 25  # Number of batches
@@ -311,11 +314,12 @@ spmDirectoryPath = str(SPM_DIR)
 NATIVEORMNI152FOLDER: str = getNativeOrMni152Folder(NORMALISE_TO_MNI152)
 DIFFUSION_FOLDER: str = getDiffusionFolder(USE_7T_DIFFUSION)
 
+
 DSI_STUDIO: Path = getPathOfExecutable(
     executable="dsi_studio",
     executableAlias="dsi-studio",
     userSubmitted=dsiStudioPath,
-    shouldFind=RUN_DSI_STUDIO,
+    shouldFind=RUN_DSI_STUDIO and multiprocessing.current_process().name == "MainProcess",
 )
 dsiStudioPath = str(DSI_STUDIO)
 

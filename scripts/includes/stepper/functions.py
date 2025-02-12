@@ -96,7 +96,7 @@ def getPipelineSuccessStatusForSubjects(
     # Loop over all subjects to get their pipeline success status
     for subjectId in subjects:
         # Check if the subject's file exists
-        file_path = config.SUBJECTS_DIR / subjectId / "pipeline_success.csv"
+        file_path = config.SUBJECTS_DIR / subjectId / f"pipeline_success.csv{'.gz' if config.COMPRESS_FILE else ''}"
 
         if not file_path.exists():
             g.logger.info(

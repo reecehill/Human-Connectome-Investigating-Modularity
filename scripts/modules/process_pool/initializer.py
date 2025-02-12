@@ -11,6 +11,7 @@ extra_logging_info: "dict[str, str]" = {"ADDITIONAL": ""}
 def initialize_pool(c1: Dict[str, Any], g1: Dict[str, Any]) -> None:
     global g
     import modules.globals as g
+    from config import LOG_LEVEL
     from sys import modules
 
     if g.__name__ in modules:
@@ -20,7 +21,7 @@ def initialize_pool(c1: Dict[str, Any], g1: Dict[str, Any]) -> None:
 
     queued_logger: Logger = logging.getLogger("queued")
     queued_logger.addHandler(QueueHandler(queue=g1["log_queue"]))
-    queued_logger.setLevel(logging.INFO)
+    queued_logger.setLevel(LOG_LEVEL)
     logger_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
         queued_logger, extra=extra_logging_info
     )

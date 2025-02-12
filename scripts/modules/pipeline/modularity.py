@@ -277,11 +277,10 @@ def process_iteration(args: "tuple[np.float64,int,Graph,str, str,Any]") -> "np.f
     import logging
 
     logger = logging.getLogger()  # Root logger
-    logger.setLevel(logging.INFO)
+    logger.setLevel(config.LOG_LEVEL)
     qh = QueueHandler(log_queue)
     logger.addHandler(qh)
 
-    logger = getLogger()
     logger.info(
         f"Sorting {graph_type} (ROI) into modules: gamma={gamma}, iteration #{iteration_index}/{config.NETWORKX_ITERATION_COUNT}",
         extra={"ADDITIONAL": f"[s-{subjectId}:h-:t-]"},

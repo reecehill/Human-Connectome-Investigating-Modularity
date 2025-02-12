@@ -66,7 +66,7 @@ class LoggerClass:
 
         queue_handler = QueueHandler(self.log_queue)
         logger_nocontext.addHandler(queue_handler)
-        logger_nocontext.setLevel(logging.INFO)
+        logger_nocontext.setLevel(config.LOG_LEVEL)
 
         logger_nocontext_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
             logger_nocontext, extra=extra_logging_info
@@ -79,6 +79,8 @@ class LoggerClass:
         self.logger.info(
             "A copy of parameters are saved to: " + config.LOGS_DIR.__str__()
         )
+        logging.getLogger("multiprocessing").setLevel(config.LOG_LEVEL)
+        self.logger.setLevel(config.LOG_LEVEL)
         return self.logger, self.log_queue
 
 

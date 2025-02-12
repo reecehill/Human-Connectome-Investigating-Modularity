@@ -134,8 +134,8 @@ def main(user: str, host: str, pathToKey: str, startAFresh: bool = False) -> Non
                 try:
                     g.logger.info("Ready to begin accepting steps")
                     pipeline.runPipeline()
-                    g.saver = SaverClass(user, host, pathToKey)
-                    if logUsingSSH == True:
+                    if logUsingSSH:
+                        g.saver = SaverClass(user, host, pathToKey)
                         g.logger.info(
                             "Compressing and uploading files to remote server."
                         )

@@ -664,7 +664,7 @@ def findClustersFromFmri(subjectId: str) -> bool:
                         # shapeRFile.resolve(),
                         # ignore clusters smaller than a given fraction of the largest cluster in the structure
                         "-size-ratio",
-                        "0.1",  # - fraction of the structure's largest cluster area
+                        "0.01",  # - fraction of the structure's largest cluster area
                         "0",  # - fraction of the structure's largest cluster volume
                         # '-distance', #- ignore clusters further than a given distance from the largest cluster in the structure
                         # '20',

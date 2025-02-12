@@ -1,23 +1,23 @@
 # NetworkX (Python package is used to calculate network properties.)
-from matplotlib.pylab import plot
+from logging import getLogger
+from logging.handlers import QueueHandler
 import numpy as np
-from numpy._typing._array_like import NDArray
+
 import numpy.typing as npt
 import sklearn
 from scipy.io.matlab import loadmat, savemat
-from scipy.sparse import random as random_sparse, find
+from scipy.sparse import random as random_sparse
 from scipy.sparse._matrix import spmatrix
 
 # from scipy.stats import uniform as uniform_dist
 import modules.globals as g
 import config
-from typing import Any, cast, Union
-from networkx import from_scipy_sparse_array, Graph, draw, community as nx_community
-import matplotlib.pyplot as plt
+from typing import Any, Optional, cast, Union
+from networkx import from_scipy_sparse_array, Graph, community as nx_community
 import networkx as nx
 from multiprocessing import Pool
 from collections import deque
-from cdlib import algorithms, viz, utils
+from cdlib import algorithms
 from cdlib.classes.node_clustering import NodeClustering
 
 
@@ -73,6 +73,18 @@ def findModularity(subjectId: str) -> bool:
         R_optimalModules = algorithms.bayan(
             g_original=R_graph, time_allowed=1, resolution=1
         ).communities  # type: ignore
+    elif config.NETWORKX_ALGORITHM == "infomap":
+        L_optimalModules = algorithms.infomap(g_original=L_graph)  # type: ignore
+        R_optimalModules = algorithms.infomap(
+            g_original=R_graph
+        ).communities  # type: ignore
+    elif config.NETWORKX_ALGORITHM == "rb_pots":
+        L_optimalModules = algorithms.rb_pots(
+            g_original=L_graph
+        ).communities  # type: ignore
+        R_optimalModules = algorithms.rb_pots(
+            g_original=R_graph
+        ).communities  # type: ignore
     elif config.NETWORKX_ALGORITHM == "frc_fgsn":
         L_optimalModules = algorithms.frc_fgsn(
             g_original=L_graph, theta=1, eps=0.5, r=3000
@@ -94,18 +106,27 @@ def findModularity(subjectId: str) -> bool:
         R_optimalModules = algorithms.scan(
             g_original=R_graph, epsilon=0.2, mu=10
         ).communities  # type: ignore
-    elif config.NETWORKX_ALGORITHM == "louvain_communities":
+    elif config.NETWORKX_ALGORITHM == "louvain_communities_own":
         # Search parameter space for gamma that yields maximal modularity.
         L_optimalGamma = findOptimalGamma(
-            subjectId=subjectId, weighted_matrix=config.L_MATRIX
+            subjectId=subjectId,
+            weighted_matrix=config.L_MATRIX,
+            log_queue=g.log_queue,
         )
         R_optimalGamma = findOptimalGamma(
-            subjectId=subjectId, weighted_matrix=config.R_MATRIX
+            subjectId=subjectId,
+            weighted_matrix=config.R_MATRIX,
+            log_queue=g.log_queue,
         )
 
+        L_optimalModules, _ = runLouvainAlgorithm(L_graph, L_optimalGamma, g.log_queue)
+        R_optimalModules, _ = runLouvainAlgorithm(R_graph, R_optimalGamma, g.log_queue)
+        
+
+    elif config.NETWORKX_ALGORITHM == "louvain_communities":
         # Using the optimal gamma, find the modules arrangement.
-        L_optimalModules, _ = runLouvainAlgorithm(L_graph, L_optimalGamma)
-        R_optimalModules, _ = runLouvainAlgorithm(R_graph, R_optimalGamma)
+        L_optimalModules, _ = runLouvainAlgorithm(L_graph, np.float64(1.0))
+        R_optimalModules, _ = runLouvainAlgorithm(R_graph, np.float64(1.0))
 
     elif config.NETWORKX_ALGORITHM == "spectral_clustering":
         try:
@@ -157,11 +178,13 @@ def findModularity(subjectId: str) -> bool:
         L_optimalModules_gen = nx_community.fast_label_propagation_communities(
             L_graph, weight="weight"
         )  # type: ignore
+
         L_optimalModules = np.array(
             [
                 list(community)
                 for community in deque(L_optimalModules_gen, maxlen=len(L_graph))
-            ]
+            ],
+            dtype=object,
         )
         R_optimalModules_gen = nx_community.fast_label_propagation_communities(
             R_graph, weight="weight"
@@ -170,11 +193,24 @@ def findModularity(subjectId: str) -> bool:
             [
                 list(community)
                 for community in deque(R_optimalModules_gen, maxlen=len(R_graph))
-            ]
+            ],
+            dtype=object,
         )
     elif config.NETWORKX_ALGORITHM == "async_fluid":
         L_optimalModules = algorithms.async_fluid(L_graph, k=config.NETWORKX_FLUID_K)
         R_optimalModules = algorithms.async_fluid(R_graph, k=config.NETWORKX_FLUID_K)
+    elif config.NETWORKX_ALGORITHM == "belief":
+        L_optimalModules = algorithms.belief(L_graph)
+        R_optimalModules = algorithms.belief(R_graph)
+    elif config.NETWORKX_ALGORITHM == "kcut":
+        L_optimalModules = algorithms.kcut(L_graph)
+        R_optimalModules = algorithms.kcut(R_graph)
+    elif config.NETWORKX_ALGORITHM == "ga":
+        L_optimalModules = algorithms.ga(L_graph)
+        R_optimalModules = algorithms.ga(R_graph)
+    elif config.NETWORKX_ALGORITHM == "lswl_plus":
+        L_optimalModules = algorithms.lswl_plus(L_graph)
+        R_optimalModules = algorithms.lswl_plus(R_graph)
     elif config.NETWORKX_ALGORITHM == "girvan_newman":
         L_optimalModules_gen = nx_community.girvan_newman(L_graph)  # type: ignore
         L_optimalModules = np.array(
@@ -248,23 +284,32 @@ def getComputedMatrix(subjectId: str, weighted_matrix: str) -> spmatrix:
     return matrix
 
 
-def process_iteration(args: "tuple[np.float64,int,Graph,str]") -> "np.float64":
-    gamma, iteration_index, graph, graph_type = args
-    g.logger.info(
-        f"Sorting {graph_type} (ROI) into modules: gamma={gamma}, iteration #{iteration_index}/{config.NETWORKX_ITERATION_COUNT}"
+def process_iteration(args: "tuple[np.float64,int,Graph,str, str,Any]") -> "np.float64":
+    gamma, iteration_index, graph, graph_type, subjectId, log_queue = args
+    import logging
+    logger = logging.getLogger()  # Root logger
+    logger.setLevel(logging.INFO)
+    qh = QueueHandler(log_queue)
+    logger.addHandler(qh)
+
+    logger = getLogger()
+    logger.info(
+        f"Sorting {graph_type} (ROI) into modules: gamma={gamma}, iteration #{iteration_index}/{config.NETWORKX_ITERATION_COUNT}",
+        extra={"ADDITIONAL": f"[s-{subjectId}:h-:t-]"},
     )
     # initialize modularity values
     q0 = np.float64(-1)
     q1 = np.float64(0)
     while q1 - q0 > 1e-5:  # while modularity increases, perform community detection
         q0 = q1
-        _, q1 = runLouvainAlgorithm(graph, gamma)
+        _, q1 = runLouvainAlgorithm(graph, gamma, log_queue)
     # return the modularity score for storage into either Q_corts or Q_rands.
     return q1
 
 
-def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
-    g.logger.info("Running NetworkX: finding optimal gamma.")
+def findOptimalGamma(
+    subjectId: str, weighted_matrix: str, log_queue: Any
+) -> np.float64:
     all_gammas = cast(
         "npt.NDArray[np.float64]",
         np.arange(
@@ -306,14 +351,14 @@ def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
             Q_corts = pool.map(
                 process_iteration,
                 [
-                    (gamma, iteration_index, G_corts, "cortical")
+                    (gamma, iteration_index, G_corts, "cortical", subjectId, log_queue)
                     for iteration_index in all_iterations
                 ],
             )
             Q_rands = pool.map(
                 process_iteration,
                 [
-                    (gamma, iteration_index, G_rand, "random")
+                    (gamma, iteration_index, G_rand, "random", subjectId, log_queue)
                     for iteration_index in all_iterations
                 ],
             )
@@ -330,21 +375,14 @@ def findOptimalGamma(subjectId: str, weighted_matrix: str) -> np.float64:
 
 
 def runLouvainAlgorithm(
-    graph: Graph, gamma: np.float64
+    graph: Graph, gamma: np.float64, log_queue: "Optional[Any]" = ""
 ) -> "tuple[npt.NDArray[np.int8] | NodeClustering, np.float64]":
-    if config.NETWORKX_ALGORITHM == "louvain_communities":
-        communities: "list[set[int]]" = nx_community.louvain_communities(
-            graph, weight="weight", resolution=gamma
-        )  # type: ignore
-    elif config.NETWORKX_ALGORITHM == "greedy_modularity_communities":
-        communities: "list[set[int]]" = nx_community.greedy_modularity_communities(
-            graph, weight="weight", resolution=gamma
-        )  # type: ignore
-    else:
-        g.logger.error(
-            f"Invalid NetworkX algorithm: {config.NETWORKX_ALGORITHM}. Expected 'louvain_communities' or 'greedy_modularity_communities'."
-        )
-        raise ValueError("Incorrect networkx algorithm specified.")
+    log_queue = g.log_queue if log_queue == "" else log_queue
+
+    communities: "list[set[int]]" = nx_community.louvain_communities(  # type: ignore
+        graph, weight="weight", resolution=gamma
+    )
+
     communities_list: "npt.NDArray[np.int8]" = np.array(
         [list(community) for community in communities], dtype=object
     )

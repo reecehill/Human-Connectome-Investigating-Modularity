@@ -31,7 +31,7 @@ logging_schema = {
             "class": "logging.StreamHandler",
             # This is the formatter name declared above
             "formatter": "simple",
-            "level": "DEBUG",
+            "level": "INFO",
             # The default is stderr
             "stream": "ext://sys.stdout",
         },
@@ -42,7 +42,7 @@ logging_schema = {
             "class": "logging.StreamHandler",
             # This is the formatter name declared above
             "formatter": "standard",
-            "level": "DEBUG",
+            "level": "INFO",
             # The default is stderr
             "stream": "ext://sys.stdout",
         },

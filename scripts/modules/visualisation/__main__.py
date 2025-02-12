@@ -51,10 +51,10 @@ else:
             )
             pathTo: dict[str, Path] = {
                 "subjects": Path(
-                    config.BASE_DIR / "data_processed" / "allSubjects.csv"
+                    config.BASE_DIR / "data_processed" / "allSubjects.csv.gz"
                 ).resolve(strict=True),
                 "modules": Path(
-                    config.BASE_DIR / "data_processed" / "allModules.csv"
+                    config.BASE_DIR / "data_processed" / "allModules.csv.gz"
                 ).resolve(strict=True),
                 "figures": Path(config.BASE_DIR / "data_processed" / "figures").resolve(
                     strict=True
@@ -104,7 +104,6 @@ else:
             }
             g.allSteps = allSteps
             subjectSample = ['100408']
-
             for subjectId in subjectSample:
                 prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
                 plotRoiRegion(subjectId, pathTo=pathTo)

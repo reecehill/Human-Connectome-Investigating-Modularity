@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional, Tuple, TypedDict, Union, cast
 import numpy as np
 import numpy.typing as npt
 from pathlib import Path
-from scipy.stats import mode
 from sklearn.metrics.cluster import contingency_matrix
 from scipy.optimize import linear_sum_assignment  # type: ignore
 import Levenshtein
@@ -189,12 +188,13 @@ def enlarge_mask_with_mode_priority(
 
         # Find the mode of the values in the window
         window = mask[start_window:end_window]
-        mode_value: float
+        mode_value: Any
         if mode_method == "window":
             if window.size != 0.0:
-                mode_value = mode(window, axis=None, nan_policy="omit", keepdims=True)[
-                    0
-                ]
+                mode_value = (
+                    window.value_counts().idxmax()
+                )  # Excludes NaN automatically
+                
             else:
                 mode_value = -1.0
         elif mode_method == "roi":

@@ -79,9 +79,10 @@ def smoothed(
 
     x_filtered = cast("pd.Series[int]", x_filtered)
     y_filtered = cast("pd.Series[int]", y_filtered)
+    
     y_smoothed = y_filtered.fillna(value=int(-1), axis=0, inplace=False)
-    y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=0, mode_method="roi")
-    y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=1, mode_method="window")
+    y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=0, mode_method="window")
+    y_smoothed = enlarge_mask_with_mode_priority(y_smoothed, n=5, mode_method="roi")
 
     x_smoothed = x_filtered.fillna(value=int(-1), axis=0, inplace=False)
     x_smoothed = enlarge_mask_with_mode_priority(x_smoothed, n=0, mode_method="window")

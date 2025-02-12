@@ -144,7 +144,7 @@ def clean_data(
             + [str(nan_handler).upper()]
         )
 
-        title = title if title else f"{appliedHandlers}"
+        title = title if title else "View path for applied nan handlers"
         save_modules(x_out, y_out, title=f"{title}")
 
         diffInStrucAndFnModules: int = len(x_out.unique()) - len(y_out.unique())

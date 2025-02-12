@@ -1,9 +1,7 @@
 # Re-importing necessary libraries and preparing data again
-from typing import Dict, Union, cast
+from typing import Dict, Union
 
-from includes.statistics.save_results import save_modules
-from includes.visualisation.plot_timeline import plotTimeline
-from modules.file_directory.file_directory import createDirectories
+from includes.statistics.reindexFaces import reindexFacesToEnsureAdjacency
 import modules.globals as g
 import pandas as pd
 import numpy as np
@@ -89,6 +87,11 @@ def runTests(
         )
         x_orig, y_orig = clean_data(nan_handlers=["save"], x=x_orig, y=y_orig)
 
+        # We apply Reverse Cuthill McKee to the adjacency matrix to reduce the bandwidth of the matrix.
+        # Put simply, we reindex the faces so that connected faces are adjacacent (or more likely to be).
+        x_orig, y_orig, centroid_coords = reindexFacesToEnsureAdjacency(x_orig, y_orig, centroid_coords)
+        x_orig, y_orig = clean_data(nan_handlers=["save"], x=x_orig, y=y_orig)
+        
         # ------
         # Map x and y to same set
         # NB: This uses Hungarian algorithm to map modules to the same set of words.

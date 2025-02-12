@@ -9,12 +9,15 @@ from includes.all_subjects import all_healthy_young_adults
 import modules.globals as g
 
 CPU_THREADS: int = cpu_count() - 2
-# By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
-FORCE_RUN: bool = False
-USE_PARALLEL_PROCESSING: bool = False
-COMPRESS_FILE: bool = True # Compress files on-the-fly where possible. Recommended to only disable this for debugging.  
+
+FORCE_RUN: bool = (
+    False  # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
+)
+USE_PARALLEL_PROCESSING: bool = True
+COMPRESS_FILE: bool = (
+    True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
+)
 # CPU_THREADS = 10
-# # Comment: this
 
 USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
 # Bool, either True = coregister data to MNI152 space first.
@@ -67,9 +70,9 @@ DSI_STUDIO_USE_ROI: bool = True
 # louvain_communities, leiden_communities, scan, frc_fgsn, fast_label_propagation_communities, girvan_newman, k_clique_communities, greedy_modularity_communities
 NETWORKX_ALGORITHM: str = "leiden_communities"
 NETWORKX_GAMMA_START = 0.2
-NETWORKX_GAMMA_END = 0.6
-NETWORKX_GAMMA_STEP = 0.02
-NETWORKX_ITERATION_COUNT = 5
+NETWORKX_GAMMA_END = 1.2
+NETWORKX_GAMMA_STEP = 0.2
+NETWORKX_ITERATION_COUNT = 2
 NETWORKX_MAX_LEVEL: "Union[int,None]" = 5
 NETWORKX_FLUID_K: int = 3
 # ----------
@@ -81,12 +84,12 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
-GENERATE_LABELS = False
-RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY = False
-RUN_MAPPING = False
+GENERATE_LABELS = True
+RUN_DSI_STUDIO = True
+RUN_PROCESS_TRACTOGRAPHY = True
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY = True
+RUN_MAPPING = True
 RUN_CLEAN_SUBJECT_DIR = True
 RUN_STATS = True
 # ----------
@@ -102,7 +105,6 @@ R_MATRIX = "adj_matrix_wei_roiR"  # adj_matrix_wei_roiR, adj_matrix_bin_roiR
 # [END] FINDING MODULARITY (NETWORKX) PARAMETERS
 # ----------
 
-# TODO: Test
 # ----------
 # [START] FMRI PARAMETERS
 # ----------
@@ -112,7 +114,7 @@ DESIRED_FMRI_MAPS: "list[str]" = [
     "$subjectId$_tfMRI_MOTOR_level2_LH-AVG_hp200_s2_MSMAll",
     "$subjectId$_tfMRI_MOTOR_level2_RH-AVG_hp200_s2_MSMAll",
     "$subjectId$_tfMRI_MOTOR_level2_T-AVG_hp200_s2_MSMAll",
-]  # See tfMRI_MOTOR_LR_hp200_s4_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
+]  # See tfMRI_MOTOR_LR_hp200_s2_level1.fsf for outputted contrasts from FSL. This variable filters out unwanted contrasts (e.g., negative contrasts). Useful when using preprocessed data that contains more than needed.
 # fMRI values above this percentile will indicate a cluster.
 CLUSTER_THRESHOLD: float = 50
 # fMRI values above this area (mm) will indicate a cluster.
@@ -245,8 +247,9 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-# ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
-ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[2]]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
+# ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[2]]
+# ALL_SUBJECTS: "list[str]" = ["100408"]
 SUBJECTS_INTO_N_BATCHES: int = 25  # Number of batches
 
 # ALL_FMRI_TASKS must have a corresponding timing file (.txt) of the same name.
@@ -309,7 +312,10 @@ NATIVEORMNI152FOLDER: str = getNativeOrMni152Folder(NORMALISE_TO_MNI152)
 DIFFUSION_FOLDER: str = getDiffusionFolder(USE_7T_DIFFUSION)
 
 DSI_STUDIO: Path = getPathOfExecutable(
-    executable="dsi_studio", executableAlias="dsi-studio", userSubmitted=dsiStudioPath
+    executable="dsi_studio",
+    executableAlias="dsi-studio",
+    userSubmitted=dsiStudioPath,
+    shouldFind=RUN_DSI_STUDIO,
 )
 dsiStudioPath = str(DSI_STUDIO)
 

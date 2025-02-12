@@ -1,4 +1,5 @@
 # Re-importing necessary libraries and preparing data again
+from typing import Union
 import numpy as np
 import modules.globals as g
 import pandas as pd
@@ -27,7 +28,7 @@ def perSubjectStat(
     # Run tests for X as truth
     for test_name, test_func in test_functions_with_range:
         try:
-            score_x_defined: Float = test_func(x_final, y_final)
+            score_x_defined: Union[str, Float] = test_func(x_final, y_final)
 
             y_probabilities: pd.Series[float] = y_final.value_counts(normalize=True)
             random_y = pd.Series(
@@ -40,7 +41,7 @@ def perSubjectStat(
             ).astype(y_final.dtype)
             random_y.attrs = y_final.attrs
 
-            score_x_imported_random_y: Float = test_func(
+            score_x_imported_random_y: Union[str, Float] = test_func(
                 x_final,
                 random_y,
             )
@@ -55,7 +56,7 @@ def perSubjectStat(
                 index=x_final.index,
             ).astype(x_final.dtype)
             random_x.attrs = x_final.attrs
-            score_x_random_y_imported: Float = test_func(
+            score_x_random_y_imported: Union[str, Float] = test_func(
                 random_x,
                 y_final,
             )

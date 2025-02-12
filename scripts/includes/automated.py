@@ -108,7 +108,10 @@ def getPathOfExecutable(
     executable: str,
     executableAlias: "Optional[str]" = None,
     userSubmitted: "Optional[str]" = None,
+    shouldFind: bool = True
 ) -> Path:
+    if not shouldFind:
+        return Path(userSubmitted or "").resolve(strict=False)
     if userSubmitted is None or userSubmitted == "":
         pathToExecutable = (
             which(executable)

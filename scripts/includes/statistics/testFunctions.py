@@ -4,8 +4,11 @@ from includes.statistics import Float
 from includes.statistics.testVariables import ResultRowSubjectWide, ResultRowModuleWide
 
 
-def generateInterpretation(test_name: str, score: "Float") -> str:
+def generateInterpretation(test_name: str, score: "Union[str,Float]") -> str:
     # Define a function to generate interpretations
+    # Check if score is string
+    if isinstance(score, str):
+        return "Score not available."
     if test_name in [
         "Normalized Mutual Information",
         "Adjusted Mutual Information",

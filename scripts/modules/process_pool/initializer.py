@@ -20,7 +20,7 @@ def initialize_pool(c1: Dict[str, Any], g1: Dict[str, Any]) -> None:
 
     queued_logger: Logger = logging.getLogger("queued")
     queued_logger.addHandler(QueueHandler(queue=g1["log_queue"]))
-    queued_logger.setLevel(logging.DEBUG)
+    queued_logger.setLevel(logging.INFO)
     logger_adapter: "LoggerAdapter[Logger]" = logging.LoggerAdapter(
         queued_logger, extra=extra_logging_info
     )

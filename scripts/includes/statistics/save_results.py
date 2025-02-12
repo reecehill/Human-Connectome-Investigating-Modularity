@@ -21,6 +21,17 @@ def append_results(
     # )
 
 
+def hash_dict(d: dict[str, Any]):
+    import hashlib
+    import json
+
+    """Recursively hashes a dictionary, including nested dictionaries."""
+    encoded = json.dumps(
+        d, sort_keys=True, default=str
+    ).encode()  # Ensure consistent ordering
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def save_modules(x: "pd.Series[Any]", y: "pd.Series[Any]", title: str) -> None:
     import modules.globals as g
 
@@ -28,23 +39,37 @@ def save_modules(x: "pd.Series[Any]", y: "pd.Series[Any]", title: str) -> None:
         config.SUBJECT_STAT_DIR
         / f"{config.CURRENT_HEMISPHERE}_hemisphere"
         / "datasets"
-        / f"{config.CURRENT_TASK}",
+        / f"{config.CURRENT_TASK}"
+        / "dataset_name"
+        / f"{x.attrs['dataset_descriptors']['dataset_name']}"
+        / "data_type"
+        / f"{x.attrs['dataset_descriptors']['data_type']}",
+        *[
+            str(handler["name"])
+            for handler in x.attrs.get("applied_handlers", [])
+            if handler["name"] not in ["save"]
+        ],  # Append only allowed handlers
         *[
             str(item)
             for kv in x.attrs["dataset_descriptors"].items()
-            if kv[0] not in {"subject_id", "task", "hemisphere"}
+            if kv[0] not in {"subject_id", "task", "hemisphere", "dataset_name", "data_type"}
             for item in kv
         ],
     )
+
     createDirectories([filepath], createParents=True, throwErrorIfExists=False)
 
+    xFilename, yFilename = (
+        f"{hash_dict(x.attrs['dataset_descriptors'])}",
+        f"{hash_dict(y.attrs['dataset_descriptors'])}",
+    )
     xPath = (
         filepath
-        / f"s_{title}-{len(x)}of{x.attrs['applied_handlers'][0]['metadata']['pre_handler_length']}.csv"
+        / f"s-{len(x)}of{x.attrs['applied_handlers'][-1]['metadata']['pre_handler_length']}-{xFilename}.csv"
     )
     yPath = (
         filepath
-        / f"f_{title}-{len(y)}of{y.attrs['applied_handlers'][0]['metadata']['pre_handler_length']}.csv"
+        / f"f-{len(y)}of{y.attrs['applied_handlers'][-1]['metadata']['pre_handler_length']}-{yFilename}.csv"
     )
 
     for path, data in zip([xPath, yPath], [x, y]):

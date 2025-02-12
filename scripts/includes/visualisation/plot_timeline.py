@@ -1,7 +1,7 @@
 import datetime
 import glob
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 import matplotlib as mpl
 from matplotlib.offsetbox import AnchoredText
 import pandas as pd
@@ -126,7 +126,7 @@ def plotTimeline(
 
         for test_name, test_func in test_functions_with_range:
             try:
-                score_x_defined: Float = test_func(x1, y1)
+                score_x_defined: "Union[Float,str]" = test_func(x1, y1)
                 results.append(
                     (
                         test_name,

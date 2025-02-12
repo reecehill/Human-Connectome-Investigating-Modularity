@@ -60,12 +60,8 @@ def findModularity(subjectId: str) -> bool:
     )
     if config.NETWORKX_ALGORITHM == "leiden_communities":
         # Using the optimal gamma, find the modules arrangement.
-        L_optimalModules = algorithms.leiden(
-            g_original=L_graph, weights="weight"
-        ).communities  # type: ignore
-        R_optimalModules = algorithms.leiden(
-            g_original=R_graph, weights="weight"
-        ).communities  # type: ignore
+        L_optimalModules = algorithms.leiden(g_original=L_graph, weights="weight").communities  # type: ignore
+        R_optimalModules = algorithms.leiden(g_original=R_graph, weights="weight").communities  # type: ignore
     elif config.NETWORKX_ALGORITHM == "bayan":
         L_optimalModules = algorithms.bayan(
             g_original=L_graph, time_allowed=1, resolution=1
@@ -121,7 +117,6 @@ def findModularity(subjectId: str) -> bool:
 
         L_optimalModules, _ = runLouvainAlgorithm(L_graph, L_optimalGamma, g.log_queue)
         R_optimalModules, _ = runLouvainAlgorithm(R_graph, R_optimalGamma, g.log_queue)
-        
 
     elif config.NETWORKX_ALGORITHM == "louvain_communities":
         # Using the optimal gamma, find the modules arrangement.
@@ -130,15 +125,16 @@ def findModularity(subjectId: str) -> bool:
 
     elif config.NETWORKX_ALGORITHM == "spectral_clustering":
         try:
+            from sklearn.cluster import spectral_clustering
             L_adj = getComputedMatrix(subjectId, config.L_MATRIX)
             R_adj = getComputedMatrix(subjectId, config.R_MATRIX)
-            L_optimalModules_list = sklearn.cluster.spectral_clustering(
+            L_optimalModules_list = spectral_clustering(
                 affinity=L_adj, n_clusters=5, assign_labels="discretize"
             )
             L_optimalModules = groupModulesByLabel(
                 np.array(L_optimalModules_list, dtype=np.int8).transpose()
             )
-            R_optimalModules_list = sklearn.cluster.spectral_clustering(
+            R_optimalModules_list = spectral_clustering(
                 affinity=R_adj, n_clusters=5, assign_labels="discretize"
             )
             R_optimalModules = groupModulesByLabel(
@@ -156,28 +152,26 @@ def findModularity(subjectId: str) -> bool:
 
         L_optimalModules = [
             list(community)
-            for community in nx_community.greedy_modularity_communities(
+            for community in nx_community.greedy_modularity_communities(  # type: ignore
                 L_graph,
                 weight="weight",
                 resolution=L_optimalGamma,
                 cutoff=10,
                 best_n=10,
             )
-        ]  # type: ignore
+        ]
         R_optimalModules = [
             list(community)
-            for community in nx_community.greedy_modularity_communities(
+            for community in nx_community.greedy_modularity_communities(  # type: ignore
                 R_graph,
                 weight="weight",
                 resolution=R_optimalGamma,
                 cutoff=10,
                 best_n=10,
             )
-        ]  # type: ignore
+        ]
     elif config.NETWORKX_ALGORITHM == "fast_label_propagation_communities":
-        L_optimalModules_gen = nx_community.fast_label_propagation_communities(
-            L_graph, weight="weight"
-        )  # type: ignore
+        L_optimalModules_gen = nx_community.fast_label_propagation_communities(L_graph, weight="weight")  # type: ignore
 
         L_optimalModules = np.array(
             [
@@ -186,9 +180,7 @@ def findModularity(subjectId: str) -> bool:
             ],
             dtype=object,
         )
-        R_optimalModules_gen = nx_community.fast_label_propagation_communities(
-            R_graph, weight="weight"
-        )  # type: ignore
+        R_optimalModules_gen = nx_community.fast_label_propagation_communities(R_graph, weight="weight")  # type: ignore
         R_optimalModules = np.array(
             [
                 list(community)
@@ -227,18 +219,14 @@ def findModularity(subjectId: str) -> bool:
             ]
         )
     elif config.NETWORKX_ALGORITHM == "k_clique_communities":
-        L_optimalModules_gen = nx_community.k_clique_communities(
-            L_graph, k=3, cliques=nx.find_cliques(L_graph)
-        )  # type: ignore
+        L_optimalModules_gen = nx_community.k_clique_communities(L_graph, k=3, cliques=nx.find_cliques(L_graph))  # type: ignore
         L_optimalModules = np.array(
             [
                 list(community)
                 for community in deque(L_optimalModules_gen, maxlen=len(L_graph))
             ]
         )
-        R_optimalModules_gen = nx_community.k_clique_communities(
-            R_graph, k=3, cliques=nx.find_cliques(R_graph)
-        )  # type: ignore
+        R_optimalModules_gen = nx_community.k_clique_communities(R_graph, k=3, cliques=nx.find_cliques(R_graph))  # type: ignore
         R_optimalModules = np.array(
             [
                 list(community)
@@ -287,6 +275,7 @@ def getComputedMatrix(subjectId: str, weighted_matrix: str) -> spmatrix:
 def process_iteration(args: "tuple[np.float64,int,Graph,str, str,Any]") -> "np.float64":
     gamma, iteration_index, graph, graph_type, subjectId, log_queue = args
     import logging
+
     logger = logging.getLogger()  # Root logger
     logger.setLevel(logging.INFO)
     qh = QueueHandler(log_queue)

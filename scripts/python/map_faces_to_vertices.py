@@ -1,5 +1,5 @@
-from nibabel import load, save
-from nibabel.gifti import GiftiDataArray, GiftiImage
+from nibabel.loadsave import load, save
+from nibabel.gifti.gifti import GiftiDataArray, GiftiImage
 import numpy as np
 from pathlib import Path
 import pandas as pd
@@ -11,7 +11,7 @@ scalar_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "exported_modules"
     / "left_structural_modules.csv"
 ).resolve(strict=True)
@@ -20,7 +20,7 @@ scalar_file = (
 #     base_path.parent.parent
 #     / "data"
 #     / "subjects"
-#     / "100206"
+#     / "100408"
 #     / "statistics"
 #     / "right_hemisphere"
 #     / "datasets"
@@ -33,7 +33,7 @@ hemisphere_face_ids_L = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "exported_modules"
     / "all_left_structural_modules.csv"
 ).resolve(strict=True)
@@ -41,16 +41,15 @@ hemisphere_face_ids_R = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "exported_modules"
     / "all_right_structural_modules.csv"
-
 ).resolve(strict=True)
 roi_face_ids_L = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "exported_modules"
     / "lh.L_precentral_L_faceIds.csv"
 ).resolve(strict=True)
@@ -58,16 +57,16 @@ surface_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "MNINonLinear"
     / "fsaverage_LR32k"
-    / "100206.L.pial_MSMAll.32k_fs_LR.surf.gii"
+    / "100408.L.pial_MSMAll.32k_fs_LR.surf.gii"
 ).resolve(strict=True)
 output_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100206"
+    / "100408"
     / "MNINonLinear"
     / "Results"
     / "tfMRI_MOTOR"

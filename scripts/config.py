@@ -344,7 +344,8 @@ def setCurrentBatch(currentBatch: str) -> None:
     global BATCH_SUCCESS_FILE
     CURRENT_BATCH = currentBatch
     BATCH_SUCCESS_FILE = (
-        DATA_DIR / f"batchSuccess-{CURRENT_BATCH}-{TIMESTAMP_OF_SCRIPT}.csv"
+        DATA_DIR
+        / f"batchSuccess-{CURRENT_BATCH}-{TIMESTAMP_OF_SCRIPT}.csv{'.gz' if COMPRESS_FILE else ''}"
     )
 
 
@@ -352,7 +353,7 @@ def setSubjectDir(subjectDir: Path = Path("/path-not-given")):
     global SUBJECT_DIR
     global PIPELINE_SUCCESS_FILE
     SUBJECT_DIR = subjectDir
-    PIPELINE_SUCCESS_FILE = subjectDir / "pipeline_success.csv"
+    PIPELINE_SUCCESS_FILE = subjectDir / f"pipeline_success.csv{'.gz' if COMPRESS_FILE else ''}"
 
 
 def setStatDir(statDir: Path = Path("/path-not-given")) -> None:

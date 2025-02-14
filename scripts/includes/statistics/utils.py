@@ -10,6 +10,7 @@ from scipy.optimize import linear_sum_assignment  # type: ignore
 import Levenshtein
 import modules.globals as g
 import config
+from modules.utils.loadSpatialData import loadFacesAndVertices
 
 
 # Function to generate a random word
@@ -136,38 +137,73 @@ def convertNumericalModulesToWords(
         header=False,
     )
 
-    x_as_words.attrs.update(
-        {
-            "dataset_descriptors": {
-                **x_as_words.attrs.get("dataset_descriptors", {}),
-                "data_type": "words",
-            },
-            "applied_handlers": x_as_words.attrs["applied_handlers"]
-            + [
-                {
-                    "name": "convertNumericalModulesToWords",
-                    "metadata": {"label_to_word_map_xory": label_to_word_map_xory},
-                }
-            ],
-        }
+    for xory_as_words in [x_as_words, y_as_words]:
+        xory_as_words.attrs.update(
+            {
+                "dataset_descriptors": {
+                    **xory_as_words.attrs.get("dataset_descriptors", {}),
+                    "data_type": "words",
+                },
+                "applied_handlers": xory_as_words.attrs["applied_handlers"]
+                + [
+                    {
+                        "name": "convertNumericalModulesToWords",
+                        "metadata": {
+                            "label_to_word_map_xory": label_to_word_map_xory,
+                            "pre_handler_length": len(x),
+                        },
+                    }
+                ],
+            }
+        )
+    return x_as_words, y_as_words, label_to_word_map_xory
+
+
+def populateModuleMetrics(xory: "pd.Series[Any]", centroid_coords: "pd.DataFrame"):
+    return sorted(
+        [
+            compute_module_distances(xory, centroid_coords, x_id)
+            for x_id in xory.unique()
+        ],
+        key=lambda d: (str(d["x_module_id"])),
     )
 
-    y_as_words.attrs.update(
-        {
-            "dataset_descriptors": {
-                **y_as_words.attrs.get("dataset_descriptors", {}),
-                "data_type": "words",
-            },
-            "applied_handlers": y_as_words.attrs["applied_handlers"]
-            + [
-                {
-                    "name": "convertNumericalModulesToWords",
-                    "metadata": {"label_to_word_map_xory": label_to_word_map_xory},
-                }
-            ],
-        }
+
+def compute_module_distances(
+    x: "pd.Series[Any]", centroid_coords: "pd.DataFrame", x_module_id: "Union[str,int]"
+) -> "dict[str, Any]":
+    faceIds: "pd.Index" = x.where(x == x_module_id).dropna().index
+    adjacentMapping = next(
+        (
+            handler["metadata"]["mapping"]
+            for handler in x.attrs["applied_handlers"]
+            if handler["name"] == "reindexedFaces"
+        ),
+        None,
     )
-    return x_as_words, y_as_words, label_to_word_map_xory
+    if adjacentMapping is None:
+        original_faceIds = faceIds
+    else:
+        original_faceIds = adjacentMapping[np.argsort(faceIds)]
+        
+    module_centroid = np.array(
+        list(calculateAreaWeightedCentroid(original_faceIds).values())
+    )
+
+    distances = []
+    for hemi, rois in config.REFERENCE_POINTS.items():
+        for name, roi_coords in rois.items():
+            distance = np.linalg.norm(roi_coords - module_centroid)
+            distances.append({"name": name, "hemi": hemi, "distance": distance})
+
+    # Sort by ascending distance
+    distances_sorted = sorted(distances, key=lambda d: d["distance"])
+
+    return {
+        "x_module_id": x_module_id,
+        "module_centroid": module_centroid,
+        "rois": {i: roi for i, roi in enumerate(distances_sorted)},
+    }
 
 
 def enlarge_mask_with_mode_priority(
@@ -194,7 +230,7 @@ def enlarge_mask_with_mode_priority(
                 mode_value = (
                     window.value_counts().idxmax()
                 )  # Excludes NaN automatically
-                
+
             else:
                 mode_value = -1.0
         elif mode_method == "roi":
@@ -446,37 +482,50 @@ def calculateNormalisedLevenshteinDistance(
 
 def getCentroid(
     centroid_coords: pd.DataFrame,
-    x: "Union[pd.Series[str],pd.Series[int]]",
-    y: "Union[pd.Series[str],pd.Series[int]]",
-):
+    xory: "Union[pd.Series[str],pd.Series[int]]",
+) -> XYZDict:
 
-    x_module_indices: npt.NDArray[np.int64] = np.where(~x.isna())[0]
-    x_module_coords: npt.NDArray[np.float64] = centroid_coords.T.values[
-        x_module_indices
-    ]
-    x_module_centroid_coords_np: Tuple[np.float64, np.float64, np.float64] = tuple(
-        x_module_coords.mean(axis=0)
+    module_indices: npt.NDArray[np.int64] = np.where(~xory.isna())[0]
+    module_coords: npt.NDArray[np.float64] = centroid_coords.T.values[module_indices]
+    module_centroid_coords_np: Tuple[np.float64, np.float64, np.float64] = tuple(
+        module_coords.mean(axis=0)
     )
-    x_module_centroid_coords: XYZDict = {
-        "x": float(x_module_centroid_coords_np[0]),
-        "y": float(x_module_centroid_coords_np[1]),
-        "z": float(x_module_centroid_coords_np[2]),
+    module_centroid_coords: XYZDict = {
+        "x": float(module_centroid_coords_np[0]),
+        "y": float(module_centroid_coords_np[1]),
+        "z": float(module_centroid_coords_np[2]),
     }
 
-    y_module_indices: npt.NDArray[np.int64] = np.where(~y.isna())[0]
-    y_module_coords: npt.NDArray[np.float64] = centroid_coords.T.values[
-        y_module_indices
-    ]
-    y_module_centroid_coords_np: Tuple[np.float64, np.float64, np.float64] = tuple(
-        y_module_coords.mean(axis=0)
-    )
-    y_module_centroid_coords: XYZDict = {
-        "x": float(y_module_centroid_coords_np[0]),
-        "y": float(y_module_centroid_coords_np[1]),
-        "z": float(y_module_centroid_coords_np[2]),
-    }
+    return module_centroid_coords
 
-    return x_module_centroid_coords, y_module_centroid_coords
+
+def calculateAreaWeightedCentroid(faceIds: "pd.Index[int]") -> XYZDict:
+    faces_o, vertices = loadFacesAndVertices(onlyRoi=True)
+    faces = faces_o.reset_index(drop=True, inplace=False)
+    vertices = vertices.to_numpy()
+
+    facesOfModule = faces.iloc[faceIds]
+    v1, v2, v3 = (
+        vertices[facesOfModule.iloc[:,0]],
+        vertices[facesOfModule.iloc[:,1]],
+        vertices[facesOfModule.iloc[:,2]],
+    )
+
+    # Compute centroids of each triangle
+    centroids = (v1 + v2 + v3) / 3
+
+    # Compute area using cross product
+    areas = 0.5 * np.linalg.norm(np.cross(v2 - v1, v3 - v1), axis=1)
+
+    # Compute area-weighted centroid
+    weighted_centroid = np.sum(centroids.T * areas, axis=1) / np.sum(areas)
+
+    centroid_coords: XYZDict = {
+        "x": float(weighted_centroid[0]),
+        "y": float(weighted_centroid[1]),
+        "z": float(weighted_centroid[2]),
+    }
+    return centroid_coords
 
 
 def calculateEuclidianDistance(
@@ -485,8 +534,8 @@ def calculateEuclidianDistance(
     y: "Union[pd.Series[str],pd.Series[int]]",
 ) -> Tuple[float, XYZDict, XYZDict]:
     x_module_centroid_coords, y_module_centroid_coords = getCentroid(
-        centroid_coords, x, y
-    )
+        centroid_coords, x
+    ), getCentroid(centroid_coords, y)
     x_coords = np.array(list(x_module_centroid_coords.values()))
     y_coords = np.array(list(y_module_centroid_coords.values()))
     distance: np.float64 = np.linalg.norm(x=np.subtract(x_coords, y_coords))

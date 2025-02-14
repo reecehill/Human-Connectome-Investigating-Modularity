@@ -158,24 +158,8 @@ def get_main_fn_module_by_topology(
         y_modules_centroids[y_module_index] = centroid_coords[y_indices].mean(axis=1)
         pass
 
-    reference_points = {
-        "left": {
-            "lf": np.array([-10, -20, 78]),
-            "rf": np.array([-10, -20, 78]),  # from inspection
-            "lh": np.array([-40, -26, 65]),
-            "rh": np.array([-40, -26, 65]),  # from inspection
-            "t": np.array([-60, 5, 34]),  # from inspection
-        },
-        "right": {
-            "lf": np.array([10, -20, 78]),
-            "rf": np.array([10, -20, 78]),  # from inspection
-            "lh": np.array([40, -26, 65]),
-            "rh": np.array([40, -26, 65]),  # from inspection
-            "t": np.array([60, 5, 34]),  # from inspection
-        },
-    }
 
-    expected_module_location = reference_points[config.CURRENT_HEMISPHERE][
+    expected_module_location = config.REFERENCE_POINTS[config.CURRENT_HEMISPHERE][
         config.CURRENT_TASK
     ]
     distances = np.linalg.norm(y_modules_centroids - expected_module_location, axis=1)

@@ -11,7 +11,7 @@ scalar_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "exported_modules"
     / "left_structural_modules.csv"
 ).resolve(strict=True)
@@ -20,7 +20,7 @@ scalar_file = (
 #     base_path.parent.parent
 #     / "data"
 #     / "subjects"
-#     / "100408"
+#     / "106824"
 #     / "statistics"
 #     / "right_hemisphere"
 #     / "datasets"
@@ -33,7 +33,7 @@ hemisphere_face_ids_L = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "exported_modules"
     / "all_left_structural_modules.csv"
 ).resolve(strict=True)
@@ -41,7 +41,7 @@ hemisphere_face_ids_R = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "exported_modules"
     / "all_right_structural_modules.csv"
 ).resolve(strict=True)
@@ -49,7 +49,7 @@ roi_face_ids_L = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "exported_modules"
     / "lh.L_precentral_L_faceIds.csv"
 ).resolve(strict=True)
@@ -57,16 +57,16 @@ surface_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "MNINonLinear"
     / "fsaverage_LR32k"
-    / "100408.L.pial_MSMAll.32k_fs_LR.surf.gii"
+    / "106824.L.pial_MSMAll.32k_fs_LR.surf.gii"
 ).resolve(strict=True)
 output_file = (
     base_path.parent.parent
     / "data"
     / "subjects"
-    / "100408"
+    / "106824"
     / "MNINonLinear"
     / "Results"
     / "tfMRI_MOTOR"

@@ -103,7 +103,7 @@ else:
                 plotRoiRegion: True
             }
             g.allSteps = allSteps
-            subjectSample = ['100408']
+            subjectSample = ['106824']
             for subjectId in subjectSample:
                 prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
                 plotRoiRegion(subjectId, pathTo=pathTo)

@@ -10,6 +10,7 @@ from includes.statistics.nan_handlers import (
 import pandas as pd
 import numpy as np
 from includes.statistics.save_results import save_modules
+from includes.statistics.utils import populateModuleMetrics
 import modules.globals as g
 
 # Cleaning data to exclude NaN values
@@ -115,15 +116,17 @@ def clean_data(
                     "dataset_descriptors": (
                         {
                             **out.attrs.get("dataset_descriptors", {}),
-                            "dataset_name": dataset_name if dataset_name 
-                            else (
-                                out.attrs["dataset_descriptors"]["dataset_name"]
-                                if "cleaned"
-                                in out.attrs["dataset_descriptors"]["dataset_name"]
-                                or nan_handler == "save"
-                                else f"{out.attrs['dataset_descriptors']['dataset_name']}_cleaned"
+                            "dataset_name": (
+                                dataset_name
+                                if dataset_name
+                                else (
+                                    out.attrs["dataset_descriptors"]["dataset_name"]
+                                    if "cleaned"
+                                    in out.attrs["dataset_descriptors"]["dataset_name"]
+                                    or nan_handler == "save"
+                                    else f"{out.attrs['dataset_descriptors']['dataset_name']}_cleaned"
                                 )
-                            ,
+                            ),
                         }
                     ),
                     "applied_handlers": out.attrs["applied_handlers"]
@@ -133,6 +136,11 @@ def clean_data(
                             "metadata": {"pre_handler_length": preHandlerSize},
                         }
                     ],
+                    "metrics": {
+                        "distances_from_rois": populateModuleMetrics(
+                            out, out.attrs["centroid_coords"]
+                        ),
+                    },
                 }
             )
 

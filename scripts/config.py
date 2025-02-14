@@ -8,13 +8,15 @@ from typing import Literal, Optional, Union
 from includes.automated import *
 from includes.all_subjects import all_healthy_young_adults
 import modules.globals as g
+from numpy import array
 
 CPU_THREADS: int = cpu_count() - 2
 
 FORCE_RUN: bool = (
     False  # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 )
-USE_PARALLEL_PROCESSING: bool = True
+USE_PARALLEL_PROCESSING: bool = False
+DEBUG: bool = False
 COMPRESS_FILE: bool = (
     True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
 )
@@ -87,13 +89,13 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
-GENERATE_LABELS = True
-RUN_DSI_STUDIO = True
-RUN_PROCESS_TRACTOGRAPHY = True
-RUN_CALC_FUNC_MODULARITY = True
-RUN_CALC_STRUC_MODULARITY = True
-RUN_MAPPING = True
-RUN_CLEAN_SUBJECT_DIR = True
+GENERATE_LABELS = False
+RUN_DSI_STUDIO = False
+RUN_PROCESS_TRACTOGRAPHY = False
+RUN_CALC_FUNC_MODULARITY = False
+RUN_CALC_STRUC_MODULARITY = False
+RUN_MAPPING = False
+RUN_CLEAN_SUBJECT_DIR = False
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -239,6 +241,23 @@ TRANSFORMS: dict[str, dict[str, str]] = {
     }
 }
 
+REFERENCE_POINTS = {
+    "left": {
+        "lf": array([-14, -25, 77]),
+        "rf": array([-14, -25, 77]),  # from inspection
+        "lh": array([-46, -5, 56]),
+        "rh": array([-46, -5, 56]),  # from inspection
+        "t": array([-59, 4, 13]),  # from inspection
+    },
+    "right": {
+        "lf": array([14, -25, 77]),
+        "rf": array([14, -25, 77]),  # from inspection
+        "lh": array([46, -5, 56]),
+        "rh": array([46, -5, 56]),  # from inspection
+        "t": array([59, 4, 13]),  # from inspection
+    },
+}
+
 # NOTE: fMRI activations above (>) this value will become "1", otherwise "0".
 FMRI_THRESHOLD_TO_BINARISE = 1.0
 
@@ -319,7 +338,8 @@ DSI_STUDIO: Path = getPathOfExecutable(
     executable="dsi_studio",
     executableAlias="dsi-studio",
     userSubmitted=dsiStudioPath,
-    shouldFind=RUN_DSI_STUDIO and multiprocessing.current_process().name == "MainProcess",
+    shouldFind=RUN_DSI_STUDIO
+    and multiprocessing.current_process().name == "MainProcess",
 )
 dsiStudioPath = str(DSI_STUDIO)
 
@@ -353,7 +373,9 @@ def setSubjectDir(subjectDir: Path = Path("/path-not-given")):
     global SUBJECT_DIR
     global PIPELINE_SUCCESS_FILE
     SUBJECT_DIR = subjectDir
-    PIPELINE_SUCCESS_FILE = subjectDir / f"pipeline_success.csv{'.gz' if COMPRESS_FILE else ''}"
+    PIPELINE_SUCCESS_FILE = (
+        subjectDir / f"pipeline_success.csv{'.gz' if COMPRESS_FILE else ''}"
+    )
 
 
 def setStatDir(statDir: Path = Path("/path-not-given")) -> None:

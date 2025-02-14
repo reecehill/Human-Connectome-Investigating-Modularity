@@ -7,6 +7,7 @@ from matplotlib.offsetbox import AnchoredText
 import pandas as pd
 import config
 from includes.statistics.testVariables import Float
+from includes.statistics.utils import populateModuleMetrics
 from modules.file_directory.file_directory import createDirectories
 import modules.globals as g
 import numpy as np
@@ -23,7 +24,10 @@ def plotTimelines(subjectId: str, pathTo: dict[str, Path]) -> None:
     # Retrieve only "s-" and "f-" prefixed files
     files = [
         Path(f)
-        for f in glob.glob(f"{subjectDirectory}/**/[sf]-*.pkl{'.gz' if config.COMPRESS_FILE else ''}", recursive=True)
+        for f in glob.glob(
+            f"{subjectDirectory}/**/[sf]-*.pkl{'.gz' if config.COMPRESS_FILE else ''}",
+            recursive=True,
+        )
     ]
 
     # Convert file data into a DataFrame
@@ -188,7 +192,41 @@ def plotTimeline(
             ax.axhline(y=i - 0.5, color="gray", linestyle="-", linewidth=0.5)
 
         # Adjusting y-axis
-        ax.set_yticks(np.arange(len(categories)), categories)
+        newline = "\n"
+        y_fn_module_distances = x1.attrs.get(
+            "metrics", populateModuleMetrics(x1, x1.attrs["centroid_coords"])
+        )
+        y_labels = {}
+        for i, val in enumerate(categories):
+            y_labels[val] = f"Module {val}{newline}"
+            # Find dictionary where x_module_id is 'val'
+            matching_roi = next(
+                (item for item in y_fn_module_distances if item["x_module_id"] == val),
+                None,
+            )
+            # Extract first roi value (i.e., the closest by distance) if found
+            first_roi_value = (
+                next(iter(matching_roi["rois"].values())) if matching_roi else None
+            )
+
+            if first_roi_value and matching_roi:
+                y_labels[
+                    val
+                ] += f"{first_roi_value['name']} ({first_roi_value['distance']:.2f}mm)"
+                y_labels[
+                    val
+                ] += f"{newline}{np.array2string(matching_roi['module_centroid'], precision=2, separator=', ')[1:-1]}"
+                y_labels[
+                    val
+                ] += f"{newline}{first_roi_value['hemi']}"
+                y_labels[
+                    val
+                ] += f"{newline}"
+            else:
+                y_labels[val] += "No closest ROI found"
+
+        ax.set_yticks(np.arange(len(categories)))
+        ax.set_yticklabels(list(y_labels.values()))
         ax.set_xlim(min(x1.index), max(x1.index))  # Full index range to show gaps
         ax.set_xticks(
             np.linspace(min(x1.index), max(x1.index), num=10)
@@ -217,7 +255,7 @@ def plotTimeline(
             + f"Func Faces: {len(y1)}"
             + "\n"
             + "\n".join(
-                [f"{name}: {value:.4f} ({bounds})" for name, value, bounds in results]
+                [f"{name}: {value} ({bounds})" for name, value, bounds in results]
             )
         )
         stats_box = AnchoredText(

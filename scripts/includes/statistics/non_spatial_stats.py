@@ -1,6 +1,8 @@
 # Re-importing necessary libraries and preparing data again
 from typing import Dict, Union
 
+from matplotlib.collections import PathCollection
+
 from includes.statistics.reindexFaces import reindexFacesToEnsureAdjacency
 import modules.globals as g
 import pandas as pd
@@ -9,8 +11,10 @@ from includes.statistics.perModuleStat import perModuleStat
 from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
 from includes.statistics.utils import (
+    compute_module_distances,
     convertNumericalModulesToWords,
     mapAllModulesToSameSet,
+    populateModuleMetrics,
 )
 from includes.statistics.clean_data import clean_data
 
@@ -49,6 +53,7 @@ def runTests(
         x_orig = x_raw[0].replace([np.nan, -1, 0], -1)
         x_orig.attrs.update(
             {
+                "centroid_coords": centroid_coords,
                 "applied_handlers": x_orig.attrs.get("applied_handlers", [])
                 + [
                     {
@@ -69,6 +74,7 @@ def runTests(
         y_orig = y_raw[0].replace([np.nan, -1, 0, 1], -1)
         y_orig.attrs.update(
             {
+                "centroid_coords": centroid_coords,
                 "dataset_descriptors": {
                     "dataset_name": "orig",
                     "subject_id": config.CURRENT_SUBJECT,
@@ -85,13 +91,21 @@ def runTests(
                 ],
             }
         )
-        x_orig, y_orig = clean_data(nan_handlers=["save"], x=x_orig, y=y_orig)
+        x_orig, y_orig = clean_data(
+            nan_handlers=["save"], x=x_orig.copy(), y=y_orig.copy()
+        )
 
         # We apply Reverse Cuthill McKee to the adjacency matrix to reduce the bandwidth of the matrix.
         # Put simply, we reindex the faces so that connected faces are adjacacent (or more likely to be).
-        x_orig, y_orig, centroid_coords = reindexFacesToEnsureAdjacency(x_orig, y_orig, centroid_coords)
-        x_orig, y_orig = clean_data(nan_handlers=["save"], x=x_orig, y=y_orig)
-        
+        x_orig, y_orig, centroid_coords = reindexFacesToEnsureAdjacency(
+            x_orig, y_orig, centroid_coords
+        )
+        # new_index_order = x_orig.attrs["applied_handlers"][-1]["metadata"]["mapping"]
+
+        x_orig, y_orig = clean_data(
+            nan_handlers=["save"], x=x_orig.copy(), y=y_orig.copy()
+        )
+
         # ------
         # Map x and y to same set
         # NB: This uses Hungarian algorithm to map modules to the same set of words.
@@ -101,8 +115,8 @@ def runTests(
         # Map the cleaned words to the same set.
         orig_mapping: "dict[str,str]"
         mappedMatrixScores: "Dict[str, Dict[str, float]]"
-        orig_mapping, _x_mapped, _y_mapped, mappedMatrixScores = (
-            mapAllModulesToSameSet(x=x_orig, y=y_orig, centroid_coords=centroid_coords)
+        orig_mapping, _x_mapped, _y_mapped, mappedMatrixScores = mapAllModulesToSameSet(
+            x=x_orig, y=y_orig, centroid_coords=centroid_coords
         )
         x_mapped, y_mapped = clean_data(nan_handlers=["save"], x=_x_mapped, y=_y_mapped)
         del _x_mapped, _y_mapped
@@ -126,14 +140,10 @@ def runTests(
         x_cleaned, y_cleaned = clean_data(
             nan_handlers=[
                 "mask_removeMissing",
-                # "get_main_fn_module_by_topology",
                 "filter_by_parent",
             ],
-            x=x_orig,
-            y=y_orig,
-            orig_x=x_orig,  # Used to pass original x to filter_by_parent
-            # xRetrievalMethod="getMode",
-            # centroid_coords=centroid_coords,
+            x=x_orig.copy(),
+            y=y_orig.copy(),
         )
 
         # -----
@@ -235,6 +245,14 @@ def runTests(
             for old_key, value in mappedMatrixScores.items()
         }
 
+        for xory_as_words in [x_mapped_cleaned_words, y_mapped_cleaned_words]:
+            xory_as_words.attrs.update(
+                {
+                    "dataset_descriptors": xory_as_words.attrs["dataset_descriptors"],
+                    "applied_handlers": xory_as_words.attrs["applied_handlers"],
+                }
+            )
+
         # ------
         # Make x and y symmetric
         # NB: To demonstrate that statistical tests are unaffected by data symmetry.
@@ -251,24 +269,22 @@ def runTests(
         for descriptor, x, y in [
             ("orig", x_orig, y_orig),
             ("mapped", x_mapped, y_mapped),
-
             ("orig_words", x_orig_words, y_orig_words),
             ("mapped_words", x_mapped_words, y_mapped_words),
-
             ("cleaned", x_cleaned, y_cleaned),
             ("cleaned_words", x_cleaned_words, y_cleaned_words),
-            
             ("mapped_cleaned", x_mapped_cleaned, y_mapped_cleaned),
             ("mapped_cleaned_words", x_mapped_cleaned_words, y_mapped_cleaned_words),
-
         ]:
             x: "pd.Series[Union[int,str]]"
             y: "pd.Series[Union[int,str]]"
             pass
 
-        perSubjectStat("cleaned_words", x_cleaned_words, y_cleaned_words)
+        perSubjectStat("cleaned_words", x_cleaned_words.copy(), y_cleaned_words.copy())
         perSubjectStat(
-            "cleaned_words_mapped", x_mapped_cleaned_words, y_mapped_cleaned_words
+            "cleaned_words_mapped",
+            x_mapped_cleaned_words.copy(),
+            y_mapped_cleaned_words.copy(),
         )
 
         # perModuleStat(

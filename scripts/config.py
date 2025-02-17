@@ -17,12 +17,10 @@ FORCE_RUN: bool = (
 )
 USE_PARALLEL_PROCESSING: bool = False
 DEBUG: bool = False
-COMPRESS_FILE: bool = (
-    True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
-)
+COMPRESS_FILE: bool = True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
 # CPU_THREADS = 10
 
-LOG_LEVEL = 10  # https://docs.python.org/3/library/logging.html#levels
+LOG_LEVEL = 20  # https://docs.python.org/3/library/logging.html#levels
 
 USE_7T_DIFFUSION: bool = False  # Bool, either True = use 7T or False = use 3T.
 # Bool, either True = coregister data to MNI152 space first.
@@ -89,13 +87,13 @@ NETWORKX_FLUID_K: int = 3
 # ----------
 PREPROCESS = False  # Not implemented
 EAGER_LOAD_DATA = False  # Not implemented
-GENERATE_LABELS = False
-RUN_DSI_STUDIO = False
-RUN_PROCESS_TRACTOGRAPHY = False
-RUN_CALC_FUNC_MODULARITY = False
-RUN_CALC_STRUC_MODULARITY = False
-RUN_MAPPING = False
-RUN_CLEAN_SUBJECT_DIR = False
+GENERATE_LABELS = True
+RUN_DSI_STUDIO = True
+RUN_PROCESS_TRACTOGRAPHY = True
+RUN_CALC_FUNC_MODULARITY = True
+RUN_CALC_STRUC_MODULARITY = True
+RUN_MAPPING = True
+RUN_CLEAN_SUBJECT_DIR = True
 RUN_STATS = True
 # ----------
 # [END] PIPELINE PARAMETERS
@@ -243,18 +241,14 @@ TRANSFORMS: dict[str, dict[str, str]] = {
 
 REFERENCE_POINTS = {
     "left": {
-        "lf": array([-14, -25, 77]),
-        "rf": array([-14, -25, 77]),  # from inspection
-        "lh": array([-46, -5, 56]),
-        "rh": array([-46, -5, 56]),  # from inspection
-        "t": array([-59, 4, 13]),  # from inspection
+        "f": array([-14, -25, 77]),
+        "h": array([-46, -5, 56]),
+        "t": array([-59, 4, 13]),
     },
     "right": {
-        "lf": array([14, -25, 77]),
-        "rf": array([14, -25, 77]),  # from inspection
-        "lh": array([46, -5, 56]),
-        "rh": array([46, -5, 56]),  # from inspection
-        "t": array([59, 4, 13]),  # from inspection
+        "f": array([14, -25, 77]),
+        "h": array([46, -5, 56]),
+        "t": array([59, 4, 13]),
     },
 }
 

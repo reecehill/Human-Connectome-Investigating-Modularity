@@ -1,5 +1,4 @@
-from typing import Any, Callable, Optional, TypedDict, Union, cast
-from sklearn.feature_selection import chi2
+from typing import Any, Callable, Optional, Union, cast
 from sklearn.calibration import LabelEncoder
 from sklearn.metrics import (
     mutual_info_score,
@@ -18,8 +17,6 @@ from sklearn.metrics import (
 from scipy.stats.contingency import association, chi2_contingency
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
-import modules.globals as g
 
 from includes.statistics.utils import (
     XYZDict,
@@ -156,9 +153,9 @@ ResultRowModuleWide = tuple[
     Float,
     Float,
     str,
-    Float,
-    Float,
-    Float,
+    Union[str, Float],
+    Union[str, Float],
+    Union[str, Float],
     str,
     str,
 ]

@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Dict, Optional, Union, cast
-from includes.statistics.utils import enlarge_mask_with_mode_priority
+from typing import Any, Optional, Union, cast
+from includes.statistics.utils import enlarge_mask_with_mode_priority, populateModuleMetrics
 import modules.globals as g
 
 
@@ -146,33 +146,29 @@ def get_main_fn_module_by_topology(
 ) -> "tuple[pd.Series[int],pd.Series[int]]":
     import config
 
-    centroid_coords: "pd.DataFrame" = kwargs.get("centroid_coords", pd.DataFrame([]))
-    if centroid_coords.empty:
-        raise ValueError("Centroid coordinates are required for this method.")
+    y_fn_module_distances = populateModuleMetrics(y, centroid_coords=y.attrs["centroid_coords"])
 
-    unique_y_modules = y.unique()
-    y_modules_centroids = np.full((len(unique_y_modules), 3), np.nan)
+    # Get the functional modules matching the current task.
+    modules_of_current_task = [
+        item['module_id']
+        for i, item in enumerate(y_fn_module_distances)
+        if item.get("closest_roi") == config.CURRENT_TASK[-1]
+    ]
 
-    for y_module_index, y_module_name in enumerate(unique_y_modules):
-        y_indices = y[y == y_module_name].index
-        y_modules_centroids[y_module_index] = centroid_coords[y_indices].mean(axis=1)
+    if len(modules_of_current_task) == 0:
+        g.logger.warning("No modules found for the current task. We're going to try and select the 2nd closest module.")
+        
+        return (x, y)
+
+    if (len(modules_of_current_task) > 1):
         pass
 
-
-    expected_module_location = config.REFERENCE_POINTS[config.CURRENT_HEMISPHERE][
-        config.CURRENT_TASK
-    ]
-    distances = np.linalg.norm(y_modules_centroids - expected_module_location, axis=1)
-
-    # Find the y module with the minimum distance
-    closest_module_index = np.argmin(distances)
-    closest_module = unique_y_modules[closest_module_index]
 
     # Filter x and y to only contain the data points belonging to the closest module
     x_filtered = x.copy()
     y_filtered = y.copy()
 
-    y_filtered = y[y == closest_module]
+    y_filtered = y[y.isin(modules_of_current_task)]
     x_filtered = x[y_filtered.index]
 
     for preHandlerSize, moduleSet in [(x.size, x_filtered), (y.size, y_filtered)]:
@@ -180,15 +176,9 @@ def get_main_fn_module_by_topology(
             {
                 "dataset_descriptors": {
                     **moduleSet.attrs.get("dataset_descriptors", {}),
-                    "fn_module_name": f"fnModule_{closest_module}",
+                    "fn_module_names": modules_of_current_task,
                 },
-                "applied_handlers": moduleSet.attrs["applied_handlers"]
-                + [
-                    {
-                        "name": "get_main_fn_module_by_topology",
-                        "metadata": {"pre_handler_length": preHandlerSize},
-                    }
-                ],
+                "metrics": y_fn_module_distances,
             }
         )
 
@@ -199,6 +189,10 @@ def filter_by_parent(
     x: "pd.Series[Any]", y: "pd.Series[Any]", **kwargs: Any
 ) -> "tuple[pd.Series[Any],pd.Series[Any]]":
     xRetrievalMethod = kwargs.get("xRetrievalMethod", "getMode")
+
+    if(xRetrievalMethod  =="getMode"):
+        pass
+    
     hardMask = kwargs.get("hardMask", False)
     orig_x: "pd.Series[Any]" = kwargs.get("orig_x", pd.Series())
 

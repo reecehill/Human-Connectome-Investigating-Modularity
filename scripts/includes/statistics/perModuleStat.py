@@ -1,5 +1,5 @@
 # Re-importing necessary libraries and preparing data again
-from typing import Any, Dict, List, Literal, Union, cast
+from typing import Any, Dict, Union, cast
 import numpy as np
 from includes.statistics.nan_handlers import white_noise
 from includes.statistics.testFunctions import pad_indexes
@@ -85,7 +85,6 @@ def perModuleStat(
         nan_handlers=[
             # "mask_removeMissing",
             "get_main_fn_module_by_topology",
-            "filter_by_parent",
         ],
         x=x_final,
         y=y_final,
@@ -230,7 +229,7 @@ def perModuleStat(
         # Run tests for X as truth
         for test_name, test_func in test_functions_with_range:
             try:
-                score_x_defined: Float = test_func(
+                score_x_defined: "Union[str,Float]" = test_func(
                     x_final_module, y_final_module_within_x
                 )
 
@@ -245,7 +244,7 @@ def perModuleStat(
                 ).astype(y_final_module_within_x.dtype)
                 random_y.attrs = y_final_module_within_x.attrs
 
-                score_x_imported_random_y: Float = test_func(
+                score_x_imported_random_y: "Union[str,Float]" = test_func(
                     x_final_module,
                     random_y,
                 )
@@ -261,7 +260,7 @@ def perModuleStat(
                 ).astype(x_final_module.dtype)
                 random_x.attrs = x_final_module.attrs
 
-                score_x_random_y_imported: Float = test_func(
+                score_x_random_y_imported: "Union[str,Float]" = test_func(
                     random_x,
                     y_final_module_within_x,
                 )

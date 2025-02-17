@@ -52,7 +52,12 @@ def clean_data(
             # Build the title with the current nan_handler in bold
             title = title if title else None
             x_temp, y_temp = clean_data(
-                [nan_handler], x_temp, y_temp, title=title, dataset_name=dataset_name, **kwargs
+                [nan_handler],
+                x_temp,
+                y_temp,
+                title=title,
+                dataset_name=dataset_name,
+                **kwargs,
             )
         x_out, y_out = (
             x_temp,
@@ -80,24 +85,36 @@ def clean_data(
             x_out, y_out = x.dropna(), y.dropna()
         elif nan_handler == "type_consistency":
             # Ensure same type for x and y
-            if x.dtype != y.dtype or x.attrs["dataset_descriptors"]["data_type"] != y.attrs["dataset_descriptors"]["data_type"]:
-                raise ValueError(f"Data types of x and y should be the same. x: {x.dtype}, y: {y.dtype} | x: {x.attrs['dataset_descriptors']['data_type']}, y: {y.attrs['dataset_descriptors']['data_type']}")
+            if (
+                x.dtype != y.dtype
+                or x.attrs["dataset_descriptors"]["data_type"]
+                != y.attrs["dataset_descriptors"]["data_type"]
+            ):
+                raise ValueError(
+                    f"Data types of x and y should be the same. x: {x.dtype}, y: {y.dtype} | x: {x.attrs['dataset_descriptors']['data_type']}, y: {y.attrs['dataset_descriptors']['data_type']}"
+                )
 
             # Ensure same length for x and y
             if len(x) != len(y):
-                raise ValueError(f"Length of x and y should be the same. x: {len(x)}, y: {len(y)}")
+                raise ValueError(
+                    f"Length of x and y should be the same. x: {len(x)}, y: {len(y)}"
+                )
 
             x_out, y_out = x.copy(), y.copy()
 
             # Convert np.nan and -1 to "missing-B" for words of data type
             if x.attrs["dataset_descriptors"]["data_type"] == "words":
-                x_out.replace([np.nan,-1,"nan"], "missing-B", inplace=True)
-                y_out.replace([np.nan,-1,"nan"], "missing-B", inplace=True)
+                x_out.replace([np.nan, -1, "nan"], "missing-B", inplace=True)
+                y_out.replace([np.nan, -1, "nan"], "missing-B", inplace=True)
 
             # Convert any string containing "missing" and np.nan to -1 (int) for integers of data type
             if x.attrs["dataset_descriptors"]["data_type"] == "int":
-                x_out.replace([r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True)
-                y_out.replace([r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True)
+                x_out.replace(
+                    [r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True
+                )
+                y_out.replace(
+                    [r".*missing.*", np.nan, "nan"], -1, regex=True, inplace=True
+                )
 
         elif nan_handler == "save":
             # Purpose of running clean_data is just to save the data.
@@ -129,13 +146,12 @@ def clean_data(
                             ),
                         }
                     ),
-                    "applied_handlers": out.attrs["applied_handlers"]
-                    + [
+                    "applied_handlers": out.attrs.get("applied_handlers", []).append(
                         {
                             "name": nan_handler,
                             "metadata": {"pre_handler_length": preHandlerSize},
                         }
-                    ],
+                    ),
                     "metrics": {
                         "distances_from_rois": populateModuleMetrics(
                             out, out.attrs["centroid_coords"]
@@ -143,14 +159,6 @@ def clean_data(
                     },
                 }
             )
-
-        appliedHandlers = "-".join(
-            [
-                str(applied_handler["name"]).lower()
-                for applied_handler in x.attrs["applied_handlers"]
-            ]
-            + [str(nan_handler).upper()]
-        )
 
         title = title if title else "View path for applied nan handlers"
         save_modules(x_out, y_out, title=f"{title}")

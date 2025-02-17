@@ -8,6 +8,8 @@ import numpy.typing as npt
 import numpy as np
 import modules.globals as g
 from types import ModuleType
+
+
 def loadRoiIds() -> "npt.NDArray[np.int64]":
     roiIds: pd.DataFrame = pd.read_csv(
         (config.SUBJECT_DIR / f"{config.CURRENT_HEMISPHERE}_ROIids.csv")
@@ -25,7 +27,7 @@ def loadVertices(faces: pd.DataFrame) -> pd.DataFrame:
     cacheLabel = f"{str(pathToVertices)}{hash_vars(config)}-vertices"
 
     if cacheLabel in globals():
-        g.logger.info(f"{cacheLabel} in globals()")
+        g.logger.debug(f"{cacheLabel} in globals()")
         return globals()[cacheLabel]
     else:
         with File(pathToVertices, "r") as f:
@@ -42,7 +44,7 @@ def loadVertices(faces: pd.DataFrame) -> pd.DataFrame:
 def hash_vars(module: ModuleType) -> str:
     """
     Hashes only user-defined variables from an imported module.
-    
+
     Parameters:
         module (types.ModuleType): The module to process.
 
@@ -50,19 +52,21 @@ def hash_vars(module: ModuleType) -> str:
         str: SHA-256 hash of the module's user-defined variables.
     """
     user_vars: dict[str, Any] = {
-        k: v for k, v in vars(module).items()
+        k: v
+        for k, v in vars(module).items()
         if not k.startswith("__") and not callable(v) and not isinstance(v, type)
     }
 
     # Convert dictionary to a sorted tuple for consistent hashing
     return hashlib.sha256(str(sorted(user_vars.items())).encode()).hexdigest()
 
+
 def loadFaces(onlyRoi: bool = True) -> pd.DataFrame:
     pathToFaces = config.SUBJECT_DIR / "labelSRF.mat"
 
-    cacheLabel = f"{str(pathToFaces)}{hash_vars(config)}-faces"
+    cacheLabel = f"{str(pathToFaces)}{hash_vars(config)}-faces-{onlyRoi}"
     if cacheLabel in globals():
-        g.logger.info(f"{cacheLabel} in globals()")
+        g.logger.debug(f"{cacheLabel} in globals()")
 
         return globals()[cacheLabel]
     else:
@@ -71,17 +75,18 @@ def loadFaces(onlyRoi: bool = True) -> pd.DataFrame:
             # faces_R = pd.DataFrame(f[f'lo_grpfaces'][:]).T
             # faces = pd.concat([faces_L, faces_R], ignore_index=True)
             faces = (
-                pd.DataFrame(f[f"lo_g{config.CURRENT_HEMISPHERE[0].lower()}pfaces"][:]).T
+                pd.DataFrame(
+                    f[f"lo_g{config.CURRENT_HEMISPHERE[0].lower()}pfaces"][:]
+                ).T
                 - 1
             )  # We minus one as Python indexes from zero
 
-        # TODO: Should not have 64980 hardcoded.
-        
         if onlyRoi:
             roiIds = loadRoiIds().tolist()
             if config.CURRENT_HEMISPHERE == "right":
-                roiIds = (np.array(roiIds)-64980).tolist()    
-            faces =  faces.iloc[roiIds]
+                # TODO: Should not have 64980 hardcoded.
+                roiIds = (np.array(roiIds) - 64980).tolist()
+            faces = faces.loc[roiIds]
         globals()[cacheLabel] = faces
         return faces
 

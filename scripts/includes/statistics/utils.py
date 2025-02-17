@@ -159,20 +159,26 @@ def convertNumericalModulesToWords(
     return x_as_words, y_as_words, label_to_word_map_xory
 
 
-def populateModuleMetrics(xory: "pd.Series[Any]", centroid_coords: "pd.DataFrame"):
+def populateModuleMetrics(xory: "pd.Series[Any]", centroid_coords: "pd.DataFrame") -> list[dict[str, Any]]:
     return sorted(
         [
             compute_module_distances(xory, centroid_coords, x_id)
             for x_id in xory.unique()
         ],
-        key=lambda d: (str(d["x_module_id"])),
+        key=lambda d: (
+            str(d["module_id"]) in ("-1", "missing"),
+            str(d["module_id"]).lower().endswith("missing"), # ensure missing are always last
+            d["module_id"],
+        ),
     )
 
 
 def compute_module_distances(
-    x: "pd.Series[Any]", centroid_coords: "pd.DataFrame", x_module_id: "Union[str,int]"
+    x: "pd.Series[Any]", centroid_coords: "pd.DataFrame", module_id: "Union[str,int]"
 ) -> "dict[str, Any]":
-    faceIds: "pd.Index" = x.where(x == x_module_id).dropna().index
+    faceIds: "pd.Series[Any]" = x.where(x == module_id).dropna()
+
+    # Get the mapping from the reindexedFaces handler, if available.
     adjacentMapping = next(
         (
             handler["metadata"]["mapping"]
@@ -181,11 +187,21 @@ def compute_module_distances(
         ),
         None,
     )
+
     if adjacentMapping is None:
-        original_faceIds = faceIds
+        original_faceIds = faceIds.index
     else:
-        original_faceIds = adjacentMapping[np.argsort(faceIds)]
-        
+        inverse_mapper = pd.Index(np.argsort(adjacentMapping))
+
+        # Post-processing, some indices may have since been removed.
+        # Remove these now.
+        valid_mask = np.isin(
+            inverse_mapper, faceIds.index
+        )  # Boolean mask for valid indices
+        inverse_mapper_corrected = inverse_mapper[valid_mask]
+
+        original_faceIds = faceIds[inverse_mapper_corrected].index
+
     module_centroid = np.array(
         list(calculateAreaWeightedCentroid(original_faceIds).values())
     )
@@ -199,10 +215,13 @@ def compute_module_distances(
     # Sort by ascending distance
     distances_sorted = sorted(distances, key=lambda d: d["distance"])
 
+    rois = {i: roi for i, roi in enumerate(distances_sorted)}
+    
     return {
-        "x_module_id": x_module_id,
+        "module_id": module_id,
         "module_centroid": module_centroid,
-        "rois": {i: roi for i, roi in enumerate(distances_sorted)},
+        "closest_roi": rois[0]['name'],
+        "rois": rois,
     }
 
 
@@ -500,11 +519,16 @@ def getCentroid(
 
 
 def calculateAreaWeightedCentroid(faceIds: "pd.Index[int]") -> XYZDict:
+    # Finds the area weighted centroid of the module, then maps it back to the surfacce to ensure a point on surface.
+
     faces_o, vertices = loadFacesAndVertices(onlyRoi=True)
     faces = faces_o.reset_index(drop=True, inplace=False)
+    
     vertices = vertices.to_numpy()
 
-    facesOfModule = faces.iloc[faceIds]
+    facesOfModule = faces.loc[faceIds]
+    test = facesOfModule.iloc[0]
+    test1 = facesOfModule.iloc[:, 1]
     v1, v2, v3 = (
         vertices[facesOfModule.iloc[:,0]],
         vertices[facesOfModule.iloc[:,1]],
@@ -520,10 +544,17 @@ def calculateAreaWeightedCentroid(faceIds: "pd.Index[int]") -> XYZDict:
     # Compute area-weighted centroid
     weighted_centroid = np.sum(centroids.T * areas, axis=1) / np.sum(areas)
 
+    # Map the centroid back to a vertex on the module
+    all_vertices = np.vstack((v1, v2, v3))  # Stack all vertices together
+    distances = np.linalg.norm(
+        all_vertices - weighted_centroid, axis=1
+    )  # Compute distances
+    closest_vertex = all_vertices[np.argmin(distances)]  # Find the closest point
+
     centroid_coords: XYZDict = {
-        "x": float(weighted_centroid[0]),
-        "y": float(weighted_centroid[1]),
-        "z": float(weighted_centroid[2]),
+        "x": float(closest_vertex[0]),
+        "y": float(closest_vertex[1]),
+        "z": float(closest_vertex[2]),
     }
     return centroid_coords
 

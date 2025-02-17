@@ -95,7 +95,7 @@ else:
                 "rh",
                 "t",
             ]
-            allHemispheres: List[Literal["left", "right"]] = ["left", "right"]
+            allHemispheres: List[Literal["left", "right"]] = ["left","right"]
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
 
             # We now mimic the prepStep setup just to get a figure
@@ -104,10 +104,18 @@ else:
             }
             g.allSteps = allSteps
             subjectSample = ['106824']
-            for subjectId in subjectSample:
-                prepStep(subjectId, "plotRoiRegion", hemisphere="left", task="lh")
-                plotRoiRegion(subjectId, pathTo=pathTo)
-                plotTimelines(subjectId, pathTo=pathTo)
+            for currentHemisphere in allHemispheres:
+                for currentTask in allTasks:
+                    for subjectId in subjectSample:
+                        prepStep(
+                            subjectId,
+                            "plotRoiRegion",
+                            hemisphere=currentHemisphere,
+                            task=currentTask,
+                        )
+                        # plotRoiRegion(subjectId, pathTo=pathTo)
+                        plotTimelines(subjectId, pathTo=pathTo)
+                        pass
             subjectSample: List[str] = config.ALL_SUBJECTS[26:31]
             # Wrapper function to combine filtering and plotting
             make_boxplots(

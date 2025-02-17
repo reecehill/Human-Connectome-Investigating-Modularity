@@ -14,6 +14,7 @@ def reindexFacesToEnsureAdjacency(
         originalIndicesFile = "lh.L_precentral_L_faceIds.csv"
     elif config.CURRENT_HEMISPHERE == "right":
         originalIndicesFile = "rh.R_precentral_R_faceIds.csv"
+
     else:
         raise ValueError(f"Invalid hemisphere: {config.CURRENT_HEMISPHERE}")
 
@@ -21,6 +22,10 @@ def reindexFacesToEnsureAdjacency(
         config.SUBJECT_DIR / "exported_modules" / originalIndicesFile,
         header=None,
     ).T[0] # 1, 2 ..., ~4800
+
+    if config.CURRENT_HEMISPHERE == "right":
+        # TODO: Should not have to hardcode 64980
+        original_indices = original_indices - 64980
 
     mat_file_path = config.SUBJECT_DIR / "edgeList.mat"
     with h5py.File(mat_file_path, "r") as f:  # type: ignore
@@ -33,13 +38,13 @@ def reindexFacesToEnsureAdjacency(
     del edge_list_local
 
     # Step 1: Sort faces by Z-Coordinate
-    sorted_face_indices = np.lexsort(
+    sorted_face_indices = pd.Index(np.lexsort(
         [
             centroid_coords.iloc[1, :],
             centroid_coords.iloc[0, :],
             centroid_coords.iloc[2, :],
         ]
-    )  # Sorting by Z-coordinate
+    ))  # Sorting by Z-coordinate
 
     x_sorted = x.iloc[sorted_face_indices].reset_index(drop=True)
     y_sorted = y.iloc[sorted_face_indices].reset_index(drop=True)
@@ -175,7 +180,7 @@ def reindexFacesToEnsureAdjacency(
             np.linspace(0, 1, len(centroids_reordered.T[0])),
             index=centroids_reordered.T[0].index,
         )
-        
+
         scatter2 = ax2.scatter(
             x1,
             y1,

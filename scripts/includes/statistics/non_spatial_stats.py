@@ -1,8 +1,6 @@
 # Re-importing necessary libraries and preparing data again
 from typing import Dict, Union
 
-from matplotlib.collections import PathCollection
-
 from includes.statistics.reindexFaces import reindexFacesToEnsureAdjacency
 import modules.globals as g
 import pandas as pd
@@ -11,10 +9,8 @@ from includes.statistics.perModuleStat import perModuleStat
 from includes.statistics.perSubjectStat import perSubjectStat
 from pathlib import Path
 from includes.statistics.utils import (
-    compute_module_distances,
     convertNumericalModulesToWords,
     mapAllModulesToSameSet,
-    populateModuleMetrics,
 )
 from includes.statistics.clean_data import clean_data
 

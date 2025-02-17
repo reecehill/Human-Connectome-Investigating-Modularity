@@ -19,7 +19,9 @@ from includes.statistics import (
 
 
 def plotTimelines(subjectId: str, pathTo: dict[str, Path]) -> None:
-    subjectDirectory = config.SUBJECT_DIR / "statistics"
+    subjectDirectory = (
+        config.SUBJECT_DIR / "statistics" / f"{config.CURRENT_HEMISPHERE}_hemisphere" / "datasets" / config.CURRENT_TASK
+    )
 
     # Retrieve only "s-" and "f-" prefixed files
     files = [
@@ -108,26 +110,31 @@ def plotTimeline(
     mpl.rcParams["svg.fonttype"] = "none"  # Avoid embedding fonts
 
     plt.rcParams["svg.fonttype"] = "none"
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 15))
+    fig, (ax1, ax2) = plt.subplots(2, 2, figsize=(38, 20))
+
+    fig.tight_layout()
     fig.suptitle(title if title else "Figure")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # Add the timestamp as a footer using figtext
-    plt.figtext(
-        0.5,
-        -0.05,
-        f"Generated on: {timestamp}",
-        ha="center",
-        fontsize=10,
-        style="italic",
+    y_fn_module_distances = y_full.attrs.get(
+        "metrics",
+        populateModuleMetrics(y_full, centroid_coords=y_full.attrs["centroid_coords"]),
     )
-
-    for subplottitle, x1, y1, ax in [
-        ("Full Sequence (Soft Mask)", x_full, y_full, ax1),
-        ("Module only sequence (Hard Mask)", x, y, ax2),
+    for subplottitle, x1, y1, ax, table in [
+        ("Full Sequence (Soft Mask)", x_full, y_full, ax1[0], ax1[1]),
+        ("Module only sequence (Hard Mask)", x, y, ax2[0], ax2[1]),
     ]:
-        results: "list[Any]" = []
-
+        results: "list[Any]" = [
+            (
+                "Struc. Modules",
+                len(x1),
+                "N/A",
+            ),
+            (
+                "Func. Modules",
+                len(y1),
+                "N/A",
+            ),
+        ]
         for test_name, test_func in test_functions_with_range:
             try:
                 score_x_defined: "Union[Float,str]" = test_func(x1, y1)
@@ -145,7 +152,6 @@ def plotTimeline(
         # Create a DataFrame for easier manipulation
         df = pd.DataFrame({"x": x1, "y": y1, "Index": x1.index})
 
-        # Map x and y values to their corresponding positions
         jitter_strength = 0.01  # Adjust this value if needed
         x_mapped = df["x"].map(category_to_position) + np.random.uniform(
             -jitter_strength, jitter_strength, df["x"].shape
@@ -176,8 +182,8 @@ def plotTimeline(
             s=5,
             label="Structural modules",
             marker="^",
+            alpha=0.9,
         )
-
         ax.scatter(
             df["Index"],
             y_mapped - 0.1,  # Align y with its category
@@ -185,48 +191,15 @@ def plotTimeline(
             s=5,
             label="Functional modules",
             marker="^",
+            alpha=0.9,
         )
 
         # Adding horizontal grid lines between categories
         for i in range(len(categories) + 1):
             ax.axhline(y=i - 0.5, color="gray", linestyle="-", linewidth=0.5)
 
-        # Adjusting y-axis
-        newline = "\n"
-        y_fn_module_distances = x1.attrs.get(
-            "metrics", populateModuleMetrics(x1, x1.attrs["centroid_coords"])
-        )
-        y_labels = {}
-        for i, val in enumerate(categories):
-            y_labels[val] = f"Module {val}{newline}"
-            # Find dictionary where x_module_id is 'val'
-            matching_roi = next(
-                (item for item in y_fn_module_distances if item["x_module_id"] == val),
-                None,
-            )
-            # Extract first roi value (i.e., the closest by distance) if found
-            first_roi_value = (
-                next(iter(matching_roi["rois"].values())) if matching_roi else None
-            )
-
-            if first_roi_value and matching_roi:
-                y_labels[
-                    val
-                ] += f"{first_roi_value['name']} ({first_roi_value['distance']:.2f}mm)"
-                y_labels[
-                    val
-                ] += f"{newline}{np.array2string(matching_roi['module_centroid'], precision=2, separator=', ')[1:-1]}"
-                y_labels[
-                    val
-                ] += f"{newline}{first_roi_value['hemi']}"
-                y_labels[
-                    val
-                ] += f"{newline}"
-            else:
-                y_labels[val] += "No closest ROI found"
-
         ax.set_yticks(np.arange(len(categories)))
-        ax.set_yticklabels(list(y_labels.values()))
+        ax.set_yticklabels(categories)
         ax.set_xlim(min(x1.index), max(x1.index))  # Full index range to show gaps
         ax.set_xticks(
             np.linspace(min(x1.index), max(x1.index), num=10)
@@ -248,33 +221,70 @@ def plotTimeline(
             0.9
         )  # Set background transparency (0 = fully transparent, 1 = solid)
 
-        results_content = (
-            "MASK RESULTS:\n"
-            + f"Struc Faces: {len(x1)}"
-            + "\n"
-            + f"Func Faces: {len(y1)}"
-            + "\n"
-            + "\n".join(
-                [f"{name}: {value} ({bounds})" for name, value, bounds in results]
-            )
+        table.table(
+            cellText=results,
+            colLabels=["Statistical Test", "Value", "Boundaries"],
+            cellLoc="center",
+            loc="best",
         )
-        stats_box = AnchoredText(
-            results_content, loc="lower right", prop=dict(size=10), frameon=True
-        )
-        stats_box.patch.set_alpha(
-            0.8
-        )  # Set background transparency (0 = fully transparent, 1 = solid)
-        stats_box.set_zorder(level=20)  # Higher value brings it to the front
+        table.set_frame_on(False)
+        table.xaxis.set_visible(False)
+        table.yaxis.set_visible(False)
 
         ax.add_artist(text_box)
-        ax.add_artist(stats_box)
         ax.legend(loc="upper right")
         fig.canvas.draw()
 
     createDirectories([filePath], createParents=True, throwErrorIfExists=False)
     filename = f"{title if title else '-'.join(applied_handler['name'] for applied_handler in x.attrs['applied_handlers'])}"
     svgPath = filePath / f"{filename}_timeline.svg"
+    # Add the timestamp as a footer using figtext
+
+    # Adding y label information to footer.
+    newline = "\n"
+    bottom_text = f"Generated on: {timestamp}{newline}"
+    y_labels = {}
+    for i, val in enumerate(categories):
+        y_labels[val] = f"Module {val}{newline}"
+        # Find dictionary where module_id is 'val'
+        matching_roi = next(
+            (item for item in y_fn_module_distances if item["module_id"] == val),
+            None,
+        )
+        # Extract first roi value (i.e., the closest by distance) if found
+        first_roi_value = (
+            next(iter(matching_roi["rois"].values())) if matching_roi else None
+        )
+
+        if first_roi_value and matching_roi:
+            if first_roi_value["name"] == y_full.attrs["dataset_descriptors"]["task"][-1]:
+                for ax in [ax1[0], ax2[0]]:
+                    ax.axhspan(i - 0.5, i + 0.5, facecolor="yellow", alpha=0.3)
+            y_labels[
+                val
+            ] += f"{first_roi_value['name']} ({first_roi_value['distance']:.2f}mm)"
+            y_labels[
+                val
+            ] += f"{newline}{np.array2string(matching_roi['module_centroid'], precision=2, separator=', ')[1:-1]}"
+            y_labels[val] += f"{newline}{first_roi_value['hemi']}"
+            y_labels[val] += f"{newline}"
+        else:
+            y_labels[val] += f"No closest ROI found{newline}"
+
+    bottom_text += "\n".join(list(y_labels.values()))
+
+    pos_below_subplot = (ax2[0].get_position().y0 + ax2[0].get_position().y1) / 2
+    plt.figtext(
+        0.5,
+        -pos_below_subplot - 0.1 - (len(y_labels) * 0.02),
+        bottom_text,
+        ha="center",
+        fontsize=10,
+        style="italic",
+    )
     plt.tight_layout()
+    fig.canvas.draw()
+
     # buffer = io.BytesIO()
     plt.savefig(
         svgPath,
@@ -285,4 +295,6 @@ def plotTimeline(
     )
     # with gzip.open(f"{svgPath}.gz", "wb") as f_out:
     #     f_out.write(buffer.getvalue())
-    plt.close()
+    plt.show()
+    pass
+    # plt.close()

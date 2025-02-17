@@ -263,7 +263,7 @@ FMRI_THRESHOLD_TO_BINARISE = 1.0
 # ----------
 # [START] PARTICIPANT PARAMETERS
 # ----------
-ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[30:31]
+ALL_SUBJECTS: "list[str]" = all_healthy_young_adults[:200]
 # ALL_SUBJECTS: "list[str]" = [all_healthy_young_adults[2]]
 # ALL_SUBJECTS: "list[str]" = ["100408"]
 SUBJECTS_INTO_N_BATCHES: int = 25  # Number of batches

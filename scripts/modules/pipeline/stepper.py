@@ -91,7 +91,6 @@ def cleanDirOfBatch(subjectBatch: List[str]):
             "*.trk",
             "*.nii.gz",
             "*.nii",
-            "*.gz",
             "*.gii",
             "*.label",
             "*.pial",

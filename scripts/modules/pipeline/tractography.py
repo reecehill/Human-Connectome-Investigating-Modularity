@@ -273,6 +273,24 @@ def trackFibres(subjectId: str) -> bool:
         lhEndPointsFile: str = lhTractFile.replace(".trk", ".mat")
         rhTractFile: str = destinationFile.replace("/1m", "/" + "R_" + "1m")
         rhEndPointsFile: str = rhTractFile.replace(".trk", ".mat")
+
+        # Run command on left hemisphere.
+        lhCmd = cmd.copy()
+        lhCmd = lhCmd + [
+            f"--tip_iteration=16",
+            f"--output={lhTractFile}",
+            f"--end_point={lhEndPointsFile}",
+        ]
+
+        # Run command on right hemisphere.
+        rhCmd = cmd.copy()
+        rhCmd = rhCmd + [
+            f"--tip_iteration=16",
+            f"--output={rhTractFile}",
+            f"--end_point={rhEndPointsFile}",
+        ]
+        del cmd
+        
         if config.DSI_STUDIO_USE_ROI:
             if config.NORMALISE_TO_MNI152:
                 lhRoiFilePath_dti: Path = Path(
@@ -282,11 +300,12 @@ def trackFibres(subjectId: str) -> bool:
                         / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
                     ).replace(".nii.gz", ".dti_space.nii.gz")
                 ).resolve(strict=True)
-                # lhRoiFilePath: Path = (
-                #     config.SUBJECT_DIR
-                #     / "T1w"
-                #     / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["LEFT"]
-                # ).resolve(strict=True)
+                lhCmd = lhCmd + [
+                    # f'--lim={roiFile.resolve(strict=True)},dilation',
+                    f"--seed={lhRoiFilePath_dti}",
+                    # f'--end2={roiFile.resolve(strict=True)},dilation',
+                    f"--nend={lhRoiFilePath_dti},negate",
+                ]
                 rhRoiFilePath_dti: Path = Path(
                     str(
                         config.SUBJECT_DIR
@@ -294,48 +313,22 @@ def trackFibres(subjectId: str) -> bool:
                         / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
                     ).replace(".nii.gz", ".dti_space.nii.gz")
                 ).resolve(strict=True)
-                # rhRoiFilePath: Path = (
-                #     config.SUBJECT_DIR
-                #     / "T1w"
-                #     / config.IMAGES["T1w"]["STANDARD_RES"]["MASKS"]["RIGHT"]
-                # ).resolve(strict=True)
-
-                # Run command on left hemisphere.
-                lhCmd = cmd.copy()
-                lhCmd = lhCmd + [
-                    f"--tip_iteration=16",
-                    f"--output={lhTractFile}",
-                    f"--end_point={lhEndPointsFile}",
-                    # f'--lim={roiFile.resolve(strict=True)},dilation',
-                    f"--seed={lhRoiFilePath_dti}",
-                    # f'--end2={roiFile.resolve(strict=True)},dilation',
-                    f"--nend={lhRoiFilePath_dti},negate",
-                ]
-                iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=lhCmd))
-
-                # Run command on right hemisphere.
-                rhCmd = cmd.copy()
                 rhCmd = rhCmd + [
-                    f"--tip_iteration=16",
-                    f"--output={rhTractFile}",
-                    f"--end_point={rhEndPointsFile}",
                     # f'--lim={roiFile.resolve(strict=True)},dilation',
                     f"--seed={rhRoiFilePath_dti}",
                     # f'--end2={roiFile.resolve(strict=True)},dilation',
                     f"--nend={rhRoiFilePath_dti},negate",
                 ]
-                iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=rhCmd))
-
-                del cmd
-
-                iterationSuccess.append(
-                    mergeTracts(sourceFile, lhTractFile, rhTractFile, destinationFile)
-                )
+            else:
+                g.logger.error("ROI files are not yet supported for non-MNI152 normalisation.")
         else:
-            cmd = cmd + [
-                f"--output={destinationFile}",
-            ]
-            iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=cmd))
+            g.logger.info("ROI files are not used.")
+
+        iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=lhCmd))
+        iterationSuccess.append(call(cmdLabel="DSIStudio", cmd=rhCmd))
+        iterationSuccess.append(
+            mergeTracts(sourceFile, lhTractFile, rhTractFile, destinationFile)
+        )
 
         # ----------------------------------------------------------------
         # Export tracts as an image too
@@ -434,23 +427,22 @@ def registerFibresToMNI152(subjectId: str) -> bool:
         )
         refFile = config.SUBJECT_DIR / "T1w" / "aparc+aseg.nii.gz"
 
-        filesToExist = [refFile, diffusionMask]
-        if config.DSI_STUDIO_USE_ROI:
-            destinationFile: str = str(
-                destinationFolder / ("1m" + str(currentIteration) + ".trk")
-            )
-            lhTractFile: str = destinationFile.replace("/1m", "/" + "L_" + "1m")
-            lhEndPointsFile: str = lhTractFile.replace(".trk", ".mat")
-            filesToExist.append(Path(lhEndPointsFile))
-            rhTractFile: str = destinationFile.replace("/1m", "/" + "R_" + "1m")
-            rhEndPointsFile: str = rhTractFile.replace(".trk", ".mat")
-            filesToExist.append(Path(rhEndPointsFile))
-        else:
-            raise Exception("Logic is needed if DSI_STUDIO_USE_ROI is disabled")
+        remoteFilesToExist = [refFile, diffusionMask]
+        localFilesToExist = []
+        destinationFile: str = str(
+            destinationFolder / ("1m" + str(currentIteration) + ".trk")
+        )
+        lhTractFile: str = destinationFile.replace("/1m", "/" + "L_" + "1m")
+        lhEndPointsFile: str = lhTractFile.replace(".trk", ".mat")
+        localFilesToExist.append(Path(lhEndPointsFile))
+        rhTractFile: str = destinationFile.replace("/1m", "/" + "R_" + "1m")
+        rhEndPointsFile: str = rhTractFile.replace(".trk", ".mat")
+        localFilesToExist.append(Path(rhEndPointsFile))
 
+        _ = [getFile(localPath=fileToExist) for fileToExist in remoteFilesToExist]
         _ = [
             getFile(localPath=fileToExist, localOnly=True)
-            for fileToExist in filesToExist
+            for fileToExist in localFilesToExist
         ]
 
         # ----------------------------------------------------------------
@@ -460,8 +452,8 @@ def registerFibresToMNI152(subjectId: str) -> bool:
         rhEndPointsFileMat: npt.NDArray = loadmat(rhEndPointsFile)["end_points"].T
 
         # Load NIfTI files
-        anatomical_info = nib.load(f"{refFile}").header # type:ignore
-        diffusion_info = nib.load(f"{diffusionMask}").header # type:ignore
+        anatomical_info = nib.load(f"{refFile}").header  # type:ignore
+        diffusion_info = nib.load(f"{diffusionMask}").header  # type:ignore
 
         # Get pixel dimensions (voxel sizes)
         anatomical_voxel_size: float = anatomical_info.get_zooms()[:3]  # type:ignore
@@ -533,13 +525,17 @@ def registerFibresToMNI152(subjectId: str) -> bool:
         )
 
         # lhEndPointsFileMat_in_t1 stores the coordinates in CRS (RAS) format. We need to convert these to real world coordinates (*sform) and then to LPS for ANTS.
-        sform: npt.NDArray = anatomical_info.get_sform() # type:ignore
+        sform: npt.NDArray = anatomical_info.get_sform()  # type:ignore
         lhEndPointsFileMat_in_t1_xyz = sform.dot(lhEndPointsFileMat_in_t1.T)
         rhEndPointsFileMat_in_t1_xyz = sform.dot(rhEndPointsFileMat_in_t1.T)
 
         # Now convert to LPS.
-        lhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(lhEndPointsFileMat_in_t1_xyz)
-        rhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(rhEndPointsFileMat_in_t1_xyz)
+        lhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(
+            lhEndPointsFileMat_in_t1_xyz
+        )
+        rhEndPointsFileMat_in_t1_xyz_lps = T_RAS_to_LPS.dot(
+            rhEndPointsFileMat_in_t1_xyz
+        )
 
         lhEndPointsFileMat_MNI152_xyz_warped: npt.NDArray = (
             ants.apply_transforms_to_points(  # type:ignore
@@ -566,26 +562,18 @@ def registerFibresToMNI152(subjectId: str) -> bool:
 
         # Now revert back to RAS
         lhEndPointsFileMat_MNI152_xyz_ras_warped = (
-            np.linalg.inv(T_RAS_to_LPS)
-            .dot(lhEndPointsFileMat_MNI152_xyz_warped.T)
-            .T
+            np.linalg.inv(T_RAS_to_LPS).dot(lhEndPointsFileMat_MNI152_xyz_warped.T).T
         )
         rhEndPointsFileMat_MNI152_xyz_ras_warped = (
-            np.linalg.inv(T_RAS_to_LPS)
-            .dot(rhEndPointsFileMat_MNI152_xyz_warped.T)
-            .T
+            np.linalg.inv(T_RAS_to_LPS).dot(rhEndPointsFileMat_MNI152_xyz_warped.T).T
         )
 
         # Now revert back to CRS
         lhEndPointsFileMat_MNI152_ijk_ras_warped = (
-            np.linalg.inv(sform)
-            .dot(lhEndPointsFileMat_MNI152_xyz_ras_warped.T)
-            .T
+            np.linalg.inv(sform).dot(lhEndPointsFileMat_MNI152_xyz_ras_warped.T).T
         )
         rhEndPointsFileMat_MNI152_ijk_ras_warped = (
-            np.linalg.inv(sform)
-            .dot(rhEndPointsFileMat_MNI152_xyz_ras_warped.T)
-            .T
+            np.linalg.inv(sform).dot(rhEndPointsFileMat_MNI152_xyz_ras_warped.T).T
         )
 
         lhEndPointsFileMat_MNI152_warped = lhEndPointsFileMat_MNI152_ijk_ras_warped

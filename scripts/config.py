@@ -15,10 +15,10 @@ CPU_THREADS: int = cpu_count() - 2
 FORCE_RUN: bool = (
     False  # By enabling this feature, steps will proceed even if their previous steps do not have a "success" status.
 )
-USE_PARALLEL_PROCESSING: bool = False
+USE_PARALLEL_PROCESSING: bool = True
 DEBUG: bool = False
 COMPRESS_FILE: bool = (
-    False  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
+    True  # Compress files on-the-fly where possible. Recommended to only disable this for debugging.
 )
 # CPU_THREADS = 10
 
